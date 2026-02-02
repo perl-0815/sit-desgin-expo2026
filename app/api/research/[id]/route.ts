@@ -3,14 +3,15 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 type Params = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function GET(_req: Request, { params }: Params) {
+  const { id } = await params
   try {
     const research = await prisma.research.findUnique({
       // 詳細表示向けに学生情報を含める
-      where: { id: params.id },
+      where: { id },
       include: { student: true },
     })
 

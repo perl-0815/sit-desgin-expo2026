@@ -3,14 +3,15 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
 type Params = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export async function GET(_req: Request, { params }: Params) {
+  const { id } = await params
   try {
     const portfolio = await prisma.portfolio.findUnique({
       // 詳細表示時に学生情報も取得
-      where: { id: params.id },
+      where: { id },
       include: { student: true },
     })
 
