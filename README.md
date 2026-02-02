@@ -22,19 +22,19 @@ bun dev
 
 ローカルで Postgres を起動するためのスクリプトが含まれています。
 
-起動:
+起動（bashで実行してください）:
 
 ```bash
 ./scripts/docker-postgres.sh start
 ```
 
-状態確認:
+状態確認（bashで実行してください）:
 
 ```bash
 ./scripts/docker-postgres.sh status
 ```
 
-停止:
+停止（bashで実行してください）:
 
 ```bash
 ./scripts/docker-postgres.sh stop
@@ -49,8 +49,19 @@ DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schem
 
 マイグレーション実行:
 
+これは開発サーバ用
 ```bash
 npx prisma migrate dev
+```
+
+これは本番環境用
+```bash
+npx prisma migrate deploy
+```
+
+マイグレーションが終わった後にprisma clientの再生成をしてください
+```bash
+npx prisma generate
 ```
 
 ## スクリプト一覧
