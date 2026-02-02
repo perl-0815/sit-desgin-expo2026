@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Lab {
+  id            String   @id
+  name          String?
+  official_name String?
+  instructor    String?
+  course        String?
+  tagline       String?  @db.Text
+  keywords      String?  @db.Text
+  description   String?  @db.Text
+
+  students      Student[]
+}
+
+model Student {
+  id         String   @id
+  student_no String?
+  name       String?
+  name_kana  String?
+  lab_id     String?
+
+  lab        Lab?     @relation(fields: [lab_id], references: [id])
+  careers    Career[]
+  portfolios Portfolio[]
+  research   Research[]
+}
+
+model Career {
+  id              String  @id
+  student_id      String
+  category        String?
+  category_type   String?
+  detail          String? @db.Text
+  job_type        String?
+  decision_reason String? @db.Text
+  extra_notes     String? @db.Text
+  visibility      String?
+
+  student         Student @relation(fields: [student_id], references: [id])
+}
+
+model Portfolio {
+  id                    String  @id
+  student_id            String
+  title1                String? @db.Text
+  summary1              String? @db.Text
+  image1_url            String?
+  image1_thumb_url      String?
+  appeal_url_1          String?
+  title2                String? @db.Text
+  image2_url            String?
+  image2_thumb_url      String?
+  summary2              String? @db.Text
+  appeal_url_2          String?
+  overall_portfolio_url String?
+
+  student               Student @relation(fields: [student_id], references: [id])
+}
+
+model Research {
+  id                String  @id
+  student_id        String
+  title             String? @db.Text
+  image_url         String?
+  image_thumb_url   String?
+  summary           String? @db.Text
+  motivation        String? @db.Text
+  keywords          String? @db.Text
+  lab_relation      String? @db.Text
+  favorite_place    String? @db.Text
+  fun_in_research   String? @db.Text
+  fun_outside_research String? @db.Text
+  hard_episode      String? @db.Text
+  break_time        String? @db.Text
+  all_nighter_count String? @db.Text
+  want_to_continue  String? @db.Text
+
+  student           Student @relation(fields: [student_id], references: [id])
+}
