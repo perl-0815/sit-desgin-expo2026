@@ -10,6 +10,7 @@ export async function GET(_req: Request, { params }: Params) {
   try {
     const student = await prisma.student.findUnique({
       where: { id: params.id },
+      // 画面で必要になりやすい関連データをまとめて取得
       include: {
         lab: true,
         careers: true,
@@ -19,6 +20,7 @@ export async function GET(_req: Request, { params }: Params) {
     })
 
     if (!student) {
+      // 該当する学生がいない場合は 404
       return NextResponse.json({ error: "Student not found." }, { status: 404 })
     }
 

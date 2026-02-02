@@ -36,6 +36,7 @@ model Career {
   id              String  @id
   student_id      String
   category        String?
+  category_type   String?
   detail          String? @db.Text
   job_type        String?
   decision_reason String? @db.Text
