@@ -47,6 +47,46 @@ DATABASE_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schema=publi
 DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schema=public"
 ```
 
+## 環境変数
+
+このプロジェクトで使用している `.env` の主な環境変数をまとめます。
+
+### Prisma / Postgres
+
+- `DATABASE_URL`  
+  Prisma が使用する接続文字列。ローカル開発では Docker の Postgres を指します。
+- `DATABASE_DIRECT_URL`  
+  Prisma の一部コマンドで使われる直接接続用の文字列。通常は `DATABASE_URL` と同値。
+
+### Google Sheets (座談会予約フォーム)
+
+座談会予約フォームの応募状況を取得する API（`GET /api/roundtables`）で使用します。  
+サービスアカウントの JSON から以下を転記してください。
+
+- `GOOGLE_CLIENT_EMAIL`  
+  サービスアカウントの `client_email`。スプレッドシートに閲覧権限で共有が必要。
+- `GOOGLE_PRIVATE_KEY`  
+  サービスアカウントの `private_key`。改行は `\n` 形式で保存すること。
+- `GOOGLE_SHEET_ID`  
+  スプレッドシートの ID。URL の `/d/` と `/edit` の間にある文字列。
+- `GOOGLE_SHEET_NAME`  
+  取得対象のシート名（タブ名）。例: `フォームの回答１`
+
+### Cloudflare R2
+
+画像アップロード系のスクリプトで使用します。
+
+- `R2_ACCESS_KEY_ID`  
+  R2 のアクセスキー ID。
+- `R2_SECRET_ACCESS_KEY`  
+  R2 のシークレットキー。
+- `R2_BUCKET_NAME`  
+  使用するバケット名。
+- `R2_BUCKET_ENDPOINT`  
+  バケットにアクセスするためのエンドポイント。
+- `R2_ENDPOINT`  
+  R2 の S3 互換エンドポイント。
+
 マイグレーション実行:
 
 これは開発サーバ用
@@ -107,6 +147,20 @@ node scripts/upload-portfolio-images.js
 前提:
 - `.env` に R2 の以下の環境変数が設定されていること  
   `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_BUCKET_ENDPOINT`, `R2_ENDPOINT`
+
+### Google フォームの選択肢自動更新 (Apps Script)
+
+`scripts/update-form-choices.gs` に Google Apps Script の例を置いています。  
+回答スプレッドシートの応募数に応じて、フォームのチェックボックス選択肢から満員の座談会を削除します。
+
+使い方:
+- `FORM_ID`, `SHEET_NAME`, `QUESTION_TITLE`, `COUNT_TITLE` を実際の値に置き換え
+- Apps Script エディタに貼り付け
+- 5分おきの時間主導トリガーで `updateChoices` を実行
+
+注意:
+- フォームの質問文を変更した場合は `QUESTION_TITLE` / `COUNT_TITLE` を更新
+- 満員の選択肢は「削除」され、表示されなくなります
 
 このプロジェクトは [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) を使って [Geist](https://vercel.com/font) フォントを最適化して読み込みます。
 
