@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import Footer from "../components/Footer"
 import NavigationMenu from "../components/NavigationMenu"
@@ -28,7 +28,53 @@ type ExhibitionCard = {
   image: string
 }
 
-const exhibitionCards: ExhibitionCard[] = Array.from({ length: 6 }).map(
+type ApiRoundtableSession = {
+  id: string
+  start_at: string
+  end_at: string
+  capacity?: number | null
+  remaining?: number | null
+  is_full?: boolean | null
+  sort_order?: number | null
+}
+
+type ApiRoundtable = {
+  id: string
+  title?: string | null
+  description?: string | null
+  location?: string | null
+  schedule_note?: string | null
+  sessions?: ApiRoundtableSession[]
+}
+
+type ApiExhibition = {
+  id: string
+  title?: string | null
+  description?: string | null
+  author?: string | null
+  image_url?: string | null
+  image_thumb_url?: string | null
+  sort_order?: number | null
+}
+
+type RoundtableContent = {
+  title: string
+  description: string
+  location: string
+  scheduleNote: string
+  sessions: ApiRoundtableSession[]
+}
+
+const fallbackRoundtable: RoundtableContent = {
+  title: "卒業生との座談会",
+  description:
+    "これはダミー文章です。これから入学する大学がどんなところか知りたい高校生や、先輩がどんなことをしていたか知りたい在学生のための座談会です。",
+  location: "交流プラザ",
+  scheduleNote: "3/8(日),3/14(土),3/15(日)の午前・午後1回ずつ",
+  sessions: [],
+}
+
+const fallbackExhibitions: ExhibitionCard[] = Array.from({ length: 6 }).map(
   (_, index) => ({
     id: `exhibition-${index + 1}`,
     title: "体験展示のタイトルが入ります。体験展示のタイトルが入ります。",
@@ -41,41 +87,136 @@ const exhibitionCards: ExhibitionCard[] = Array.from({ length: 6 }).map(
 export default function EventsClient() {
   const [activeTab, setActiveTab] = useState<EventTab>("roundtable")
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [roundtable, setRoundtable] = useState<RoundtableContent>(
+    fallbackRoundtable,
+  )
+  const [exhibitions, setExhibitions] =
+    useState<ExhibitionCard[]>(fallbackExhibitions)
   const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>({
     "day-1": true,
   })
 
-  const scheduleDays: ScheduleDay[] = useMemo(
-    () => [
-      {
-        id: "day-1",
-        label: "3月8日(日)",
-        isExpanded: expandedDays["day-1"] ?? false,
-        slots: [
-          { id: "day-1-slot-1", time: "11:00~12:00", remaining: "残り2人" },
-          {
-            id: "day-1-slot-2",
-            time: "14:00~15:00",
-            remaining: "満員",
-            isFull: true,
-          },
-        ],
-      },
-      {
-        id: "day-2",
-        label: "3月14日(土)",
-        isExpanded: expandedDays["day-2"] ?? false,
-        slots: [],
-      },
-      {
-        id: "day-3",
-        label: "3月15日(日)",
-        isExpanded: expandedDays["day-3"] ?? false,
-        slots: [],
-      },
-    ],
-    [expandedDays],
-  )
+  useEffect(() => {
+    let active = true
+
+    const load = async () => {
+      try {
+        setIsLoading(true)
+        setLoadError(null)
+
+        const [roundtableRes, exhibitionRes] = await Promise.all([
+          fetch("/api/events/roundtables"),
+          fetch("/api/events/exhibitions"),
+        ])
+
+        if (!roundtableRes.ok || !exhibitionRes.ok) {
+          throw new Error("Failed to fetch event data.")
+        }
+
+        const [roundtableData, exhibitionData] = await Promise.all([
+          roundtableRes.json(),
+          exhibitionRes.json(),
+        ])
+
+        if (!active) return
+
+        if (Array.isArray(roundtableData) && roundtableData.length > 0) {
+          const primary = roundtableData[0] as ApiRoundtable
+          setRoundtable({
+            title: primary.title?.trim() || fallbackRoundtable.title,
+            description:
+              primary.description?.trim() || fallbackRoundtable.description,
+            location: primary.location?.trim() || fallbackRoundtable.location,
+            scheduleNote:
+              primary.schedule_note?.trim() || fallbackRoundtable.scheduleNote,
+            sessions: Array.isArray(primary.sessions) ? primary.sessions : [],
+          })
+        } else {
+          setRoundtable(fallbackRoundtable)
+        }
+
+        if (Array.isArray(exhibitionData) && exhibitionData.length > 0) {
+          const cards = exhibitionData.map((item: ApiExhibition) => ({
+            id: item.id,
+            title: item.title?.trim() || "体験展示のタイトルが入ります。",
+            author: item.author?.trim() || "苗字 名前",
+            image:
+              item.image_thumb_url?.trim() ||
+              item.image_url?.trim() ||
+              "/image/event_background.png",
+          }))
+          setExhibitions(cards)
+        } else {
+          setExhibitions(fallbackExhibitions)
+        }
+      } catch (error) {
+        if (!active) return
+        setLoadError("イベント情報の読み込みに失敗しました。")
+      } finally {
+        if (active) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    load()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (roundtable.sessions.length === 0) return
+
+    setExpandedDays((prev) => {
+      if (Object.keys(prev).length > 0) return prev
+      const firstKey = pickFirstDayKey(roundtable.sessions)
+      if (!firstKey) return prev
+      return { [firstKey]: true }
+    })
+  }, [roundtable.sessions])
+
+  const scheduleDays: ScheduleDay[] = useMemo(() => {
+    if (roundtable.sessions.length === 0) return []
+
+    const dayMap = new Map<
+      string,
+      { date: Date; slots: ScheduleSlot[] }
+    >()
+
+    for (const session of roundtable.sessions) {
+      const startAt = new Date(session.start_at)
+      const endAt = new Date(session.end_at)
+      if (Number.isNaN(startAt.getTime())) continue
+
+      const dayKey = buildDayKey(startAt)
+      const slot: ScheduleSlot = {
+        id: session.id,
+        time: formatTimeRange(startAt, endAt),
+        remaining: formatRemaining(session.remaining, session.is_full),
+        isFull: Boolean(session.is_full) || session.remaining === 0,
+      }
+
+      const existing = dayMap.get(dayKey)
+      if (existing) {
+        existing.slots.push(slot)
+      } else {
+        dayMap.set(dayKey, { date: startAt, slots: [slot] })
+      }
+    }
+
+    return Array.from(dayMap.entries())
+      .sort((a, b) => a[1].date.getTime() - b[1].date.getTime())
+      .map(([dayKey, value]) => ({
+        id: dayKey,
+        label: formatDateLabel(value.date),
+        isExpanded: expandedDays[dayKey] ?? false,
+        slots: value.slots.sort((a, b) => a.time.localeCompare(b.time)),
+      }))
+  }, [expandedDays, roundtable.sessions])
 
   const menuItems = [
     { id: "top", label: "TOP", href: "/" },
@@ -171,24 +312,24 @@ export default function EventsClient() {
       {activeTab === "roundtable" ? (
         <section className="px-4 pb-12 pt-10">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            卒業生との座談会
+            {roundtable.title}
           </h2>
           <div className="mt-4 space-y-2">
             <div className="flex items-center gap-2">
               <GradientIcon type="calendar" />
               <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                3/8(日),3/14(土),3/15(日)の午前・午後1回ずつ
+                {roundtable.scheduleNote}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <GradientIcon type="location" />
               <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                交流プラザ
+                {roundtable.location}
               </p>
             </div>
           </div>
           <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459]">
-            これはダミー文章です。これから入学する大学がどんなところか知りたい高校生や、先輩がどんなことをしていたか知りたい在学生のための座談会です。
+            {roundtable.description}
           </p>
 
           <div className="mt-10 space-y-4">
@@ -204,59 +345,70 @@ export default function EventsClient() {
 
           {/* 予約枠はアコーディオン式で展開し、空き状況を強調します。 */}
           <div className="mt-4 divide-y divide-[#EBEEF0]">
-            {scheduleDays.map((day) => (
-              <div key={day.id} className="py-6">
-                <button
-                  type="button"
-                  onClick={() => toggleDay(day.id)}
-                  className="flex w-full items-center justify-between"
-                >
-                  <span
-                    className={`text-[16px] font-medium ${
-                      day.isExpanded ? "text-[#D3793D]" : "text-[#2E3437]"
-                    }`}
+            {scheduleDays.length === 0 ? (
+              <p className="py-6 text-[13px] text-[#6A7378]">
+                {isLoading
+                  ? "読み込み中です。"
+                  : "現在表示できる座談会日程がありません。"}
+              </p>
+            ) : (
+              scheduleDays.map((day) => (
+                <div key={day.id} className="py-6">
+                  <button
+                    type="button"
+                    onClick={() => toggleDay(day.id)}
+                    className="flex w-full items-center justify-between"
                   >
-                    {day.label}
-                  </span>
-                  <span
-                    className={`text-[#A3ADB2] transition-transform ${
-                      day.isExpanded ? "rotate-180" : ""
-                    }`}
-                    aria-hidden="true"
-                  >
-                    <ChevronIcon />
-                  </span>
-                </button>
-                {day.isExpanded && day.slots.length > 0 ? (
-                  <div className="mt-4 flex gap-4">
-                    {day.slots.map((slot) => (
-                      <div
-                        key={slot.id}
-                        className={`flex flex-1 flex-col items-center justify-center rounded-[12px] border px-4 py-3 text-center shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
-                          slot.isFull
-                            ? "border-[#EBEEF0] bg-[#EBEEF0] text-[#A3ADB2]"
-                            : "border-[#FB9678] bg-[#F9F9F9] text-[#4B5459]"
-                        }`}
-                      >
-                        <p className="text-[13px] font-medium">
-                          {slot.time}
-                        </p>
-                        <p className="text-[10px] text-[#6A7378]">
-                          {slot.remaining}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
+                    <span
+                      className={`text-[16px] font-medium ${
+                        day.isExpanded ? "text-[#D3793D]" : "text-[#2E3437]"
+                      }`}
+                    >
+                      {day.label}
+                    </span>
+                    <span
+                      className={`text-[#A3ADB2] transition-transform ${
+                        day.isExpanded ? "rotate-180" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <ChevronIcon />
+                    </span>
+                  </button>
+                  {day.isExpanded && day.slots.length > 0 ? (
+                    <div className="mt-4 flex gap-4">
+                      {day.slots.map((slot) => (
+                        <div
+                          key={slot.id}
+                          className={`flex flex-1 flex-col items-center justify-center rounded-[12px] border px-4 py-3 text-center shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+                            slot.isFull
+                              ? "border-[#EBEEF0] bg-[#EBEEF0] text-[#A3ADB2]"
+                              : "border-[#FB9678] bg-[#F9F9F9] text-[#4B5459]"
+                          }`}
+                        >
+                          <p className="text-[13px] font-medium">
+                            {slot.time}
+                          </p>
+                          <p className="text-[10px] text-[#6A7378]">
+                            {slot.remaining}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            )}
           </div>
+          {loadError ? (
+            <p className="mt-4 text-[12px] text-[#D96E36]">{loadError}</p>
+          ) : null}
         </section>
       ) : (
         <section className="px-4 pb-12 pt-10">
           {/* 体験展示は2列グリッドで整列し、カードの高さを揃えます。 */}
           <div className="grid grid-cols-2 gap-6">
-            {exhibitionCards.map((card) => (
+            {exhibitions.map((card) => (
               <article key={card.id} className="space-y-2">
                 <div className="aspect-video overflow-hidden rounded-[4px]">
                   <img
@@ -282,6 +434,9 @@ export default function EventsClient() {
               </article>
             ))}
           </div>
+          {loadError ? (
+            <p className="mt-4 text-[12px] text-[#D96E36]">{loadError}</p>
+          ) : null}
         </section>
       )}
 
@@ -341,4 +496,42 @@ function ChevronIcon() {
       />
     </svg>
   )
+}
+
+const buildDayKey = (date: Date) =>
+  `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+
+const formatDateLabel = (date: Date) => {
+  const weekday = ["日", "月", "火", "水", "木", "金", "土"][date.getDay()]
+  return `${date.getMonth() + 1}月${date.getDate()}日(${weekday})`
+}
+
+const formatTime = (date: Date) =>
+  `${String(date.getHours()).padStart(2, "0")}:${String(
+    date.getMinutes(),
+  ).padStart(2, "0")}`
+
+const formatTimeRange = (startAt: Date, endAt: Date) => {
+  if (Number.isNaN(endAt.getTime())) {
+    return formatTime(startAt)
+  }
+  return `${formatTime(startAt)}~${formatTime(endAt)}`
+}
+
+const formatRemaining = (
+  remaining?: number | null,
+  isFull?: boolean | null,
+) => {
+  if (isFull || remaining === 0) return "満員"
+  if (typeof remaining === "number") return `残り${remaining}人`
+  return "受付中"
+}
+
+const pickFirstDayKey = (sessions: ApiRoundtableSession[]) => {
+  const sorted = sessions
+    .map((session) => new Date(session.start_at))
+    .filter((date) => !Number.isNaN(date.getTime()))
+    .sort((a, b) => a.getTime() - b.getTime())
+  if (sorted.length === 0) return null
+  return buildDayKey(sorted[0])
 }
