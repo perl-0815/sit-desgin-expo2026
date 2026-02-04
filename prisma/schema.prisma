@@ -84,3 +84,39 @@ model Research {
 
   student           Student @relation(fields: [student_id], references: [id])
 }
+
+// イベントページ向け: 座談会の概要とセッション情報を保持します。
+model EventRoundtable {
+  id            String  @id
+  title         String? @db.Text
+  description   String? @db.Text
+  location      String?
+  schedule_note String? @db.Text
+
+  sessions      EventRoundtableSession[]
+}
+
+// 座談会の個別セッション（日時/残席など）を管理します。
+model EventRoundtableSession {
+  id            String   @id
+  roundtable_id String
+  start_at      DateTime
+  end_at        DateTime
+  capacity      Int?
+  remaining     Int?
+  is_full       Boolean  @default(false)
+  sort_order    Int?
+
+  roundtable    EventRoundtable @relation(fields: [roundtable_id], references: [id], onDelete: Cascade)
+}
+
+// 体験展示のカード情報を保持します（R2の画像URL/サムネイルURLを含む）。
+model EventExhibition {
+  id              String  @id
+  title           String? @db.Text
+  description     String? @db.Text
+  author          String?
+  image_url       String?
+  image_thumb_url String?
+  sort_order      Int?
+}

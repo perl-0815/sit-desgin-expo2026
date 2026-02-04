@@ -9,7 +9,8 @@ import {
 // 開発用の簡易認証。
 // `develop=true`（または `DEVELOP=true`）のときだけ有効化し、
 // 認証済みクッキーが無い場合はパスコード画面へリダイレクトする。
-export const middleware = (req: NextRequest) => {
+// Next.js の警告回避のため、ファイル名・エクスポート名を middleware から proxy に変更している。
+export const proxy = (req: NextRequest) => {
   if (!isDevAuthEnabled()) return NextResponse.next();
 
   const { pathname, search } = req.nextUrl;
