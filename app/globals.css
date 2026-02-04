@@ -14,6 +14,11 @@
 
 /* ダークモードによる外側の黒背景を避けるため、背景色は白で固定します。 */
 
+html {
+  /* 研究・作品紹介ページで外側が黒く見える現象を防ぐため、html側も白で固定します。 */
+  background: var(--background);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

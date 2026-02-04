@@ -60,6 +60,10 @@ export default function NavigationMenu({
             <Link
               key={item.id}
               href={item.href}
+              // 同一ページへの遷移でもメニューを閉じるため、クリック時に明示的に閉じます。
+              onClick={() => {
+                if (onClose) onClose()
+              }}
               className="flex w-full items-center justify-center border-b border-[#EBEEF0] px-[10px] py-6"
             >
               {/* アクティブ項目は下線2pxと濃い文字色で強調します。 */}

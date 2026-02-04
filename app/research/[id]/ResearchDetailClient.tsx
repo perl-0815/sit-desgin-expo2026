@@ -351,20 +351,12 @@ export default function ResearchDetailClient({
               className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
               一覧へ戻る
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M12 5V3M7 6L5 4M6 12H3M7 18L5 20M12 19V21M17 18L19 20M18 12H21M17 6L19 4M12 8A4 4 0 1 0 12 16A4 4 0 0 0 12 8Z"
-                  stroke="#4B5459"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {/* Figma指定のアイコンに差し替えます。 */}
+              <img
+                src="/icon/signal_cellular_alt.svg"
+                alt=""
+                className="h-3 w-3"
+              />
             </Link>
           </div>
         </>
