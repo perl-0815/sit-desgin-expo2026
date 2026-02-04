@@ -178,27 +178,32 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             研究・作品紹介
           </h1>
         </div>
-        <button
-          // トップページと同様に白背景のアイコンボタンにします。
-          className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              // トップページと同様に白背景のアイコンボタンにします。
+              className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 戻るボタンは作品一覧へ戻る導線として表示します。 */}

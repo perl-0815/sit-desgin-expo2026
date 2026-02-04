@@ -247,28 +247,30 @@ export default function EventsClient() {
         </div>
       ) : null}
 
-      {/* 右上メニューボタンはFigmaの丸いボタンに揃えて固定します。 */}
-      <div className="sticky top-0 z-20 flex w-full justify-end bg-[#F9F9F9] px-4 pt-6">
-        <button
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
+      {/* 右上メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+      <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+        <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+          <button
+            type="button"
+            aria-label="メニュー"
+            onClick={() => setIsMenuOpen(true)}
+            className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
           >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+            <svg
+              aria-hidden="true"
+              className="h-8 w-8"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M4 7H20M4 12H20M4 17H20"
+                stroke="#6A7378"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* 見出しはFigmaのグラデーションバーと書体を再現します。 */}
