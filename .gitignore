@@ -42,3 +42,6 @@ next-env.d.ts
 
 # googleform　Googleフォームからダウンロードした生データを入れておくディレクトリ(三嶋用)
 /googleform
+
+# google sheets api 秘密鍵が入っているディレクトリ
+/keys

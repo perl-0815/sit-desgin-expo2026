@@ -15,6 +15,7 @@
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
     "dotenv": "^17.2.3",
+    "google-auth-library": "^10.5.0",
     "next": "16.1.6",
     "pg": "^8.18.0",
     "prisma": "^7.3.0",
