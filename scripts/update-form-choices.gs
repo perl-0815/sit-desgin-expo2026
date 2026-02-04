@@ -1,7 +1,7 @@
 // Googleフォーム（編集画面URLの /d/ と /edit の間にあるID）
 const FORM_ID = "REPLACE_WITH_FORM_ID"
 // 回答スプレッドシートのタブ名（完全一致）
-const SHEET_NAME = "フォームの回答1"
+const SHEET_NAME = "フォームの回答 1"
 // フォームの質問文（チェックボックス）
 const QUESTION_TITLE = "参加したい座談会を選択してください。"
 // フォームの質問文（人数）
@@ -10,6 +10,8 @@ const COUNT_TITLE = "何名で参加されますか？"
 const CAPACITY = 20
 // 複数選択の区切り文字（Googleフォームの仕様に合わせる）
 const DELIMITER = ","
+// 管理者への通知先（複数可、カンマ区切りで送信）
+const ADMIN_EMAILS = ["admin1@example.com", "admin2@example.com"]
 
 function updateChoices() {
   // フォームを開く（権限が必要）
@@ -66,4 +68,43 @@ function updateChoices() {
 
   // フォームの選択肢を更新（満員は消える）
   checkbox.setChoiceValues(availableChoices)
+}
+
+function onFormSubmit(e) {
+  // フォーム送信イベントの想定外データは安全に無視する
+  if (!e) return
+
+  // 管理者向けの件名と本文を組み立てる
+  const subject = "Googleフォームの回答が送信されました"
+  const submittedAt = new Date()
+
+  // 回答内容を「質問: 回答」の形式で並べる
+  // フォーム直結トリガーは e.response、シート側トリガーは e.namedValues を利用する
+  let lines = []
+  if (e.response) {
+    lines = e.response
+      .getItemResponses()
+      .map((r) => `${r.getItem().getTitle()}: ${r.getResponse()}`)
+  } else if (e.namedValues) {
+    lines = Object.entries(e.namedValues).map(
+      ([title, values]) => `${title}: ${values.join(", ")}`,
+    )
+  }
+
+  // どのフォームからの通知か分かるようにIDを明記する
+  const body = [
+    "フォームに新しい回答が送信されました。",
+    `フォームID: ${FORM_ID}`,
+    `送信日時: ${submittedAt}`,
+    "",
+    "回答内容:",
+    ...lines,
+  ].join("\n")
+
+  // 管理者へ一括通知する（配列をカンマ区切りにして送信）
+  MailApp.sendEmail({
+    to: ADMIN_EMAILS.join(","),
+    subject,
+    body,
+  })
 }
