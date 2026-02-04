@@ -1,16 +1,22 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
+// cspell:ignore googleform mozjpeg
 // Upload portfolio images (image1/image2) to R2, generate 480px-wide JPEG thumbnails, and update portfolios.csv.
 
-const fs = require("fs")
-const os = require("os")
-const path = require("path")
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3")
-const sharp = require("sharp")
-const { parse } = require("csv-parse/sync")
-const { stringify } = require("csv-stringify/sync")
+import fs from "node:fs"
+import os from "node:os"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
+import { parse } from "csv-parse/sync"
+import { stringify } from "csv-stringify/sync"
+import dotenv from "dotenv"
+import sharp from "sharp"
 
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") })
+// eslint 対応のため ESM 化し、__dirname を補います。
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+dotenv.config({ path: path.resolve(__dirname, "..", ".env") })
 
 const ROOT = path.resolve(__dirname, "..")
 const CSV_PATH = path.join(ROOT, "googleform", "portfolios.csv")

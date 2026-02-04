@@ -65,6 +65,19 @@ type RoundtableContent = {
   sessions: ApiRoundtableSession[]
 }
 
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
+}
+
 const fallbackRoundtable: RoundtableContent = {
   title: "卒業生との座談会",
   description:
@@ -313,26 +326,49 @@ export default function EventsClient() {
 
       {activeTab === "roundtable" ? (
         <section className="px-4 pb-12 pt-10">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            {roundtable.title}
-          </h2>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <GradientIcon type="calendar" />
-              <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                {roundtable.scheduleNote}
+          {isLoading ? (
+            <>
+              <SkeletonBlock className="h-6 w-40 rounded-md" />
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="calendar" />
+                  <SkeletonBlock className="h-4 w-40 rounded-md" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="location" />
+                  <SkeletonBlock className="h-4 w-28 rounded-md" />
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <SkeletonBlock className="h-4 w-full rounded-md" />
+                <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                {roundtable.title}
+              </h2>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="calendar" />
+                  <p className="text-[13px] leading-[1.9] text-[#4B5459]">
+                    {roundtable.scheduleNote}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="location" />
+                  <p className="text-[13px] leading-[1.9] text-[#4B5459]">
+                    {roundtable.location}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459]">
+                {roundtable.description}
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <GradientIcon type="location" />
-              <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                {roundtable.location}
-              </p>
-            </div>
-          </div>
-          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459]">
-            {roundtable.description}
-          </p>
+            </>
+          )}
 
           <div className="mt-10 space-y-4">
             <div className="border-b border-[#14BDB1] pb-1">
@@ -347,11 +383,29 @@ export default function EventsClient() {
 
           {/* 予約枠はアコーディオン式で展開し、空き状況を強調します。 */}
           <div className="mt-4 divide-y divide-[#EBEEF0]">
-            {scheduleDays.length === 0 ? (
+            {isLoading ? (
+              [0, 1].map((index) => (
+                <div key={`schedule-skel-${index}`} className="py-6">
+                  <div className="flex items-center justify-between">
+                    <SkeletonBlock className="h-5 w-28 rounded-md" />
+                    <SkeletonBlock className="h-6 w-6 rounded-full" />
+                  </div>
+                  <div className="mt-4 flex gap-4">
+                    {[0, 1].map((slotIndex) => (
+                      <div
+                        key={`slot-skel-${index}-${slotIndex}`}
+                        className="flex flex-1 flex-col items-center justify-center rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-4 py-3"
+                      >
+                        <SkeletonBlock className="h-4 w-20 rounded-md" />
+                        <SkeletonBlock className="mt-2 h-3 w-14 rounded-md" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : scheduleDays.length === 0 ? (
               <p className="py-6 text-[13px] text-[#6A7378]">
-                {isLoading
-                  ? "読み込み中です。"
-                  : "現在表示できる座談会日程がありません。"}
+                現在表示できる座談会日程がありません。
               </p>
             ) : (
               scheduleDays.map((day) => (
@@ -410,31 +464,41 @@ export default function EventsClient() {
         <section className="px-4 pb-12 pt-10">
           {/* 体験展示は2列グリッドで整列し、カードの高さを揃えます。 */}
           <div className="grid grid-cols-2 gap-6">
-            {exhibitions.map((card) => (
-              <article key={card.id} className="space-y-2">
-                <div className="aspect-video overflow-hidden rounded-[4px]">
-                  <img
-                    src={card.image}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="space-y-1 text-[12px]">
-                  {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
-                  <p
-                    className="h-[36px] overflow-hidden text-[#4B5459]"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                    }}
-                  >
-                    {card.title}
-                  </p>
-                  <p className="text-right text-[#6A7378]">{card.author}</p>
-                </div>
-              </article>
-            ))}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <article key={`exhibit-skel-${index}`} className="space-y-2">
+                    <SkeletonBlock className="aspect-video w-full rounded-[4px]" />
+                    <div className="space-y-2">
+                      <SkeletonBlock className="h-4 w-full rounded-md" />
+                      <SkeletonBlock className="h-4 w-1/2 rounded-md ml-auto" />
+                    </div>
+                  </article>
+                ))
+              : exhibitions.map((card) => (
+                  <article key={card.id} className="space-y-2">
+                    <div className="aspect-video overflow-hidden rounded-[4px]">
+                      <img
+                        src={card.image}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="space-y-1 text-[12px]">
+                      {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
+                      <p
+                        className="h-[36px] overflow-hidden text-[#4B5459]"
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {card.title}
+                      </p>
+                      <p className="text-right text-[#6A7378]">{card.author}</p>
+                    </div>
+                  </article>
+                ))}
           </div>
           {loadError ? (
             <p className="mt-4 text-[12px] text-[#D96E36]">{loadError}</p>

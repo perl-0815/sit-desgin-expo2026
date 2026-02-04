@@ -26,3 +26,19 @@ body {
   font-family: var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN",
     "Yu Gothic", "Meiryo", sans-serif;
 }
+
+/* 画像読み込み用のスケルトンシマーを共通で使えるようにします。 */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(150%) skewX(-20deg);
+  }
+}
+
+.skeleton-shimmer {
+  width: 150%;
+  height: 100%;
+  animation: skeleton-shimmer 2s linear infinite;
+}

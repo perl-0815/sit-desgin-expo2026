@@ -41,6 +41,19 @@ type Career = {
   } | null
 }
 
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
+}
+
 const menuItems = [
   { id: "top", label: "TOP", href: "/" },
   { id: "research", label: "研究紹介", href: "/research" },
@@ -317,11 +330,6 @@ export default function CareerClient() {
         <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
           卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
         </p>
-        {loading ? (
-          <p className="mt-3 text-[13px] text-[#6A7378]">
-            進路データを読み込み中です。
-          </p>
-        ) : null}
         {error ? (
           <p className="mt-3 text-[13px] text-[#D04C4C]">
             進路データの取得に失敗しました。
@@ -339,12 +347,16 @@ export default function CareerClient() {
         <div className="mt-8 flex justify-center">
           <div className="relative">
             {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
-            <CareerPieChart
-              gradPercent={careerStats.gradPercent}
-              jobPercent={careerStats.jobPercent}
-              otherPercent={careerStats.otherPercent}
-              total={careerStats.total}
-            />
+            {loading ? (
+              <SkeletonBlock className="h-40 w-40 rounded-full" />
+            ) : (
+              <CareerPieChart
+                gradPercent={careerStats.gradPercent}
+                jobPercent={careerStats.jobPercent}
+                otherPercent={careerStats.otherPercent}
+                total={careerStats.total}
+              />
+            )}
           </div>
         </div>
         <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
@@ -398,7 +410,16 @@ export default function CareerClient() {
           就職する人の多くが、デザイナーもしくはエンジニアになっています。
         </p>
 
-        {jobCategories.length > 0 ? (
+        {loading ? (
+          <>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={`job-skel-${index}`} className="mt-6">
+                <SkeletonBlock className="h-6 w-48 rounded-md" />
+                <SkeletonBlock className="mt-3 h-28 w-full rounded-[12px]" />
+              </div>
+            ))}
+          </>
+        ) : jobCategories.length > 0 ? (
           jobCategories.map((category) => (
             <div key={category.title} className="mt-6">
               {/* 見出し行は数値を強調し、Figmaのタイポグラフィを踏襲します。 */}
@@ -438,7 +459,23 @@ export default function CareerClient() {
           </h2>
         </div>
         <div className="mt-4 space-y-4">
-          {jobDecisionReasons.length > 0 ? (
+          {loading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`job-reason-skel-${index}`}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+              >
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+                <div className="mt-3 flex justify-end gap-3">
+                  <SkeletonBlock className="h-4 w-20 rounded-md" />
+                  <SkeletonBlock className="h-4 w-16 rounded-md" />
+                </div>
+              </div>
+            ))
+          ) : jobDecisionReasons.length > 0 ? (
             // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
             (showAllJobReasons
               ? jobDecisionReasons
@@ -466,7 +503,7 @@ export default function CareerClient() {
             </div>
           )}
         </div>
-        {jobDecisionReasons.length > 5 ? (
+        {!loading && jobDecisionReasons.length > 5 ? (
           <div className="mt-6 flex justify-center">
             <button
               type="button"
@@ -490,7 +527,22 @@ export default function CareerClient() {
           </h2>
         </div>
         <div className="mt-4 space-y-4">
-          {gradReasons.length > 0 ? (
+          {loading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`grad-reason-skel-${index}`}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+              >
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <SkeletonBlock className="h-4 w-24 rounded-md" />
+                </div>
+              </div>
+            ))
+          ) : gradReasons.length > 0 ? (
             // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
             (showAllGradReasons ? gradReasons : gradReasons.slice(0, 5)).map(
               (reason) => (
@@ -513,7 +565,7 @@ export default function CareerClient() {
             </div>
           )}
         </div>
-        {gradReasons.length > 5 ? (
+        {!loading && gradReasons.length > 5 ? (
           <div className="mt-6 flex justify-center">
             <button
               type="button"

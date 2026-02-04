@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import Footer from "../../components/Footer"
 import NavigationMenu from "../../components/NavigationMenu"
+import { SkeletonLoader } from "../../components/SkeletonLoader"
 
 type WorksDetailClientProps = {
   id: string
@@ -37,6 +38,19 @@ type Portfolio = {
   appeal_url_2?: string | null
   overall_portfolio_url?: string | null
   student?: Student | null
+}
+
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
 }
 
 const PLACEHOLDER_BODY =
@@ -228,19 +242,13 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         戻る
       </Link>
 
-      {loading ? (
-        <div className="px-4 pb-12">
-          <div className="rounded-2xl border border-dashed border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
-            作品詳細を読み込み中...
-          </div>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
             {error}
           </div>
         </div>
-      ) : !portfolio ? (
+      ) : !portfolio && !loading ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
             対象の作品が見つかりませんでした。
@@ -252,32 +260,61 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             <div className="flex flex-col gap-4">
               <div className="space-y-1">
                 {/* Figmaのタイトルタイポ（24px・字間0.02em）に合わせる */}
-                <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  {workTitle ?? "作品タイトル"}
-                </h2>
-                {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
-                <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
-                  <span className="text-[#6A7378]">
-                    {lab?.official_name ?? lab?.name ?? "研究室名"}
-                  </span>
-                  <span className="text-[#4B5459]">
-                    {student?.name ?? "苗字 名前"}
-                  </span>
-                </div>
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-7 w-4/5 rounded-md" />
+                    <div className="flex justify-end gap-2">
+                      <SkeletonBlock className="h-4 w-24 rounded-md" />
+                      <SkeletonBlock className="h-4 w-20 rounded-md" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {workTitle ?? "作品タイトル"}
+                    </h2>
+                    {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
+                    <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
+                      <span className="text-[#6A7378]">
+                        {lab?.official_name ?? lab?.name ?? "研究室名"}
+                      </span>
+                      <span className="text-[#4B5459]">
+                        {student?.name ?? "苗字 名前"}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* 本文は15px/行間2.2/字間0.04emに揃える */}
-              <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                {workSummary ?? PLACEHOLDER_BODY}
-              </p>
+              {loading ? (
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                  {workSummary ?? PLACEHOLDER_BODY}
+                </p>
+              )}
 
               {/* 作品画像は16:9の高さ204px想定 */}
               <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
-                {workImage ? (
-                  <img
-                    alt=""
+                {loading ? (
+                  <SkeletonBlock className="absolute inset-0" />
+                ) : workImage ? (
+                  <SkeletonLoader
                     src={workImage}
-                    className="h-full w-full object-cover"
+                    alt=""
+                    // 詳細ページの画像サイズに合わせてフルサイズで表示します。
+                    className="h-full w-full"
+                    // 読み込み失敗時はプレースホルダーを表示します。
+                    fallback={
+                      <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
+                        No Image
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
@@ -287,7 +324,12 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
               </div>
 
               <div className="flex flex-col items-center gap-3 py-3">
-                {workLink ? (
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-12 w-44 rounded-full" />
+                    <SkeletonBlock className="h-4 w-36 rounded-md" />
+                  </>
+                ) : workLink ? (
                   <a
                     href={workLink}
                     target="_blank"
@@ -312,7 +354,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                   </a>
                 ) : null}
                 {/* 他の作品も見るリンクはポートフォリオ全体のURL（overall_portfolio_url）を参照します。 */}
-                {portfolio?.overall_portfolio_url ? (
+                {!loading && portfolio?.overall_portfolio_url ? (
                   <a
                     href={portfolio.overall_portfolio_url}
                     target="_blank"
