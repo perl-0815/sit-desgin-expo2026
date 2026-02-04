@@ -39,15 +39,6 @@ type Portfolio = {
   student?: Student | null
 }
 
-type Career = {
-  id: string
-  student_id: string
-  category?: string | null
-  category_type?: string | null
-  job_type?: string | null
-  detail?: string | null
-}
-
 const PLACEHOLDER_BODY =
   "これはダミー文章です。作品の狙いや体験価値、制作プロセスなどをここに記載します。"
 
@@ -88,7 +79,6 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
-  const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -100,27 +90,24 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         setLoading(true)
         setError(null)
 
-        const [labsRes, portfoliosRes, careersRes] = await Promise.all([
+        const [labsRes, portfoliosRes] = await Promise.all([
           fetch("/api/labs"),
           fetch("/api/portfolios?include=student"),
-          fetch("/api/careers?include=student"),
         ])
 
-        if (!labsRes.ok || !portfoliosRes.ok || !careersRes.ok) {
+        if (!labsRes.ok || !portfoliosRes.ok) {
           throw new Error("Failed to fetch detail data.")
         }
 
-        const [labsData, portfoliosData, careersData] = await Promise.all([
+        const [labsData, portfoliosData] = await Promise.all([
           labsRes.json(),
           portfoliosRes.json(),
-          careersRes.json(),
         ])
 
         if (!active) return
 
         setLabs(labsData)
         setPortfolios(portfoliosData)
-        setCareers(careersData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -166,10 +153,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const workLink =
     index === 2 ? portfolio?.appeal_url_2 : portfolio?.appeal_url_1
 
-  const career = useMemo(() => {
-    if (!student?.id) return null
-    return careers.find((item) => item.student_id === student.id) ?? null
-  }, [careers, student?.id])
+  // 詳細ページでは進路情報を扱わないため、キャリアデータの取得は行いません。
 
   return (
     <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
@@ -332,31 +316,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             </div>
           </section>
 
-          <section className="px-4 pb-12">
-            <div className="border-b border-[#14BDB1] pb-2">
-              <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                進路
-              </h3>
-            </div>
-            <div className="py-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2 text-[16px] font-semibold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  <span>{career?.category ?? "進路先未登録"}</span>
-                  {career?.job_type ? <span>({career.job_type})</span> : null}
-                </div>
-                {career?.category_type ? (
-                  <p className="text-[13px] font-medium text-[#6A7378]">
-                    {career.category_type}
-                  </p>
-                ) : null}
-              </div>
-              {career?.detail ? (
-                <p className="mt-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                  {career.detail}
-                </p>
-              ) : null}
-            </div>
-          </section>
+          {/* 詳細ページでは進路情報を一律で非表示にする方針のため、セクション自体を描画しません。 */}
 
           <div className="flex justify-center px-4 pb-12">
             <Link
