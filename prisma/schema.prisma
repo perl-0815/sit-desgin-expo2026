@@ -39,6 +39,8 @@ model Career {
   category_type   String?
   detail          String? @db.Text
   job_type        String?
+  // 就職先の業種を保持します。フォームから取得する値で、職種やカテゴリ分類と混同しないために分離しています。
+  industry        String?
   decision_reason String? @db.Text
   extra_notes     String? @db.Text
   visibility      String?

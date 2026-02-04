@@ -29,10 +29,12 @@ type Career = {
   category_type?: string | null
   detail?: string | null
   job_type?: string | null
+  industry?: string | null
   decision_reason?: string | null
   extra_notes?: string | null
   visibility?: string | null
   student?: {
+    student_no?: string | null
     lab?: {
       course?: string | null
     } | null
@@ -51,32 +53,15 @@ const menuItems = [
 const normalizeText = (value?: string | null) => value?.trim() ?? ""
 
 const buildJobLabel = (career: Career) => {
-  // 就職先の表示は詳細→職種→カテゴリの順で採用し、空の場合は除外します。
-  return (
-    normalizeText(career.detail) ||
-    normalizeText(career.job_type) ||
-    normalizeText(career.category_type)
-  )
+  // 主な就職先は「企業名（detail）」がある場合のみ表示します。
+  const company = normalizeText(career.detail)
+  return company || ""
 }
 
 const resolveJobCategory = (career: Career) => {
-  // APIのカテゴリが空でも表示が崩れないよう、文言から大まかな分類を推測します。
-  const raw =
-    normalizeText(career.category_type) || normalizeText(career.job_type)
-  if (raw.includes("デザイン") || raw.includes("企画")) {
-    return "デザイン・企画系"
-  }
-  if (
-    raw.includes("IT") ||
-    raw.includes("エンジニア") ||
-    raw.includes("システム")
-  ) {
-    return "IT・エンジニア系"
-  }
-  if (raw) {
-    return raw
-  }
-  return "その他"
+  // 主な就職先の分類は category_type を優先し、未入力の場合のみ「その他」にまとめます。
+  const raw = normalizeText(career.category_type)
+  return raw || "その他"
 }
 
 const toUniqueList = (items: string[], limit = 5) => {
@@ -93,10 +78,12 @@ const toUniqueList = (items: string[], limit = 5) => {
 const buildJobLabels = (career: Career) => {
   // ラベルは「職種」「業界」の具体値を表示します。
   const jobType = normalizeText(career.job_type)
-  const industry = normalizeText(career.category_type)
+  // 業界ラベルは業種を優先し、未入力時のみカテゴリ分類にフォールバックします。
+  const industry =
+    normalizeText(career.industry) || normalizeText(career.category_type)
   return [
-    jobType ? `職種: ${jobType}` : "",
-    industry ? `業界: ${industry}` : "",
+    jobType ? `${jobType}` : "",
+    industry ? ` ${industry}` : "",
   ].filter(Boolean)
 }
 
@@ -113,6 +100,11 @@ export default function CareerClient() {
   const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 主な就職先のフィルタ: 大学院生（cy20XXX）を含めるかどうかを切り替えます。
+  const [includeGraduate, setIncludeGraduate] = useState(true)
+  // 「もっと見る」制御: 就職先の決め手/大学院進学の理由で5件超えた場合に展開します。
+  const [showAllJobReasons, setShowAllJobReasons] = useState(false)
+  const [showAllGradReasons, setShowAllGradReasons] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -182,9 +174,13 @@ export default function CareerClient() {
 
   const jobCategories = useMemo((): JobCategory[] => {
     // 就職者のみを抽出し、カテゴリごとの割合と主要就職先をまとめます。
-    const jobCareers = careers.filter((career) =>
-      normalizeText(career.category).includes("就職"),
-    )
+    const jobCareers = careers.filter((career) => {
+      if (!normalizeText(career.category).includes("就職")) return false
+      if (includeGraduate) return true
+      // 学籍番号がcy20XXXの場合は大学院生扱いとして除外します。
+      const studentNo = normalizeText(career.student?.student_no)
+      return !studentNo.startsWith("cy20")
+    })
     const total = jobCareers.length
     const grouped = new Map<string, { count: number; items: string[] }>()
 
@@ -202,7 +198,8 @@ export default function CareerClient() {
       }
     })
 
-    const order = ["デザイン・企画系", "IT・エンジニア系", "その他"]
+    // 主な就職先は割合に関わらず、デザイン→エンジニア→その他の順で固定表示します。
+    const order = ["デザイナー系", "エンジニア系", "その他"]
     const categories = Array.from(grouped.entries())
       .sort((a, b) => {
         const aIndex = order.indexOf(a[0])
@@ -219,7 +216,7 @@ export default function CareerClient() {
       }))
 
     return categories
-  }, [careers])
+  }, [careers, includeGraduate])
 
   const jobDecisionReasons = useMemo((): ReasonCard[] => {
     // 就職者の「決め手」は decision_reason から取得し、対応する職種・業界ラベルを付与します。
@@ -242,7 +239,7 @@ export default function CareerClient() {
       })
     })
 
-    return results.slice(0, 5)
+    return results
   }, [careers])
 
   const gradReasons = useMemo((): GradReasonCard[] => {
@@ -265,7 +262,7 @@ export default function CareerClient() {
       results.push({ text: reason.text, course: reason.course })
     })
 
-    return results.slice(0, 5)
+    return results
   }, [careers])
 
   return (
@@ -356,25 +353,41 @@ export default function CareerClient() {
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
             主な就職先
           </h2>
-          <div className="flex items-center gap-2 text-[13px] font-medium text-[#2E3437]">
+          {/* Figmaのチェックボックスに合わせ、アイコン+ラベルの余白とサイズを固定します。 */}
+          <button
+            type="button"
+            className="flex items-center gap-[6px]"
+            aria-pressed={includeGraduate}
+            onClick={() => setIncludeGraduate((prev) => !prev)}
+          >
             <span className="inline-flex h-6 w-6 items-center justify-center">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-              >
-                <path
-                  d="M5 12L10 17L19 7"
-                  stroke="#2E3437"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {includeGraduate ? (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-gradient-to-br from-[#FB9678] to-[#E5A967]">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-[18px] w-[18px]"
+                    fill="none"
+                  >
+                    <path
+                      d="M6 12.5L10 16.5L18 8.5"
+                      stroke="#F9F9F9"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#EBEEF0] p-[2px]">
+                  <span className="h-full w-full rounded-[4px] bg-[#F9F9F9]" />
+                </span>
+              )}
             </span>
-            ラベル
-          </div>
+            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437]">
+              大学院生を含める
+            </span>
+          </button>
         </div>
         <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
           就職する人の多くが、デザイナーもしくはエンジニアになっています。
@@ -421,7 +434,11 @@ export default function CareerClient() {
         </div>
         <div className="mt-4 space-y-4">
           {jobDecisionReasons.length > 0 ? (
-            jobDecisionReasons.map((reason) => (
+            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
+            (showAllJobReasons
+              ? jobDecisionReasons
+              : jobDecisionReasons.slice(0, 5)
+            ).map((reason) => (
               <div
                 key={reason.text}
                 className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
@@ -444,15 +461,20 @@ export default function CareerClient() {
             </div>
           )}
         </div>
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            もっと見る
-            <span className="text-[16px]">+</span>
-          </button>
-        </div>
+        {jobDecisionReasons.length > 5 ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              onClick={() => setShowAllJobReasons((prev) => !prev)}
+            >
+              {showAllJobReasons ? "閉じる" : "もっと見る"}
+              <span className="text-[16px] leading-none">
+                {showAllJobReasons ? "×" : "+"}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {/* 大学院進学の理由は別セクションとしてまとめ、同じカードUIを使い回します。 */}
@@ -464,7 +486,9 @@ export default function CareerClient() {
         </div>
         <div className="mt-4 space-y-4">
           {gradReasons.length > 0 ? (
-            gradReasons.map((reason) => (
+            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
+            (showAllGradReasons ? gradReasons : gradReasons.slice(0, 5)).map(
+              (reason) => (
               <div
                 key={reason.text}
                 className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
@@ -474,7 +498,8 @@ export default function CareerClient() {
                   <span>{reason.course}</span>
                 </div>
               </div>
-            ))
+              ),
+            )
           ) : (
             <div
               className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
@@ -483,15 +508,20 @@ export default function CareerClient() {
             </div>
           )}
         </div>
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            もっと見る
-            <span className="text-[16px]">+</span>
-          </button>
-        </div>
+        {gradReasons.length > 5 ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              onClick={() => setShowAllGradReasons((prev) => !prev)}
+            >
+              {showAllGradReasons ? "閉じる" : "もっと見る"}
+              <span className="text-[16px] leading-none">
+                {showAllGradReasons ? "×" : "+"}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <Footer />

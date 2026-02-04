@@ -12,12 +12,7 @@
   --font-sans: var(--font-noto-sans-jp);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ダークモードによる外側の黒背景を避けるため、背景色は白で固定します。 */
 
 body {
   background: var(--background);

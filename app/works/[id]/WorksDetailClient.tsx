@@ -156,10 +156,12 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   // 詳細ページでは進路情報を扱わないため、キャリアデータの取得は行いません。
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
+    // 他ページと合わせるため、詳細ページの背景を白に統一します。
+    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-white pb-16">
       {/* 右上メニューは画面全体に重ねて表示します。 */}
       {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
+        // メニュー展開時の背面も白背景にしてトーンを合わせます。
+        <div className="fixed inset-0 z-50 flex justify-center bg-white">
           <NavigationMenu
             items={menuItems}
             activeId="works"
@@ -176,7 +178,8 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
           </h1>
         </div>
         <button
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+          // トップページと同様に白背景のアイコンボタンにします。
+          className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
           type="button"
           aria-label="メニュー"
           onClick={() => setIsMenuOpen(true)}
