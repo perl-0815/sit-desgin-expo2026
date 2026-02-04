@@ -1,6 +1,6 @@
 type Props = {
-  cx: number
-  cy: number
+  x: number
+  y: number
   outerR: number
   innerR: number
   points: number
@@ -8,19 +8,23 @@ type Props = {
   fill?: string
   stroke?: string
   strokeWidth?: number
+  filter?: string
 }
 
 export default function Star({
-  cx,
-  cy,
+  x,
+  y,
   outerR,
   innerR,
   points: numPoints,
   rotation = -90,
-  fill = "currentColor",
+  fill = "none",
   stroke,
   strokeWidth,
+  filter,
 }: Props) {
+  const cx = x + outerR
+  const cy = y + outerR
   const vertices = Array.from({ length: numPoints * 2 }, (_, i) => {
     const angle = ((Math.PI * i) / numPoints) + (rotation * Math.PI) / 180
     const r = i % 2 === 0 ? outerR : innerR
@@ -33,6 +37,7 @@ export default function Star({
       fill={fill}
       stroke={stroke}
       strokeWidth={strokeWidth}
+      filter={filter}
     />
   )
 }

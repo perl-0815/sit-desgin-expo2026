@@ -1,28 +1,31 @@
 type Props = {
-  cx: number
-  cy: number
+  x: number
+  y: number
   r: number
   fill?: string
   stroke?: string
   strokeWidth?: number
+  filter?: string
 }
 
 export default function Circle({
-  cx,
-  cy,
+  x,
+  y,
   r,
-  fill = "currentColor",
+  fill = "none",
   stroke,
   strokeWidth,
+  filter,
 }: Props) {
   return (
     <circle
-      cx={cx}
-      cy={cy}
+      cx={x + r}
+      cy={y + r}
       r={r}
       fill={fill}
       stroke={stroke}
       strokeWidth={strokeWidth}
+      filter={filter}
     />
   )
 }

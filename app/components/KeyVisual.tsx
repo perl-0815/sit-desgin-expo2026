@@ -1,7 +1,14 @@
+import SvgCanvas from "./SvgCanvas"
+import KeyVisualShapes from "./KeyVisualShapes"
+
 export default function KeyVisual() {
   return (
-    <section className="relative flex h-screen w-full items-center justify-center bg-zinc-900">
-      <div className="text-center text-white">
+    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden">
+      <SvgCanvas>
+        <KeyVisualShapes />
+      </SvgCanvas>
+
+      <div className="relative z-10 text-center text-black">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-400">
           SIT Design Expo 2026
         </p>
