@@ -78,9 +78,20 @@ const uploadOne = async (key, body, contentType) => {
   )
 }
 
-const processImage = async (relativeUrl) => {
-  if (!relativeUrl) return null
-  const filename = path.basename(relativeUrl)
+const isAbsoluteUrl = (value) => /^https?:\/\//i.test(String(value))
+
+const buildThumbUrl = (imageUrl) => {
+  if (!imageUrl) return null
+  const url = String(imageUrl).trim()
+  const baseName = path.parse(url).name
+  if (!baseName) return null
+  // 既存のR2 URLからサムネイルURLを推測する
+  return `${BUCKET_ENDPOINT}/portfolios/images/${baseName}_thumb.jpg`
+}
+
+const processImage = async (imageUrl) => {
+  if (!imageUrl) return null
+  const filename = path.basename(String(imageUrl))
   const srcPath = path.join(IMAGES_DIR, filename)
   if (!fs.existsSync(srcPath)) {
     console.warn(`Missing source image: ${srcPath}`)
@@ -127,16 +138,24 @@ const main = async () => {
     if (img1) {
       const result = await processImage(img1)
       if (result) {
+        // 生成したサムネイルURLを必ず image1_thumb_url に反映する
         row.image1_url = result.imageUrl
         row.image1_thumb_url = result.thumbUrl
+      } else if (!row.image1_thumb_url && isAbsoluteUrl(img1)) {
+        // 既にR2に上がっているがサムネイル欄が空の場合は推測して補完する
+        row.image1_thumb_url = buildThumbUrl(img1)
       }
     }
 
     if (img2) {
       const result = await processImage(img2)
       if (result) {
+        // 生成したサムネイルURLを必ず image2_thumb_url に反映する
         row.image2_url = result.imageUrl
         row.image2_thumb_url = result.thumbUrl
+      } else if (!row.image2_thumb_url && isAbsoluteUrl(img2)) {
+        // 既にR2に上がっているがサムネイル欄が空の場合は推測して補完する
+        row.image2_thumb_url = buildThumbUrl(img2)
       }
     }
 

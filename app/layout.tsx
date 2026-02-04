@@ -1,5 +1,57 @@
 import type { Metadata } from "next"
+import { Noto_Sans_JP, Roboto } from "next/font/google"
+import localFont from "next/font/local"
+
 import "./globals.css"
+
+// 日本語本文はNoto Sans JPを標準にし、Figma指定の字形に近づけます。
+const notoSansJP = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-sans-jp",
+  display: "swap",
+})
+
+// 英字ラベル（CONTACT/OFFICIAL SNSなど）はRobotoを使用します。
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["500"],
+  variable: "--font-roboto",
+  display: "swap",
+})
+
+// Shippori Mincho B1 OTF はローカルフォントとして読み込みます。
+const shipporiMinchoB1 = localFont({
+  src: [
+    {
+      path: "../public/fonts/ShipporiMinchoB1-OTF-Regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/ShipporiMinchoB1-OTF-Medium.otf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/ShipporiMinchoB1-OTF-SemiBold.otf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/ShipporiMinchoB1-OTF-Bold.otf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../public/fonts/ShipporiMinchoB1-OTF-ExtraBold.otf",
+      weight: "800",
+      style: "normal",
+    },
+  ],
+  variable: "--font-shippori-mincho-b1",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,7 +65,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body
+        className={`${notoSansJP.variable} ${roboto.variable} ${shipporiMinchoB1.variable} antialiased`}
+      >
+        {children}
+      </body>
     </html>
   )
 }

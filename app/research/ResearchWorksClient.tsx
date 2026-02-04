@@ -1,12 +1,44 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 
-const courseOrder = [
-  { key: "社会情報コース", label: "社会情報システムコース", accent: "bg-emerald-500" },
-  { key: "UXコース", label: "UXコース", accent: "bg-blue-500" },
-  { key: "プロダクトコース", label: "プロダクトコース", accent: "bg-pink-500" },
-  { key: "その他", label: "その他", accent: "bg-zinc-400" },
+import Footer from "../components/Footer"
+import NavigationMenu from "../components/NavigationMenu"
+
+type CourseMeta = {
+  key: string
+  label: string
+  lineColor: string
+  buttonColor: string
+}
+
+const courseOrder: CourseMeta[] = [
+  {
+    key: "社会情報コース",
+    label: "社会情報システムコース",
+    lineColor: "#14BDB1",
+    buttonColor: "#0A948A",
+  },
+  {
+    key: "UXコース",
+    label: "UXコース",
+    lineColor: "#3575E8",
+    buttonColor: "#2C68D3",
+  },
+  {
+    key: "プロダクトコース",
+    label: "プロダクトコース",
+    lineColor: "#DB4981",
+    buttonColor: "#D1346F",
+  },
+  {
+    key: "その他",
+    label: "その他",
+    lineColor: "#A3ADB2",
+    buttonColor: "#6A7378",
+  },
 ]
 
 type Lab = {
@@ -33,6 +65,8 @@ type Research = {
   title?: string | null
   summary?: string | null
   keywords?: string | null
+  image_url?: string | null
+  image_thumb_url?: string | null
   student?: Student | null
 }
 
@@ -43,6 +77,10 @@ type Portfolio = {
   summary1?: string | null
   title2?: string | null
   summary2?: string | null
+  image1_url?: string | null
+  image1_thumb_url?: string | null
+  image2_url?: string | null
+  image2_thumb_url?: string | null
   student?: Student | null
 }
 
@@ -52,6 +90,8 @@ type WorkItem = {
   summary: string
   studentName: string
   courseKey: string
+  imageUrl?: string | null
+  imageOriginalUrl?: string | null
 }
 
 type ResearchItem = {
@@ -60,6 +100,9 @@ type ResearchItem = {
   summary: string
   studentName: string
   courseKey: string
+  labId?: string | null
+  imageUrl?: string | null
+  imageOriginalUrl?: string | null
 }
 
 const PLACEHOLDER_SUMMARY =
@@ -68,6 +111,10 @@ const PLACEHOLDER_SUMMARY =
 const getCourseKey = (course?: string | null) => {
   if (!course) return "その他"
   return course
+}
+
+const getCourseMeta = (courseKey: string) => {
+  return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
 }
 
 const sliceKeywords = (keywords?: string | null) => {
@@ -79,8 +126,42 @@ const sliceKeywords = (keywords?: string | null) => {
     .slice(0, 3)
 }
 
+const isAbsoluteUrl = (value?: string | null) => {
+  return !!value && /^https?:\/\//i.test(value)
+}
+
+const normalizeImageUrl = (value?: string | null) => {
+  if (!value) return null
+  const trimmed = String(value).trim()
+  return trimmed === "" ? null : trimmed
+}
+
+const pickThumbnailImage = (thumb?: string | null, original?: string | null) => {
+  // サムネイル表示が優先だが、相対パスのみの場合は絶対URLを優先して404を防ぐ
+  if (isAbsoluteUrl(thumb)) return thumb
+  if (isAbsoluteUrl(original)) return original
+  return thumb || original || null
+}
+
+const handleImageError =
+  (fallbackUrl?: string | null) =>
+  (event: React.SyntheticEvent<HTMLImageElement>) => {
+    // サムネイルが存在しない場合は元画像に切り替える（無限ループを防止）
+    const img = event.currentTarget
+    if (!fallbackUrl) return
+    if (img.dataset.fallbackApplied === "true") return
+    img.dataset.fallbackApplied = "true"
+    img.src = fallbackUrl
+  }
+
 export default function ResearchWorksClient() {
+  // URLのタブ指定（?tab=works）に対応するため、ルーター情報を取得します。
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<"research" | "works">("research")
+  // 右上メニューの開閉状態を管理します。
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [research, setResearch] = useState<Research[]>([])
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
@@ -89,6 +170,7 @@ export default function ResearchWorksClient() {
   const [expandedCourses, setExpandedCourses] = useState<Record<string, boolean>>(
     {},
   )
+  const [expandedLabs, setExpandedLabs] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     let active = true
@@ -138,6 +220,15 @@ export default function ResearchWorksClient() {
     }
   }, [])
 
+  // URLのクエリに応じて初期タブを切り替えます。
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    const nextTab = tab === "works" ? "works" : "research"
+    if (nextTab !== activeTab) {
+      setActiveTab(nextTab)
+    }
+  }, [searchParams, activeTab])
+
   const labById = useMemo(() => {
     return new Map(labs.map((lab) => [lab.id, lab]))
   }, [labs])
@@ -156,7 +247,8 @@ export default function ResearchWorksClient() {
   const researchItems = useMemo<ResearchItem[]>(() => {
     return research.map((item) => {
       const student = item.student
-      const lab = student?.lab_id ? labById.get(student.lab_id) : undefined
+      const labId = student?.lab_id
+      const lab = labId ? labById.get(labId) : undefined
       const courseKey = getCourseKey(lab?.course)
       return {
         id: item.id,
@@ -164,6 +256,12 @@ export default function ResearchWorksClient() {
         summary: item.summary ?? PLACEHOLDER_SUMMARY,
         studentName: student?.name ?? "苗字 名前",
         courseKey,
+        labId,
+        imageUrl: pickThumbnailImage(
+          normalizeImageUrl(item.image_thumb_url),
+          normalizeImageUrl(item.image_url),
+        ),
+        imageOriginalUrl: normalizeImageUrl(item.image_url),
       }
     })
   }, [research, labById])
@@ -184,6 +282,11 @@ export default function ResearchWorksClient() {
           summary: portfolio.summary1 ?? PLACEHOLDER_SUMMARY,
           studentName,
           courseKey,
+          imageUrl: pickThumbnailImage(
+            normalizeImageUrl(portfolio.image1_thumb_url),
+            normalizeImageUrl(portfolio.image1_url),
+          ),
+          imageOriginalUrl: normalizeImageUrl(portfolio.image1_url),
         })
       }
 
@@ -194,6 +297,11 @@ export default function ResearchWorksClient() {
           summary: portfolio.summary2 ?? PLACEHOLDER_SUMMARY,
           studentName,
           courseKey,
+          imageUrl: pickThumbnailImage(
+            normalizeImageUrl(portfolio.image2_thumb_url),
+            normalizeImageUrl(portfolio.image2_url),
+          ),
+          imageOriginalUrl: normalizeImageUrl(portfolio.image2_url),
         })
       }
     })
@@ -211,6 +319,17 @@ export default function ResearchWorksClient() {
     return map
   }, [researchItems])
 
+  const researchByLab = useMemo(() => {
+    const map = new Map<string, ResearchItem[]>()
+    researchItems.forEach((item) => {
+      if (!item.labId) return
+      const list = map.get(item.labId) ?? []
+      list.push(item)
+      map.set(item.labId, list)
+    })
+    return map
+  }, [researchItems])
+
   const worksByCourse = useMemo(() => {
     const map = new Map<string, WorkItem[]>()
     worksItems.forEach((item) => {
@@ -222,163 +341,366 @@ export default function ResearchWorksClient() {
   }, [worksItems])
 
   const visibleCourses = useMemo(() => {
+    if (activeTab === "research") {
+      return courseOrder.filter((course) => {
+        return (labsByCourse.get(course.key)?.length ?? 0) > 0
+      })
+    }
     return courseOrder.filter((course) => {
-      if (activeTab === "research") {
-        return (researchByCourse.get(course.key)?.length ?? 0) > 0
-      }
       return (worksByCourse.get(course.key)?.length ?? 0) > 0
     })
-  }, [activeTab, researchByCourse, worksByCourse])
+  }, [activeTab, labsByCourse, worksByCourse])
 
-  const toggleExpanded = (courseKey: string) => {
+  const toggleExpandedCourse = (courseKey: string) => {
     setExpandedCourses((prev) => ({
       ...prev,
       [courseKey]: !prev[courseKey],
     }))
   }
 
+  const toggleExpandedLab = (labId: string) => {
+    setExpandedLabs((prev) => ({
+      ...prev,
+      [labId]: !prev[labId],
+    }))
+  }
+
+  // メニューに表示する導線を一箇所にまとめ、ページ構成の変更に備えます。
+  const menuItems = [
+    { id: "top", label: "TOP", href: "/" },
+    { id: "research", label: "研究紹介", href: "/research" },
+    { id: "works", label: "作品紹介", href: "/research?tab=works" },
+    { id: "career", label: "卒業生の進路", href: "/career" },
+    { id: "events", label: "イベント", href: "/events" },
+    { id: "contact", label: "お問い合わせ", href: "/contact" },
+  ]
+
+  const activeMenuId = activeTab === "works" ? "works" : "research"
+
+  const updateTab = (tab: "research" | "works") => {
+    setActiveTab(tab)
+    // タブ状態をURLに反映して、メニューからの遷移でも状態が揃うようにします。
+    if (tab === "works") {
+      router.replace(`${pathname}?tab=works`, { scroll: false })
+    } else {
+      router.replace(pathname, { scroll: false })
+    }
+  }
+
   return (
-    <div className="mt-10 flex flex-col gap-10">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
+      {/* 右上メニューは画面全体に重ねて表示します。 */}
+      {isMenuOpen ? (
+        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
+          <NavigationMenu
+            items={menuItems}
+            activeId={activeMenuId}
+            onClose={() => setIsMenuOpen(false)}
+          />
+        </div>
+      ) : null}
+      {/* このブロックは画面上部の見出しとメニューボタンの並びを定義し、Figmaの余白・配置に合わせています。 */}
+      <div className="flex items-center justify-between px-4 pt-6">
         <div className="flex items-center gap-3">
-          <span className="h-6 w-2 rounded-full bg-orange-400" />
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
+          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
             研究・作品紹介
           </h1>
         </div>
+        {/* メニューボタンはSVGで描画し、フォント未読込でも確実に表示されるようにしています。 */}
         <button
-          className="grid h-9 w-9 place-items-center rounded-full border border-zinc-200 text-zinc-600"
+          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
           type="button"
           aria-label="メニュー"
+          onClick={() => setIsMenuOpen(true)}
         >
-          ☰
+          <svg
+            aria-hidden="true"
+            className="h-8 w-8"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M4 7H20M4 12H20M4 17H20"
+              stroke="#6A7378"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
       </div>
 
-      <div className="rounded-[77px] border border-[#14BDB1] bg-[#F9F9F9] p-1">
-        <div className="grid grid-cols-2 gap-1">
-          <button
-            type="button"
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              activeTab === "research"
-                ? "bg-white text-zinc-900 shadow"
-                : "text-zinc-500"
-            }`}
-            onClick={() => setActiveTab("research")}
-          >
-            研究
-          </button>
-          <button
-            type="button"
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-              activeTab === "works"
-                ? "bg-white text-zinc-900 shadow"
-                : "text-zinc-500"
-            }`}
-            onClick={() => setActiveTab("works")}
-          >
-            作品
-          </button>
+      {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}
+      <div className="px-4 pt-6">
+        {/* タブの高さは44px相当、内側余白は上下12pxで、タップしやすさと見た目の均整を両立します。 */}
+        <div className="rounded-full bg-[#EBEEF0] p-1">
+          <div className="grid grid-cols-2 gap-1">
+            <button
+              type="button"
+              className={`min-h-[44px] rounded-full px-4 py-3 text-[13px] font-medium transition ${
+                activeTab === "research"
+                  ? "border border-[#FB9678] bg-white text-[#2E3437]"
+                  : "text-[#6A7378]"
+              }`}
+              aria-pressed={activeTab === "research"}
+              onClick={() => updateTab("research")}
+            >
+              研究
+            </button>
+            <button
+              type="button"
+              className={`min-h-[44px] rounded-full px-4 py-3 text-[13px] font-medium transition ${
+                activeTab === "works"
+                  ? "border border-[#FB9678] bg-white text-[#2E3437]"
+                  : "text-[#6A7378]"
+              }`}
+              aria-pressed={activeTab === "works"}
+              onClick={() => updateTab("works")}
+            >
+              作品
+            </button>
+          </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-dashed border-zinc-200 p-10 text-center text-sm text-zinc-500">
-          研究・作品データを読み込み中...
+        <div className="px-4 pt-12">
+          <div className="rounded-2xl border border-dashed border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
+            研究・作品データを読み込み中...
+          </div>
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
-          {error}
+        <div className="px-4 pt-12">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+            {error}
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-12">
+        <div className="flex flex-col gap-12 pt-6">
           {visibleCourses.map((course) => {
-            const items =
-              activeTab === "research"
-                ? researchByCourse.get(course.key) ?? []
-                : worksByCourse.get(course.key) ?? []
+            const courseMeta = getCourseMeta(course.key)
 
-            const showAll = expandedCourses[`${activeTab}-${course.key}`]
+            if (activeTab === "research") {
+              const courseLabs = labsByCourse.get(course.key) ?? []
+
+              return (
+                <section key={`research-${course.key}`} className="px-4">
+                  <div
+                    className="border-b pb-2"
+                    style={{ borderColor: courseMeta.lineColor }}
+                  >
+                    <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {course.label}
+                    </h2>
+                  </div>
+
+                  <div className="divide-y divide-[#EBEEF0]">
+                    {courseLabs.map((lab) => {
+                      const labName =
+                        lab.official_name ?? lab.name ?? "研究室"
+                      const labResearch = researchByLab.get(lab.id) ?? []
+                      const isExpanded = !!expandedLabs[lab.id]
+
+                      return (
+                        <div key={lab.id} className="py-4">
+                          {/* 研究室カードは見出しクリックで詳細を開閉する仕様です。開閉状態に応じてアイコンと色が変わります。 */}
+                          <button
+                            type="button"
+                            className="flex w-full items-start justify-between gap-4 text-left"
+                            onClick={() => toggleExpandedLab(lab.id)}
+                            aria-expanded={isExpanded}
+                          >
+                            <div className="flex flex-col gap-2">
+                              {/* 展開中は見出し色を強調色に切り替え、どの研究室が開いているかを視覚的に示します。 */}
+                              <p
+                                className={`text-[16px] font-medium ${
+                                  isExpanded ? "text-[#2C68D3]" : "text-[#4B5459]"
+                                }`}
+                              >
+                                {labName}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {sliceKeywords(lab.keywords).map((keyword) => (
+                                  <span
+                                    key={`${lab.id}-${keyword}`}
+                                    className="rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459]"
+                                  >
+                                    {keyword}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          {/* 開閉アイコンは24px固定枠に収め、縦位置の揺れを抑えます。 */}
+                          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center">
+                            {isExpanded ? (
+                              <svg
+                                aria-hidden="true"
+                                className="h-6 w-6"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M6 12H18"
+                                  stroke="#A3ADB2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                aria-hidden="true"
+                                className="h-6 w-6"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                              >
+                                <path
+                                  d="M12 6V18M6 12H18"
+                                  stroke="#A3ADB2"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            )}
+                          </span>
+                          </button>
+
+                          {isExpanded ? (
+                            <div className="mt-4 space-y-4">
+                              {/* 研究室の説明文は本文13px・行間1.9で読みやすさを確保し、Figmaのタイポグラフィに合わせています。 */}
+                              <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378]">
+                                <p>{lab.description ?? ""}</p>
+                                {lab.instructor ? (
+                                  <p className="pt-2">指導教員：{lab.instructor}</p>
+                                ) : null}
+                              </div>
+
+                              {labResearch.length > 0 ? (
+                                <>
+                                  <p className="text-[12px] font-medium text-[#6A7378]">
+                                    研究一覧
+                                  </p>
+                                  {/* 研究一覧のカード間隔は縦24px・横32pxのグリッドで、Figmaの余白設計を再現します。 */}
+                                  <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                                    {labResearch.map((item) => (
+                                    <Link
+                                      key={item.id}
+                                      href={`/research/${item.id}`}
+                                      className="flex flex-col gap-2"
+                                    >
+                                      <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
+                                        {item.imageUrl ? (
+                                          <img
+                                            alt=""
+                                            src={item.imageUrl}
+                                            onError={handleImageError(
+                                              item.imageOriginalUrl,
+                                            )}
+                                            className="h-full w-full object-cover"
+                                          />
+                                        ) : (
+                                          <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                            No Image
+                                          </div>
+                                        )}
+                                      </div>
+                                      {/* 研究カードは「タイトル」と「氏名」のみ表示し、一覧性を優先します。 */}
+                                      <div className="space-y-1 text-[12px]">
+                                        <p className="font-medium leading-[1.5] text-[#4B5459]">
+                                          {item.title}
+                                        </p>
+                                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                                          {item.studentName}
+                                        </p>
+                                      </div>
+                                    </Link>
+                                  ))}
+                                </div>
+                              </>
+                            ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </section>
+              )
+            }
+
+            const items = worksByCourse.get(course.key) ?? []
+            const showAll = expandedCourses[course.key]
             const visibleItems = showAll ? items : items.slice(0, 4)
 
             return (
-              <section key={`${activeTab}-${course.key}`} className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <span className={`h-1 w-10 rounded-full ${course.accent}`} />
-                  <h2 className="text-xl font-semibold">{course.label}</h2>
+              <section key={`works-${course.key}`} className="px-4">
+                <div
+                  className="border-b pb-2"
+                  style={{ borderColor: courseMeta.lineColor }}
+                >
+                  <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                    {course.label}
+                  </h2>
                 </div>
 
-                <div className="grid gap-6 sm:grid-cols-2">
+                {/* 作品一覧のカード間隔も縦24px・横32pxのグリッドで統一します。 */}
+                <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6">
                   {visibleItems.map((item) => (
-                    <article
+                    <Link
                       key={item.id}
-                      className="flex flex-col gap-3"
+                      href={`/works/${item.id}`}
+                      className="flex flex-col gap-2"
                     >
-                      <div className="relative aspect-video w-full rounded-2xl bg-zinc-100 text-center text-sm font-semibold text-zinc-400">
-                        <div className="absolute inset-0 grid place-items-center">
-                          No Image
-                        </div>
+                      <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
+                        {item.imageUrl ? (
+                          <img
+                            alt=""
+                            src={item.imageUrl}
+                            onError={handleImageError(item.imageOriginalUrl)}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                            No Image
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-semibold text-zinc-900">
+                      {/* 作品カードも「タイトル」と「氏名」のみ表示し、情報量を抑えて視認性を上げます。 */}
+                      <div className="space-y-1 text-[12px]">
+                        <p className="font-medium leading-[1.5] text-[#4B5459]">
                           {item.title}
-                        </h3>
-                        <p className="text-sm text-zinc-500">
-                          {item.summary}
+                        </p>
+                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                          {item.studentName}
                         </p>
                       </div>
-                      <p className="text-xs text-zinc-500">
-                        {item.studentName}
-                      </p>
-                    </article>
+                    </Link>
                   ))}
                 </div>
 
                 {items.length > 4 ? (
-                  <div className="flex justify-center">
+                  <div className="mt-6 flex justify-center">
+                    {/* 「もっと見る」ボタンのアイコンはSVGで描画し、フォント依存を避けます。 */}
                     <button
                       type="button"
-                      className={`flex items-center gap-2 rounded-full px-6 py-2 text-sm font-semibold text-white ${course.accent}`}
-                      onClick={() =>
-                        toggleExpanded(`${activeTab}-${course.key}`)
-                      }
+                      className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium text-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+                      style={{ backgroundColor: courseMeta.buttonColor }}
+                      onClick={() => toggleExpandedCourse(course.key)}
                     >
                       {showAll ? "閉じる" : "もっと見る"}
-                      <span className="text-lg">+</span>
+                      <svg
+                        aria-hidden="true"
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path
+                          d="M12 6V18M6 12H18"
+                          stroke="#FFFFFF"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
                     </button>
-                  </div>
-                ) : null}
-
-                {activeTab === "research" ? (
-                  <div className="space-y-4 border-t border-zinc-100 pt-6">
-                    <p className="text-sm font-semibold text-zinc-700">
-                      研究室一覧
-                    </p>
-                    <div className="space-y-4">
-                      {(labsByCourse.get(course.key) ?? []).map((lab) => (
-                        <div
-                          key={lab.id}
-                          className="flex items-center justify-between gap-4 rounded-2xl border border-zinc-100 px-4 py-3"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-zinc-900">
-                              {lab.official_name ?? lab.name ?? "研究室"}
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {sliceKeywords(lab.keywords).map((keyword) => (
-                                <span
-                                  key={`${lab.id}-${keyword}`}
-                                  className="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-500"
-                                >
-                                  {keyword}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-zinc-300">+</div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 ) : null}
               </section>
@@ -386,6 +708,9 @@ export default function ResearchWorksClient() {
           })}
         </div>
       )}
+
+      {/* フッターは他ページでも使えるよう共通コンポーネントとして読み込みます。 */}
+      <Footer className="mt-16 w-full px-4" />
     </div>
   )
 }
