@@ -15,11 +15,12 @@ const snsYoutubeIcon = "/icon/snsYoutubeIcon.svg"
 export default function Footer({ className }: FooterProps) {
   return (
     <footer className={className ?? ""}>
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-4 py-12 text-center text-white">
+      {/* トップページの指示に合わせ、フッターの角丸は外してフラットな形状にします。 */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-4 py-12 text-center text-white">
         {/* 背景グラデーションの上にテクスチャ画像を重ね、Figmaの質感を再現します。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-100 mix-blend-soft-light"
+          className="pointer-events-none absolute inset-0 opacity-[0.8] mix-blend-soft-light"
           style={{
             // Figmaの「ソフトライト」合成に近づけるためブレンドモードとリピートを明示します。
             backgroundImage: `url('${footerTextureA}'), url('${footerTextureB}')`,
@@ -29,7 +30,7 @@ export default function Footer({ className }: FooterProps) {
             backgroundBlendMode: "soft-light, soft-light",
           }}
         />
-        <div className="mx-auto w-full max-w-[320px] space-y-2 rounded-2xl bg-transparent px-4 py-3 text-[12px] tracking-[0.15em] shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+        <div>
           <p className="font-medium [font-family:var(--font-roboto)]">CONTACT</p>
           <div className="space-y-1 text-[12px] tracking-normal">
             <p>cy22000@shibaura-it.ac.jp</p>
