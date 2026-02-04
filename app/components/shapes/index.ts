@@ -1,6 +1,1 @@
-export { default as Circle } from "./Circle"
-export { default as Polygon } from "./Polygon"
-export { default as Star } from "./Star"
-export { default as SemiCircle } from "./SemiCircle"
-export { default as Diamond } from "./Diamond"
-export { default as IsoscelesTriangle } from "./IsoscelesTriangle"
+export { default as Group } from "./Group"
