@@ -577,8 +577,14 @@ export default function ResearchWorksClient() {
                               {/* 展開中は見出し色を強調色に切り替え、どの研究室が開いているかを視覚的に示します。 */}
                               <p
                                 className={`text-[16px] font-medium ${
-                                  isExpanded ? "text-[#2C68D3]" : "text-[#4B5459]"
+                                  isExpanded ? "" : "text-[#4B5459]"
                                 }`}
+                                style={
+                                  // 展開中の研究室名はコースごとの指定色に合わせます。
+                                  isExpanded
+                                    ? { color: courseMeta.buttonColor }
+                                    : undefined
+                                }
                               >
                                 {labName}
                               </p>

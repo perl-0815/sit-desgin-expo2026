@@ -308,8 +308,9 @@ export default function ResearchDetailClient({
                   </>
                 ) : (
                   <>
+                    {/* research が null の可能性があるため、描画時は optional chaining で安全に参照する */}
                     <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                      {research.title ?? "研究タイトル"}
+                      {research?.title ?? "研究タイトル"}
                     </h2>
                     {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
                     <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
@@ -333,7 +334,7 @@ export default function ResearchDetailClient({
                 </div>
               ) : (
                 <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                  {research.summary ?? PLACEHOLDER_BODY}
+                  {research?.summary ?? PLACEHOLDER_BODY}
                 </p>
               )}
 
