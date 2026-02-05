@@ -137,8 +137,8 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center">
             <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-              3.08
-              <span className="text-[16px] text-[#E7372A]">(日)</span>
+              3.07
+              <span className="text-[16px] text-[#2C68D3]">(土)</span>
               <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
               3.17
               <span className="text-[16px] text-[#6A7378]">(火)</span>
