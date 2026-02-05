@@ -584,12 +584,16 @@ const formatTimeRange = (startAt: Date, endAt: Date) => {
   return `${formatTime(startAt)}~${formatTime(endAt)}`
 }
 
+const formatNumber = (value: number) =>
+  // 予約人数などの数値は日本語表記で統一し、桁区切りも自然に見せる。
+  new Intl.NumberFormat("ja-JP").format(value)
+
 const formatRemaining = (
   remaining?: number | null,
   isFull?: boolean | null,
 ) => {
   if (isFull || remaining === 0) return "満員"
-  if (typeof remaining === "number") return `残り${remaining}人`
+  if (typeof remaining === "number") return `残り${formatNumber(remaining)}人`
   return "受付中"
 }
 
