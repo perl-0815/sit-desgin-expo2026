@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 
 import Footer from "../components/Footer"
 import NavigationMenu from "../components/NavigationMenu"
@@ -63,6 +64,19 @@ type RoundtableContent = {
   location: string
   scheduleNote: string
   sessions: ApiRoundtableSession[]
+}
+
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
 }
 
 const fallbackRoundtable: RoundtableContent = {
@@ -235,7 +249,9 @@ export default function EventsClient() {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
+    // ページ外側の白背景を避けるため、イベントページ全体を薄いグレーで塗ります。
+    <div className="min-h-screen bg-[#F9F9F9]">
+      <div className="relative mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
       {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}
       {isMenuOpen ? (
         <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
@@ -247,28 +263,30 @@ export default function EventsClient() {
         </div>
       ) : null}
 
-      {/* 右上メニューボタンはFigmaの丸いボタンに揃えて固定します。 */}
-      <div className="sticky top-0 z-20 flex w-full justify-end bg-[#F9F9F9] px-4 pt-6">
-        <button
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
+      {/* 右上メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+      <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+        <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+          <button
+            type="button"
+            aria-label="メニュー"
+            onClick={() => setIsMenuOpen(true)}
+            className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
           >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+            <svg
+              aria-hidden="true"
+              className="h-8 w-8"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <path
+                d="M4 7H20M4 12H20M4 17H20"
+                stroke="#6A7378"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* 見出しはFigmaのグラデーションバーと書体を再現します。 */}
@@ -311,26 +329,49 @@ export default function EventsClient() {
 
       {activeTab === "roundtable" ? (
         <section className="px-4 pb-12 pt-10">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            {roundtable.title}
-          </h2>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <GradientIcon type="calendar" />
-              <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                {roundtable.scheduleNote}
+          {isLoading ? (
+            <>
+              <SkeletonBlock className="h-6 w-40 rounded-md" />
+              <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="calendar" />
+                  <SkeletonBlock className="h-4 w-40 rounded-md" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="location" />
+                  <SkeletonBlock className="h-4 w-28 rounded-md" />
+                </div>
+              </div>
+              <div className="mt-4 space-y-2">
+                <SkeletonBlock className="h-4 w-full rounded-md" />
+                <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                {roundtable.title}
+              </h2>
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="calendar" />
+                  <p className="text-[13px] leading-[1.9] text-[#4B5459]">
+                    {roundtable.scheduleNote}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <GradientIcon type="location" />
+                  <p className="text-[13px] leading-[1.9] text-[#4B5459]">
+                    {roundtable.location}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459]">
+                {roundtable.description}
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <GradientIcon type="location" />
-              <p className="text-[13px] leading-[1.9] text-[#4B5459]">
-                {roundtable.location}
-              </p>
-            </div>
-          </div>
-          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459]">
-            {roundtable.description}
-          </p>
+            </>
+          )}
 
           <div className="mt-10 space-y-4">
             <div className="border-b border-[#14BDB1] pb-1">
@@ -345,11 +386,29 @@ export default function EventsClient() {
 
           {/* 予約枠はアコーディオン式で展開し、空き状況を強調します。 */}
           <div className="mt-4 divide-y divide-[#EBEEF0]">
-            {scheduleDays.length === 0 ? (
+            {isLoading ? (
+              [0, 1].map((index) => (
+                <div key={`schedule-skel-${index}`} className="py-6">
+                  <div className="flex items-center justify-between">
+                    <SkeletonBlock className="h-5 w-28 rounded-md" />
+                    <SkeletonBlock className="h-6 w-6 rounded-full" />
+                  </div>
+                  <div className="mt-4 flex gap-4">
+                    {[0, 1].map((slotIndex) => (
+                      <div
+                        key={`slot-skel-${index}-${slotIndex}`}
+                        className="flex flex-1 flex-col items-center justify-center rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-4 py-3"
+                      >
+                        <SkeletonBlock className="h-4 w-20 rounded-md" />
+                        <SkeletonBlock className="mt-2 h-3 w-14 rounded-md" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : scheduleDays.length === 0 ? (
               <p className="py-6 text-[13px] text-[#6A7378]">
-                {isLoading
-                  ? "読み込み中です。"
-                  : "現在表示できる座談会日程がありません。"}
+                現在表示できる座談会日程がありません。
               </p>
             ) : (
               scheduleDays.map((day) => (
@@ -408,31 +467,65 @@ export default function EventsClient() {
         <section className="px-4 pb-12 pt-10">
           {/* 体験展示は2列グリッドで整列し、カードの高さを揃えます。 */}
           <div className="grid grid-cols-2 gap-6">
-            {exhibitions.map((card) => (
-              <article key={card.id} className="space-y-2">
-                <div className="aspect-video overflow-hidden rounded-[4px]">
-                  <img
-                    src={card.image}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="space-y-1 text-[12px]">
-                  {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
-                  <p
-                    className="h-[36px] overflow-hidden text-[#4B5459]"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                    }}
-                  >
-                    {card.title}
-                  </p>
-                  <p className="text-right text-[#6A7378]">{card.author}</p>
-                </div>
-              </article>
-            ))}
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, index) => (
+                  <article key={`exhibit-skel-${index}`} className="space-y-2">
+                    <SkeletonBlock className="aspect-video w-full rounded-[4px]" />
+                    <div className="space-y-2">
+                      <SkeletonBlock className="h-4 w-full rounded-md" />
+                      <SkeletonBlock className="h-4 w-1/2 rounded-md ml-auto" />
+                    </div>
+                  </article>
+                ))
+              : exhibitions.map((card) => {
+                  const isFallback = card.id?.startsWith("exhibition-")
+                  const content = (
+                    <article>
+                      <div className="aspect-video overflow-hidden rounded-[4px]">
+                        <img
+                          src={card.image}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1 text-[12px]">
+                        {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
+                        <p
+                          className="h-[36px] overflow-hidden text-[#4B5459]"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {card.title}
+                        </p>
+                        <p className="text-right text-[#6A7378]">
+                          {card.author}
+                        </p>
+                      </div>
+                    </article>
+                  )
+
+                  if (isFallback) {
+                    return (
+                      <div key={card.id} className="space-y-2">
+                        {content}
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <Link
+                      key={card.id}
+                      // 体験展示の詳細ページへ遷移し、カード全体をタップ可能にします。
+                      href={`/events/exhibitions/${card.id}`}
+                      className="block space-y-2"
+                    >
+                      {content}
+                    </Link>
+                  )
+                })}
           </div>
           {loadError ? (
             <p className="mt-4 text-[12px] text-[#D96E36]">{loadError}</p>
@@ -442,6 +535,7 @@ export default function EventsClient() {
 
       {/* フッターは既存コンポーネントをそのまま使い回します。 */}
       <Footer />
+      </div>
     </div>
   )
 }
@@ -518,12 +612,16 @@ const formatTimeRange = (startAt: Date, endAt: Date) => {
   return `${formatTime(startAt)}~${formatTime(endAt)}`
 }
 
+const formatNumber = (value: number) =>
+  // 予約人数などの数値は日本語表記で統一し、桁区切りも自然に見せる。
+  new Intl.NumberFormat("ja-JP").format(value)
+
 const formatRemaining = (
   remaining?: number | null,
   isFull?: boolean | null,
 ) => {
   if (isFull || remaining === 0) return "満員"
-  if (typeof remaining === "number") return `残り${remaining}人`
+  if (typeof remaining === "number") return `残り${formatNumber(remaining)}人`
   return "受付中"
 }
 

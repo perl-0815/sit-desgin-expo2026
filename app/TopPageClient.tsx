@@ -30,8 +30,8 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
   const otherPercent =
     totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100
 
-  // 開催開始日までの残り日数を、ローカル日付の0時基準で計算します。
-  const eventStartDate = new Date(2026, 2, 8)
+  // 開催開始日（2026年3月7日）までの残り日数を、ローカル日付の0時基準で計算します。
+  const eventStartDate = new Date(2026, 2, 7)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   eventStartDate.setHours(0, 0, 0, 0)
@@ -100,27 +100,31 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
           </p>
         </div>
 
-        {/* メニューボタンは右上に固定し、研究ページと同じ見た目を使い回します。 */}
-        <button
-          className="absolute right-4 top-6 z-20 grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
@@ -133,8 +137,8 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center">
             <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-              3.08
-              <span className="text-[16px] text-[#E7372A]">(日)</span>
+              3.07
+              <span className="text-[16px] text-[#2C68D3]">(土)</span>
               <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
               3.17
               <span className="text-[16px] text-[#6A7378]">(火)</span>

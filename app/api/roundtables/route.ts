@@ -38,7 +38,19 @@ function parseCount(value: string | undefined) {
   // 人数の入力が空/不正な場合は1人として扱う
   // ルールを厳密にしたい場合はここでバリデーションを強化
   if (!value) return 1
-  const parsed = Number(value)
+
+  // Googleフォームの回答は「２」や「1,000人」のように表記ゆれが起きるため、
+  // ここで全角→半角変換と記号除去を行い、数値として正しく集計できるようにする。
+  const normalized = value
+    .replace(/[０-９]/g, (char) =>
+      String.fromCharCode(char.charCodeAt(0) - 0xfee0),
+    )
+    .replace(/[,\s]/g, "")
+
+  const match = normalized.match(/\d+/)
+  if (!match) return 1
+
+  const parsed = Number(match[0])
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 1
 }
 

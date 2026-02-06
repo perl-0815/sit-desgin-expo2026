@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import Footer from "../../components/Footer"
 import NavigationMenu from "../../components/NavigationMenu"
+import { SkeletonLoader } from "../../components/SkeletonLoader"
 
 type ResearchDetailClientProps = {
   id: string
@@ -39,13 +40,17 @@ type Research = {
   student?: Student | null
 }
 
-type Career = {
-  id: string
-  student_id: string
-  category?: string | null
-  category_type?: string | null
-  job_type?: string | null
-  detail?: string | null
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
 }
 
 const PLACEHOLDER_BODY =
@@ -87,7 +92,6 @@ export default function ResearchDetailClient({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [researchList, setResearchList] = useState<Research[]>([])
-  const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -99,27 +103,24 @@ export default function ResearchDetailClient({
         setLoading(true)
         setError(null)
 
-        const [labsRes, researchRes, careersRes] = await Promise.all([
+        const [labsRes, researchRes] = await Promise.all([
           fetch("/api/labs"),
           fetch("/api/research?include=student"),
-          fetch("/api/careers?include=student"),
         ])
 
-        if (!labsRes.ok || !researchRes.ok || !careersRes.ok) {
+        if (!labsRes.ok || !researchRes.ok) {
           throw new Error("Failed to fetch detail data.")
         }
 
-        const [labsData, researchData, careersData] = await Promise.all([
+        const [labsData, researchData] = await Promise.all([
           labsRes.json(),
           researchRes.json(),
-          careersRes.json(),
         ])
 
         if (!active) return
 
         setLabs(labsData)
         setResearchList(researchData)
-        setCareers(careersData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -157,10 +158,7 @@ export default function ResearchDetailClient({
   const keywords = sliceKeywords(research?.keywords ?? lab?.keywords)
   const imageUrl = pickOriginalImage(research?.image_url, research?.image_thumb_url)
 
-  const career = useMemo(() => {
-    if (!student?.id) return null
-    return careers.find((item) => item.student_id === student.id) ?? null
-  }, [careers, student?.id])
+  // 詳細ページでは進路情報を扱わないため、キャリアデータの取得は行いません。
 
   const qaItems = useMemo(() => {
     const items: { question: string; answer: string }[] = []
@@ -213,27 +211,32 @@ export default function ResearchDetailClient({
             研究・作品紹介
           </h1>
         </div>
-        <button
-          // トップページと同様に白背景のアイコンボタンにします。
-          className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              // トップページと同様に白背景のアイコンボタンにします。
+              className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 戻るボタンは一覧への導線として常に表示します。 */}
@@ -258,19 +261,13 @@ export default function ResearchDetailClient({
         戻る
       </Link>
 
-      {loading ? (
-        <div className="px-4 pb-12">
-          <div className="rounded-2xl border border-dashed border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
-            研究詳細を読み込み中...
-          </div>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
             {error}
           </div>
         </div>
-      ) : !research ? (
+      ) : !research && !loading ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
             対象の研究が見つかりませんでした。
@@ -280,7 +277,13 @@ export default function ResearchDetailClient({
         <>
           <section className="px-4 pb-12">
             <div className="flex flex-col gap-4">
-              {keywords.length > 0 ? (
+              {loading ? (
+                <div className="flex flex-wrap gap-2">
+                  <SkeletonBlock className="h-6 w-16 rounded-full" />
+                  <SkeletonBlock className="h-6 w-20 rounded-full" />
+                  <SkeletonBlock className="h-6 w-14 rounded-full" />
+                </div>
+              ) : keywords.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {keywords.map((keyword) => (
                     <span
@@ -295,32 +298,62 @@ export default function ResearchDetailClient({
 
               <div className="space-y-1">
                 {/* Figmaのタイトルタイポ（24px・字間0.02em）に合わせる */}
-                <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  {research.title ?? "研究タイトル"}
-                </h2>
-                {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
-                <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
-                  <span className="text-[#6A7378]">
-                    {lab?.official_name ?? lab?.name ?? "研究室名"}
-                  </span>
-                  <span className="text-[#4B5459]">
-                    {student?.name ?? "苗字 名前"}
-                  </span>
-                </div>
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-7 w-4/5 rounded-md" />
+                    <div className="flex justify-end gap-2">
+                      <SkeletonBlock className="h-4 w-24 rounded-md" />
+                      <SkeletonBlock className="h-4 w-20 rounded-md" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* research が null の可能性があるため、描画時は optional chaining で安全に参照する */}
+                    <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {research?.title ?? "研究タイトル"}
+                    </h2>
+                    {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
+                    <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
+                      <span className="text-[#6A7378]">
+                        {lab?.official_name ?? lab?.name ?? "研究室名"}
+                      </span>
+                      <span className="text-[#4B5459]">
+                        {student?.name ?? "苗字 名前"}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* 本文は15px/行間2.2/字間0.04emに揃える */}
-              <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                {research.summary ?? PLACEHOLDER_BODY}
-              </p>
+              {loading ? (
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                  {research?.summary ?? PLACEHOLDER_BODY}
+                </p>
+              )}
 
               {/* 研究画像は16:9の高さ204px想定 */}
               <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
-                {imageUrl ? (
-                  <img
-                    alt=""
+                {loading ? (
+                  <SkeletonBlock className="absolute inset-0" />
+                ) : imageUrl ? (
+                  <SkeletonLoader
                     src={imageUrl}
-                    className="h-full w-full object-cover"
+                    alt=""
+                    // 詳細ページの画像サイズに合わせてフルサイズで表示します。
+                    className="h-full w-full"
+                    // 読み込み失敗時はプレースホルダーを表示します。
+                    fallback={
+                      <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
+                        No Image
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
@@ -331,31 +364,7 @@ export default function ResearchDetailClient({
             </div>
           </section>
 
-          <section className="px-4 pb-12">
-            <div className="border-b border-[#14BDB1] pb-2">
-              <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                進路
-              </h3>
-            </div>
-            <div className="py-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2 text-[16px] font-semibold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  <span>{career?.category ?? "進路先未登録"}</span>
-                  {career?.job_type ? <span>({career.job_type})</span> : null}
-                </div>
-                {career?.category_type ? (
-                  <p className="text-[13px] font-medium text-[#6A7378]">
-                    {career.category_type}
-                  </p>
-                ) : null}
-              </div>
-              {career?.detail ? (
-                <p className="mt-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                  {career.detail}
-                </p>
-              ) : null}
-            </div>
-          </section>
+          {/* 詳細ページでは進路情報を一律で非表示にする方針のため、セクション自体を描画しません。 */}
 
           <section className="px-4 pb-12">
             <div className="border-b border-[#14BDB1] pb-2">
@@ -364,24 +373,36 @@ export default function ResearchDetailClient({
               </h3>
             </div>
             <div className="divide-y divide-[#EBEEF0]">
-              {(qaItems.length > 0
-                ? qaItems
-                : [
-                    {
-                      question: "この研究をしようと思ったきっかけは？",
-                      answer: PLACEHOLDER_BODY,
-                    },
-                  ]
-              ).map((item, index) => (
-                <div key={`${item.question}-${index}`} className="py-4">
-                  <p className="text-[16px] font-medium text-[#0A948A]">
-                    {item.question}
-                  </p>
-                  <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-                    {item.answer}
-                  </p>
-                </div>
-              ))}
+              {loading ? (
+                [0, 1].map((index) => (
+                  <div key={`qa-skel-${index}`} className="py-4">
+                    <SkeletonBlock className="h-5 w-3/4 rounded-md" />
+                    <div className="mt-3 space-y-2">
+                      <SkeletonBlock className="h-4 w-full rounded-md" />
+                      <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                (qaItems.length > 0
+                  ? qaItems
+                  : [
+                      {
+                        question: "この研究をしようと思ったきっかけは？",
+                        answer: PLACEHOLDER_BODY,
+                      },
+                    ]
+                ).map((item, index) => (
+                  <div key={`${item.question}-${index}`} className="py-4">
+                    <p className="text-[16px] font-medium text-[#0A948A]">
+                      {item.question}
+                    </p>
+                    <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+                      {item.answer}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </section>
 
@@ -391,20 +412,12 @@ export default function ResearchDetailClient({
               className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
               一覧へ戻る
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M12 5V3M7 6L5 4M6 12H3M7 18L5 20M12 19V21M17 18L19 20M18 12H21M17 6L19 4M12 8A4 4 0 1 0 12 16A4 4 0 0 0 12 8Z"
-                  stroke="#4B5459"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {/* Figma指定のアイコンに差し替えます。 */}
+              <img
+                src="/icon/signal_cellular_alt.svg"
+                alt=""
+                className="h-3 w-3"
+              />
             </Link>
           </div>
         </>

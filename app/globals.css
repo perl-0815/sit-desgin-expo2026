@@ -12,11 +12,11 @@
   --font-sans: var(--font-noto-sans-jp);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ダークモードによる外側の黒背景を避けるため、背景色は白で固定します。 */
+
+html {
+  /* 研究・作品紹介ページで外側が黒く見える現象を防ぐため、html側も白で固定します。 */
+  background: var(--background);
 }
 
 body {
@@ -25,4 +25,20 @@ body {
   /* 日本語本文はNoto Sans JPを基準にし、Figmaの指定に近づけます。 */
   font-family: var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN",
     "Yu Gothic", "Meiryo", sans-serif;
+}
+
+/* 画像読み込み用のスケルトンシマーを共通で使えるようにします。 */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(150%) skewX(-20deg);
+  }
+}
+
+.skeleton-shimmer {
+  width: 150%;
+  height: 100%;
+  animation: skeleton-shimmer 2s linear infinite;
 }

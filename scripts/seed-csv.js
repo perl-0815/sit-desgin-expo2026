@@ -128,6 +128,8 @@ const main = async () => {
     category_type: normalize(row.category_type),
     detail: normalize(row.detail),
     job_type: normalize(row.job_type),
+    // 業種はフォームの「就職先の業種」由来の値なので、category_type(分類)とは別フィールドで保持します。
+    industry: normalize(row.industry),
     decision_reason: normalize(row.decision_reason),
     extra_notes: normalize(row.extra_notes),
     visibility: normalize(row.visibility),

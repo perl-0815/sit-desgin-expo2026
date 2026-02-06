@@ -154,7 +154,7 @@ node scripts/upload-research-images.js
 アップロード後、`image1_*` / `image2_*` の URL を更新します。
 
 ```bash
-node scripts/upload-portfolio-images.js
+node scripts/upload-portfolio-images.mjs
 ```
 
 前提:

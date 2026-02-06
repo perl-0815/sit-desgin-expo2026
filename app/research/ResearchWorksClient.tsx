@@ -6,6 +6,7 @@ import Link from "next/link"
 
 import Footer from "../components/Footer"
 import NavigationMenu from "../components/NavigationMenu"
+import { SkeletonLoader } from "../components/SkeletonLoader"
 
 type CourseMeta = {
   key: string
@@ -103,6 +104,19 @@ type ResearchItem = {
   labId?: string | null
   imageUrl?: string | null
   imageOriginalUrl?: string | null
+}
+
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
 }
 
 const PLACEHOLDER_SUMMARY =
@@ -341,6 +355,10 @@ export default function ResearchWorksClient() {
   }, [worksItems])
 
   const visibleCourses = useMemo(() => {
+    if (loading) {
+      // 読み込み中は全コースを表示し、スケルトンで骨組みを見せます。
+      return courseOrder
+    }
     if (activeTab === "research") {
       return courseOrder.filter((course) => {
         return (labsByCourse.get(course.key)?.length ?? 0) > 0
@@ -407,27 +425,31 @@ export default function ResearchWorksClient() {
             研究・作品紹介
           </h1>
         </div>
-        {/* メニューボタンはSVGで描画し、フォント未読込でも確実に表示されるようにしています。 */}
-        <button
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}
@@ -463,13 +485,7 @@ export default function ResearchWorksClient() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="px-4 pt-12">
-          <div className="rounded-2xl border border-dashed border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
-            研究・作品データを読み込み中...
-          </div>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="px-4 pt-12">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
             {error}
@@ -479,6 +495,53 @@ export default function ResearchWorksClient() {
         <div className="flex flex-col gap-12 pt-6">
           {visibleCourses.map((course) => {
             const courseMeta = getCourseMeta(course.key)
+
+            if (loading) {
+              return (
+                <section key={`loading-${course.key}`} className="px-4">
+                  <div
+                    className="border-b pb-2"
+                    style={{ borderColor: courseMeta.lineColor }}
+                  >
+                    <SkeletonBlock className="h-6 w-40 rounded-md" />
+                  </div>
+                  {activeTab === "research" ? (
+                    <div className="divide-y divide-[#EBEEF0]">
+                      {[0, 1].map((index) => (
+                        <div key={`lab-skel-${course.key}-${index}`} className="py-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex flex-col gap-2">
+                              <SkeletonBlock className="h-4 w-32 rounded-md" />
+                              <div className="flex flex-wrap gap-2">
+                                <SkeletonBlock className="h-5 w-16 rounded-full" />
+                                <SkeletonBlock className="h-5 w-12 rounded-full" />
+                                <SkeletonBlock className="h-5 w-14 rounded-full" />
+                              </div>
+                            </div>
+                            <SkeletonBlock className="mt-1 h-6 w-6 rounded-full" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <div
+                          key={`work-skel-${course.key}-${index}`}
+                          className="flex flex-col gap-2"
+                        >
+                          <SkeletonBlock className="aspect-video w-full rounded-[4px]" />
+                          <div className="space-y-2">
+                            <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                            <SkeletonBlock className="h-4 w-1/2 rounded-md ml-auto" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )
+            }
 
             if (activeTab === "research") {
               const courseLabs = labsByCourse.get(course.key) ?? []
@@ -514,8 +577,14 @@ export default function ResearchWorksClient() {
                               {/* 展開中は見出し色を強調色に切り替え、どの研究室が開いているかを視覚的に示します。 */}
                               <p
                                 className={`text-[16px] font-medium ${
-                                  isExpanded ? "text-[#2C68D3]" : "text-[#4B5459]"
+                                  isExpanded ? "" : "text-[#4B5459]"
                                 }`}
+                                style={
+                                  // 展開中の研究室名はコースごとの指定色に合わせます。
+                                  isExpanded
+                                    ? { color: courseMeta.buttonColor }
+                                    : undefined
+                                }
                               >
                                 {labName}
                               </p>
@@ -589,13 +658,20 @@ export default function ResearchWorksClient() {
                                     >
                                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                                         {item.imageUrl ? (
-                                          <img
-                                            alt=""
+                                          <SkeletonLoader
                                             src={item.imageUrl}
+                                            alt=""
                                             onError={handleImageError(
                                               item.imageOriginalUrl,
                                             )}
-                                            className="h-full w-full object-cover"
+                                            // 既存のカードサイズに合わせてフルサイズで表示します。
+                                            className="h-full w-full"
+                                            // フォールバックも失敗した場合の表示を統一します。
+                                            fallback={
+                                              <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                                No Image
+                                              </div>
+                                            }
                                           />
                                         ) : (
                                           <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
@@ -652,11 +728,18 @@ export default function ResearchWorksClient() {
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                         {item.imageUrl ? (
-                          <img
-                            alt=""
+                          <SkeletonLoader
                             src={item.imageUrl}
+                            alt=""
                             onError={handleImageError(item.imageOriginalUrl)}
-                            className="h-full w-full object-cover"
+                            // 既存のカードサイズに合わせてフルサイズで表示します。
+                            className="h-full w-full"
+                            // フォールバックも失敗した場合の表示を統一します。
+                            fallback={
+                              <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                No Image
+                              </div>
+                            }
                           />
                         ) : (
                           <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">

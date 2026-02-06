@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import Footer from "../../components/Footer"
 import NavigationMenu from "../../components/NavigationMenu"
+import { SkeletonLoader } from "../../components/SkeletonLoader"
 
 type WorksDetailClientProps = {
   id: string
@@ -39,13 +40,17 @@ type Portfolio = {
   student?: Student | null
 }
 
-type Career = {
-  id: string
-  student_id: string
-  category?: string | null
-  category_type?: string | null
-  job_type?: string | null
-  detail?: string | null
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
 }
 
 const PLACEHOLDER_BODY =
@@ -88,7 +93,6 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
-  const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -100,27 +104,24 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         setLoading(true)
         setError(null)
 
-        const [labsRes, portfoliosRes, careersRes] = await Promise.all([
+        const [labsRes, portfoliosRes] = await Promise.all([
           fetch("/api/labs"),
           fetch("/api/portfolios?include=student"),
-          fetch("/api/careers?include=student"),
         ])
 
-        if (!labsRes.ok || !portfoliosRes.ok || !careersRes.ok) {
+        if (!labsRes.ok || !portfoliosRes.ok) {
           throw new Error("Failed to fetch detail data.")
         }
 
-        const [labsData, portfoliosData, careersData] = await Promise.all([
+        const [labsData, portfoliosData] = await Promise.all([
           labsRes.json(),
           portfoliosRes.json(),
-          careersRes.json(),
         ])
 
         if (!active) return
 
         setLabs(labsData)
         setPortfolios(portfoliosData)
-        setCareers(careersData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -163,19 +164,19 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const workImage = index === 2
     ? pickOriginalImage(portfolio?.image2_url, portfolio?.image2_thumb_url)
     : pickOriginalImage(portfolio?.image1_url, portfolio?.image1_thumb_url)
+  // 作品の詳細リンクは作品ごとのURL（appeal_url_1 / appeal_url_2）を参照します。
   const workLink =
     index === 2 ? portfolio?.appeal_url_2 : portfolio?.appeal_url_1
 
-  const career = useMemo(() => {
-    if (!student?.id) return null
-    return careers.find((item) => item.student_id === student.id) ?? null
-  }, [careers, student?.id])
+  // 詳細ページでは進路情報を扱わないため、キャリアデータの取得は行いません。
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
+    // 他ページと合わせるため、詳細ページの背景を白に統一します。
+    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-white pb-16">
       {/* 右上メニューは画面全体に重ねて表示します。 */}
       {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
+        // メニュー展開時の背面も白背景にしてトーンを合わせます。
+        <div className="fixed inset-0 z-50 flex justify-center bg-white">
           <NavigationMenu
             items={menuItems}
             activeId="works"
@@ -191,26 +192,32 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             研究・作品紹介
           </h1>
         </div>
-        <button
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              // トップページと同様に白背景のアイコンボタンにします。
+              className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 戻るボタンは作品一覧へ戻る導線として表示します。 */}
@@ -235,19 +242,13 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         戻る
       </Link>
 
-      {loading ? (
-        <div className="px-4 pb-12">
-          <div className="rounded-2xl border border-dashed border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
-            作品詳細を読み込み中...
-          </div>
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
             {error}
           </div>
         </div>
-      ) : !portfolio ? (
+      ) : !portfolio && !loading ? (
         <div className="px-4 pb-12">
           <div className="rounded-2xl border border-[#EBEEF0] bg-white p-10 text-center text-sm text-[#6A7378]">
             対象の作品が見つかりませんでした。
@@ -259,32 +260,61 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
             <div className="flex flex-col gap-4">
               <div className="space-y-1">
                 {/* Figmaのタイトルタイポ（24px・字間0.02em）に合わせる */}
-                <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  {workTitle ?? "作品タイトル"}
-                </h2>
-                {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
-                <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
-                  <span className="text-[#6A7378]">
-                    {lab?.official_name ?? lab?.name ?? "研究室名"}
-                  </span>
-                  <span className="text-[#4B5459]">
-                    {student?.name ?? "苗字 名前"}
-                  </span>
-                </div>
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-7 w-4/5 rounded-md" />
+                    <div className="flex justify-end gap-2">
+                      <SkeletonBlock className="h-4 w-24 rounded-md" />
+                      <SkeletonBlock className="h-4 w-20 rounded-md" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {workTitle ?? "作品タイトル"}
+                    </h2>
+                    {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
+                    <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5]">
+                      <span className="text-[#6A7378]">
+                        {lab?.official_name ?? lab?.name ?? "研究室名"}
+                      </span>
+                      <span className="text-[#4B5459]">
+                        {student?.name ?? "苗字 名前"}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* 本文は15px/行間2.2/字間0.04emに揃える */}
-              <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                {workSummary ?? PLACEHOLDER_BODY}
-              </p>
+              {loading ? (
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+              ) : (
+                <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                  {workSummary ?? PLACEHOLDER_BODY}
+                </p>
+              )}
 
               {/* 作品画像は16:9の高さ204px想定 */}
               <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
-                {workImage ? (
-                  <img
-                    alt=""
+                {loading ? (
+                  <SkeletonBlock className="absolute inset-0" />
+                ) : workImage ? (
+                  <SkeletonLoader
                     src={workImage}
-                    className="h-full w-full object-cover"
+                    alt=""
+                    // 詳細ページの画像サイズに合わせてフルサイズで表示します。
+                    className="h-full w-full"
+                    // 読み込み失敗時はプレースホルダーを表示します。
+                    fallback={
+                      <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
+                        No Image
+                      </div>
+                    }
                   />
                 ) : (
                   <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
@@ -294,7 +324,12 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
               </div>
 
               <div className="flex flex-col items-center gap-3 py-3">
-                {workLink ? (
+                {loading ? (
+                  <>
+                    <SkeletonBlock className="h-12 w-44 rounded-full" />
+                    <SkeletonBlock className="h-4 w-36 rounded-md" />
+                  </>
+                ) : workLink ? (
                   <a
                     href={workLink}
                     target="_blank"
@@ -318,45 +353,22 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                     </svg>
                   </a>
                 ) : null}
-                {portfolio?.overall_portfolio_url ? (
+                {/* 他の作品も見るリンクはポートフォリオ全体のURL（overall_portfolio_url）を参照します。 */}
+                {!loading && portfolio?.overall_portfolio_url ? (
                   <a
                     href={portfolio.overall_portfolio_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[13px] font-medium text-[#6A7378] underline"
                   >
-                    その他作品はこちらから
+                    その他の作品はこちらから
                   </a>
                 ) : null}
               </div>
             </div>
           </section>
 
-          <section className="px-4 pb-12">
-            <div className="border-b border-[#14BDB1] pb-2">
-              <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                進路
-              </h3>
-            </div>
-            <div className="py-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2 text-[16px] font-semibold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  <span>{career?.category ?? "進路先未登録"}</span>
-                  {career?.job_type ? <span>({career.job_type})</span> : null}
-                </div>
-                {career?.category_type ? (
-                  <p className="text-[13px] font-medium text-[#6A7378]">
-                    {career.category_type}
-                  </p>
-                ) : null}
-              </div>
-              {career?.detail ? (
-                <p className="mt-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                  {career.detail}
-                </p>
-              ) : null}
-            </div>
-          </section>
+          {/* 詳細ページでは進路情報を一律で非表示にする方針のため、セクション自体を描画しません。 */}
 
           <div className="flex justify-center px-4 pb-12">
             <Link
@@ -364,20 +376,12 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
               className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
               一覧へ戻る
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M12 5V3M7 6L5 4M6 12H3M7 18L5 20M12 19V21M17 18L19 20M18 12H21M17 6L19 4M12 8A4 4 0 1 0 12 16A4 4 0 0 0 12 8Z"
-                  stroke="#4B5459"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {/* Figma指定のアイコンに差し替えます。 */}
+              <img
+                src="/icon/signal_cellular_alt.svg"
+                alt=""
+                className="h-3 w-3"
+              />
             </Link>
           </div>
         </>

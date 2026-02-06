@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useEffect, useState } from "react"
 
 import CareerPieChart from "../components/CareerPieChart"
 import Footer from "../components/Footer"
@@ -22,6 +22,38 @@ type GradReasonCard = {
   course: string
 }
 
+type Career = {
+  id: string
+  student_id: string
+  category?: string | null
+  category_type?: string | null
+  detail?: string | null
+  job_type?: string | null
+  industry?: string | null
+  decision_reason?: string | null
+  extra_notes?: string | null
+  visibility?: string | null
+  student?: {
+    student_no?: string | null
+    lab?: {
+      course?: string | null
+    } | null
+  } | null
+}
+
+type SkeletonBlockProps = {
+  className?: string
+}
+
+const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
+  // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
+  return (
+    <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
+}
+
 const menuItems = [
   { id: "top", label: "TOP", href: "/" },
   { id: "research", label: "研究紹介", href: "/research" },
@@ -31,102 +63,220 @@ const menuItems = [
   { id: "contact", label: "お問い合わせ", href: "/contact" },
 ]
 
-const jobCategories: JobCategory[] = [
-  {
-    title: "デザイン・企画系",
-    percentage: 38.3,
-    items: [
-      "株式会社Sun Asterisk(UIUXデザイナー職)",
-      "ナカバヤシ株式会社(商品企画)",
-      "KDDIアジャイル開発センター株式会社(サービスデザイナー)",
-      "クリナップ株式会社(企画開発)",
-      "株式会社オリバー(デザイン職)",
-      "GMOインターネット株式会社(UIデザイナー)",
-      "株式会社MIXI(デザイナー)",
-      "TANAX株式会社(デザイナー)",
-      "株式会社コクヨ(デザイナー総合職)",
-      "株式会社バンダイ(総合職１（企画・プロモーションなど）)",
-      "株式会社ジャストシステム(UXデザイナー)",
-      "ソニー株式会社(UIUXデザイナー)",
-      "株式会社コナミアーケードゲームス(デザイナー)",
-      "Visional（株式会社ビズリーチ）(UIUXデザイナー)",
-      "株式会社ビズリーチ(プロダクト職)",
-      "アチーブメント株式会社(企画職(サービス企画・UXデザイナー))",
-    ],
-  },
-  {
-    title: "IT・エンジニア系",
-    percentage: 46.8,
-    items: [
-      "富士通株式会社(システムエンジニア)",
-      "日本電気株式会社(システムエンジニア)",
-      "株式会社NTTデータ(システムエンジニア)",
-      "三菱電機株式会社(ソフトウェア開発)",
-      "日立製作所(システムエンジニア)",
-      "株式会社日立ソリューションズ(システムエンジニア)",
-      "TIS株式会社(システムエンジニア)",
-      "株式会社サイバーエージェント(エンジニア)",
-      "DeNA株式会社(エンジニア)",
-      "株式会社サイバーコム(システムエンジニア)",
-      "サイボウズ株式会社(エンジニア)",
-      "ヤフー株式会社(システムエンジニア)",
-      "株式会社ドワンゴ(エンジニア)",
-      "株式会社オリコン(エンジニア)",
-      "(機械・通信系エンジニア)",
-      "Astemo株式会社(設計開発職)",
-      "株式会社オカムラ(技術職)",
-      "富士フイルムビジネスイノベーション株式会社(技術職)",
-      "本田技研工業株式会社(四輪完成車研究開発)",
-      "株式会LIXIL(システムエンジニア)",
-      "株式会社ジェーエムエーシステムズ(システムエンジニア)",
-    ],
-  },
-  {
-    title: "その他",
-    percentage: 14.9,
-    items: [
-      "千葉市役所(事務)",
-      "キャップジェミニ株式会社(デジタルコンサルタント)",
-      "チームラボ株式会社(ソリューションカタリスト)",
-      "株式会社 小田急エージェンシー(総合職)",
-      "株式会社NTTドコモ(営業)",
-    ],
-  },
-]
+const normalizeText = (value?: string | null) => value?.trim() ?? ""
 
-const jobDecisionReasons: ReasonCard[] = [
-  {
-    text: "企業より公務員に向いていると思ったから",
-    labels: ["職種名", "業界名"],
-  },
-  {
-    text: "大きな規模でサービス提案をしたかったから",
-    labels: ["職種名", "業界名"],
-  },
-  {
-    text: "チームでの開発が好きだったから",
-    labels: ["職種名", "業界名"],
-  },
-  {
-    text: "クライアントワークで多様な業界の案件に携われることと、職種を越えてチームで開発できる環境に惹かれて選びました！",
-    labels: ["職種名", "業界名"],
-  },
-  {
-    text: "安定",
-    labels: ["職種名", "業界名"],
-  },
-]
+const buildJobLabel = (career: Career) => {
+  // 主な就職先は「企業名（detail）」がある場合のみ表示します。
+  const company = normalizeText(career.detail)
+  return company || ""
+}
 
-const gradReasons: GradReasonCard[] = [
-  { text: "もっとデザイン勉強したい", course: "〇〇コース" },
-  { text: "まだまだ学び残したことがいっぱいあるから", course: "〇〇コース" },
-  { text: "学科推薦で行きたい研究室にそのまま行けるから", course: "〇〇コース" },
-  { text: "研究したいテーマがあったから。", course: "〇〇コース" },
-  { text: "まだ、やるべきこと/やりたいことが残っているから。", course: "〇〇コース" },
-]
+const resolveJobCategory = (career: Career) => {
+  // 主な就職先の分類は category_type を優先し、未入力の場合のみ「その他」にまとめます。
+  const raw = normalizeText(career.category_type)
+  return raw || "その他"
+}
+
+const toUniqueList = (items: string[], limit = 5) => {
+  const seen = new Set<string>()
+  const results: string[] = []
+  items.forEach((item) => {
+    if (!item || seen.has(item)) return
+    seen.add(item)
+    results.push(item)
+  })
+  return results.slice(0, limit)
+}
+
+const buildJobLabels = (career: Career) => {
+  // ラベルは「職種」「業界」の具体値を表示します。
+  const jobType = normalizeText(career.job_type)
+  // 業界ラベルは業種を優先し、未入力時のみカテゴリ分類にフォールバックします。
+  const industry =
+    normalizeText(career.industry) || normalizeText(career.category_type)
+  return [
+    jobType ? `${jobType}` : "",
+    industry ? ` ${industry}` : "",
+  ].filter(Boolean)
+}
+
+const buildCourseLabel = (career: Career) => {
+  // 進学理由のコース表示は研究室のコースを優先し、なければカテゴリ種別を使います。
+  return (
+    normalizeText(career.student?.lab?.course) ||
+    normalizeText(career.category_type)
+  )
+}
 
 export default function CareerClient() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [careers, setCareers] = useState<Career[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  // 主な就職先のフィルタ: 大学院生（cy20XXX）を含めるかどうかを切り替えます。
+  const [includeGraduate, setIncludeGraduate] = useState(true)
+  // 「もっと見る」制御: 就職先の決め手/大学院進学の理由で5件超えた場合に展開します。
+  const [showAllJobReasons, setShowAllJobReasons] = useState(false)
+  const [showAllGradReasons, setShowAllGradReasons] = useState(false)
+
+  useEffect(() => {
+    let active = true
+
+    const load = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        // 非公開データを除外するため、公開指定付きでキャリアAPIを取得します。
+        const res = await fetch("/api/careers?visibility=public&include=student")
+        if (!res.ok) {
+          throw new Error("Failed to fetch career data.")
+        }
+        const data = (await res.json()) as Career[]
+        if (!active) return
+        setCareers(data)
+      } catch (fetchError) {
+        if (!active) return
+        const message =
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Failed to fetch career data."
+        setError(message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const careerStats = useMemo(() => {
+    // 非公開を除外したデータで進路別の割合を算出します。
+    const total = careers.length
+    let gradCount = 0
+    let jobCount = 0
+    let otherCount = 0
+
+    careers.forEach((career) => {
+      const category = normalizeText(career.category)
+      if (category.includes("大学院")) {
+        gradCount += 1
+      } else if (category.includes("就職")) {
+        jobCount += 1
+      } else {
+        otherCount += 1
+      }
+    })
+
+    const toPercent = (count: number) =>
+      total > 0 ? (count / total) * 100 : 0
+
+    return {
+      total,
+      gradCount,
+      jobCount,
+      otherCount,
+      gradPercent: toPercent(gradCount),
+      jobPercent: toPercent(jobCount),
+      otherPercent: toPercent(otherCount),
+    }
+  }, [careers])
+
+  const jobCategories = useMemo((): JobCategory[] => {
+    // 就職者のみを抽出し、カテゴリごとの割合と主要就職先をまとめます。
+    const jobCareers = careers.filter((career) => {
+      if (!normalizeText(career.category).includes("就職")) return false
+      if (includeGraduate) return true
+      // 学籍番号がcy20XXXの場合は大学院生扱いとして除外します。
+      const studentNo = normalizeText(career.student?.student_no)
+      return !studentNo.startsWith("cy20")
+    })
+    const total = jobCareers.length
+    const grouped = new Map<string, { count: number; items: string[] }>()
+
+    jobCareers.forEach((career) => {
+      const label = resolveJobCategory(career)
+      const item = buildJobLabel(career)
+      if (!grouped.has(label)) {
+        grouped.set(label, { count: 0, items: [] })
+      }
+      const group = grouped.get(label)
+      if (!group) return
+      group.count += 1
+      if (item) {
+        group.items.push(item)
+      }
+    })
+
+    // 主な就職先は割合に関わらず、デザイン→エンジニア→その他の順で固定表示します。
+    const order = ["デザイナー系", "エンジニア系", "その他"]
+    const categories = Array.from(grouped.entries())
+      .sort((a, b) => {
+        const aIndex = order.indexOf(a[0])
+        const bIndex = order.indexOf(b[0])
+        if (aIndex === -1 && bIndex === -1) return a[0].localeCompare(b[0])
+        if (aIndex === -1) return 1
+        if (bIndex === -1) return -1
+        return aIndex - bIndex
+      })
+      .map(([title, group]) => ({
+        title,
+        percentage: total > 0 ? (group.count / total) * 100 : 0,
+        items: toUniqueList(group.items, 12),
+      }))
+
+    return categories
+  }, [careers, includeGraduate])
+
+  const jobDecisionReasons = useMemo((): ReasonCard[] => {
+    // 就職者の「決め手」は decision_reason から取得し、対応する職種・業界ラベルを付与します。
+    const reasons = careers
+      .filter((career) => normalizeText(career.category).includes("就職"))
+      .map((career) => ({
+        text: normalizeText(career.decision_reason),
+        labels: buildJobLabels(career),
+      }))
+      .filter((reason) => reason.text)
+
+    const seen = new Set<string>()
+    const results: ReasonCard[] = []
+    reasons.forEach((reason) => {
+      if (seen.has(reason.text)) return
+      seen.add(reason.text)
+      results.push({
+        text: reason.text,
+        labels: reason.labels.length > 0 ? reason.labels : undefined,
+      })
+    })
+
+    return results
+  }, [careers])
+
+  const gradReasons = useMemo((): GradReasonCard[] => {
+    // 大学院進学の理由は extra_notes を優先し、なければ decision_reason を補助に使います。
+    const reasons = careers
+      .filter((career) => normalizeText(career.category).includes("大学院"))
+      .map((career) => ({
+        text:
+          normalizeText(career.extra_notes) ||
+          normalizeText(career.decision_reason),
+        course: buildCourseLabel(career),
+      }))
+      .filter((reason) => reason.text && reason.course)
+
+    const seen = new Set<string>()
+    const results: GradReasonCard[] = []
+    reasons.forEach((reason) => {
+      if (seen.has(reason.text)) return
+      seen.add(reason.text)
+      results.push({ text: reason.text, course: reason.course })
+    })
+
+    return results
+  }, [careers])
 
   return (
     <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16 text-[#2E3437]">
@@ -148,26 +298,31 @@ export default function CareerClient() {
             卒業生の進路
           </h1>
         </div>
-        <button
-          className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          type="button"
-          aria-label="メニュー"
-          onClick={() => setIsMenuOpen(true)}
-        >
-          <svg
-            aria-hidden="true"
-            className="h-8 w-8"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <path
-              d="M4 7H20M4 12H20M4 17H20"
-              stroke="#6A7378"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
+        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+            <button
+              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+            >
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* リード文はFigmaの行間と字間を再現して読みやすく整えます。 */}
@@ -175,6 +330,11 @@ export default function CareerClient() {
         <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
           卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
         </p>
+        {error ? (
+          <p className="mt-3 text-[13px] text-[#D04C4C]">
+            進路データの取得に失敗しました。
+          </p>
+        ) : null}
       </div>
 
       {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
@@ -187,16 +347,16 @@ export default function CareerClient() {
         <div className="mt-8 flex justify-center">
           <div className="relative">
             {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
-            <CareerPieChart gradPercent={23.9} jobPercent={67.4} otherPercent={8.8} total={90} />
-            {/* Figma上の「その他」ラベルは補足表示として軽く重ねます。 */}
-            <div className="pointer-events-none absolute left-[18%] top-[12%] -translate-x-1/2 -translate-y-1/2 text-center text-[#F9F9F9]">
-              <p className="text-[16px] font-bold leading-[1.5] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                その他
-              </p>
-              <p className="text-[16px] font-bold leading-[1.5] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                8.8<span className="text-[13px]">%</span>
-              </p>
-            </div>
+            {loading ? (
+              <SkeletonBlock className="h-40 w-40 rounded-full" />
+            ) : (
+              <CareerPieChart
+                gradPercent={careerStats.gradPercent}
+                jobPercent={careerStats.jobPercent}
+                otherPercent={careerStats.otherPercent}
+                total={careerStats.total}
+              />
+            )}
           </div>
         </div>
         <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
@@ -210,54 +370,85 @@ export default function CareerClient() {
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
             主な就職先
           </h2>
-          <div className="flex items-center gap-2 text-[13px] font-medium text-[#2E3437]">
+          {/* Figmaのチェックボックスに合わせ、アイコン+ラベルの余白とサイズを固定します。 */}
+          <button
+            type="button"
+            className="flex items-center gap-[6px]"
+            aria-pressed={includeGraduate}
+            onClick={() => setIncludeGraduate((prev) => !prev)}
+          >
             <span className="inline-flex h-6 w-6 items-center justify-center">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-5 w-5"
-                fill="none"
-              >
-                <path
-                  d="M5 12L10 17L19 7"
-                  stroke="#2E3437"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {includeGraduate ? (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-gradient-to-br from-[#FB9678] to-[#E5A967]">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-[18px] w-[18px]"
+                    fill="none"
+                  >
+                    <path
+                      d="M6 12.5L10 16.5L18 8.5"
+                      stroke="#F9F9F9"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#EBEEF0] p-[2px]">
+                  <span className="h-full w-full rounded-[4px] bg-[#F9F9F9]" />
+                </span>
+              )}
             </span>
-            ラベル
-          </div>
+            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437]">
+              大学院生を含める
+            </span>
+          </button>
         </div>
         <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
           就職する人の多くが、デザイナーもしくはエンジニアになっています。
         </p>
 
-        {jobCategories.map((category) => (
-          <div key={category.title} className="mt-6">
-            {/* 見出し行は数値を強調し、Figmaのタイポグラフィを踏襲します。 */}
-            <p className="text-[16px] font-medium text-[#2E3437]">
-              <span className="leading-[1.5]">{category.title}　</span>
-              <span className="text-[24px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                {category.percentage}
-              </span>
-              <span className="text-[16px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                %
-              </span>
-            </p>
-            <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-              <ul className="list-disc pl-6">
-                {category.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <p className="mt-2 text-right text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-                など
+        {loading ? (
+          <>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={`job-skel-${index}`} className="mt-6">
+                <SkeletonBlock className="h-6 w-48 rounded-md" />
+                <SkeletonBlock className="mt-3 h-28 w-full rounded-[12px]" />
+              </div>
+            ))}
+          </>
+        ) : jobCategories.length > 0 ? (
+          jobCategories.map((category) => (
+            <div key={category.title} className="mt-6">
+              {/* 見出し行は数値を強調し、Figmaのタイポグラフィを踏襲します。 */}
+              <p className="text-[16px] font-medium text-[#2E3437]">
+                <span className="leading-[1.5]">{category.title}　</span>
+                <span className="text-[24px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {category.percentage.toFixed(1)}
+                </span>
+                <span className="text-[16px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  %
+                </span>
               </p>
+              <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                <ul className="list-disc pl-6">
+                  {category.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-right text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+                  など
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="mt-6 text-[13px] leading-[1.9] text-[#6A7378]">
+            公開対象の就職先データがまだありません。
+          </p>
+        )}
       </section>
 
       {/* 就職先の決め手はカード形式で複数項目を並べ、読みやすさを優先します。 */}
@@ -268,31 +459,64 @@ export default function CareerClient() {
           </h2>
         </div>
         <div className="mt-4 space-y-4">
-          {jobDecisionReasons.map((reason) => (
+          {loading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`job-reason-skel-${index}`}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+              >
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+                <div className="mt-3 flex justify-end gap-3">
+                  <SkeletonBlock className="h-4 w-20 rounded-md" />
+                  <SkeletonBlock className="h-4 w-16 rounded-md" />
+                </div>
+              </div>
+            ))
+          ) : jobDecisionReasons.length > 0 ? (
+            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
+            (showAllJobReasons
+              ? jobDecisionReasons
+              : jobDecisionReasons.slice(0, 5)
+            ).map((reason) => (
+              <div
+                key={reason.text}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+              >
+                <p>{reason.text}</p>
+                {reason.labels ? (
+                  <div className="mt-2 flex justify-end gap-3 text-[13px] font-medium text-[#4B5459]">
+                    {reason.labels.map((label) => (
+                      <span key={label}>{label}</span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))
+          ) : (
             <div
-              key={reason.text}
               className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
             >
-              <p>{reason.text}</p>
-              {reason.labels ? (
-                <div className="mt-2 flex justify-end gap-3 text-[13px] font-medium text-[#4B5459]">
-                  {reason.labels.map((label) => (
-                    <span key={label}>{label}</span>
-                  ))}
-                </div>
-              ) : null}
+              公開対象の決め手データがまだありません。
             </div>
-          ))}
+          )}
         </div>
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            もっと見る
-            <span className="text-[16px]">+</span>
-          </button>
-        </div>
+        {!loading && jobDecisionReasons.length > 5 ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              onClick={() => setShowAllJobReasons((prev) => !prev)}
+            >
+              {showAllJobReasons ? "閉じる" : "もっと見る"}
+              <span className="text-[16px] leading-none">
+                {showAllJobReasons ? "×" : "+"}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </section>
 
       {/* 大学院進学の理由は別セクションとしてまとめ、同じカードUIを使い回します。 */}
@@ -303,27 +527,58 @@ export default function CareerClient() {
           </h2>
         </div>
         <div className="mt-4 space-y-4">
-          {gradReasons.map((reason) => (
+          {loading ? (
+            Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={`grad-reason-skel-${index}`}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+              >
+                <div className="space-y-2">
+                  <SkeletonBlock className="h-4 w-full rounded-md" />
+                  <SkeletonBlock className="h-4 w-10/12 rounded-md" />
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <SkeletonBlock className="h-4 w-24 rounded-md" />
+                </div>
+              </div>
+            ))
+          ) : gradReasons.length > 0 ? (
+            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
+            (showAllGradReasons ? gradReasons : gradReasons.slice(0, 5)).map(
+              (reason) => (
+              <div
+                key={reason.text}
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+              >
+                <p>{reason.text}</p>
+                <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459]">
+                  <span>{reason.course}</span>
+                </div>
+              </div>
+              ),
+            )
+          ) : (
             <div
-              key={reason.text}
               className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
             >
-              <p>{reason.text}</p>
-              <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459]">
-                <span>{reason.course}</span>
-              </div>
+              公開対象の進学理由データがまだありません。
             </div>
-          ))}
+          )}
         </div>
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            もっと見る
-            <span className="text-[16px]">+</span>
-          </button>
-        </div>
+        {!loading && gradReasons.length > 5 ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              onClick={() => setShowAllGradReasons((prev) => !prev)}
+            >
+              {showAllGradReasons ? "閉じる" : "もっと見る"}
+              <span className="text-[16px] leading-none">
+                {showAllGradReasons ? "×" : "+"}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <Footer />
