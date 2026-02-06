@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
 
 import Footer from "../components/Footer"
 import NavigationMenu from "../components/NavigationMenu"
@@ -248,7 +249,9 @@ export default function EventsClient() {
   }
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
+    // ページ外側の白背景を避けるため、イベントページ全体を薄いグレーで塗ります。
+    <div className="min-h-screen bg-[#F9F9F9]">
+      <div className="relative mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
       {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}
       {isMenuOpen ? (
         <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
@@ -475,29 +478,38 @@ export default function EventsClient() {
                   </article>
                 ))
               : exhibitions.map((card) => (
-                  <article key={card.id} className="space-y-2">
-                    <div className="aspect-video overflow-hidden rounded-[4px]">
-                      <img
-                        src={card.image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="space-y-1 text-[12px]">
-                      {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
-                      <p
-                        className="h-[36px] overflow-hidden text-[#4B5459]"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {card.title}
-                      </p>
-                      <p className="text-right text-[#6A7378]">{card.author}</p>
-                    </div>
-                  </article>
+                  <Link
+                    key={card.id}
+                    // 体験展示の詳細ページへ遷移し、カード全体をタップ可能にします。
+                    href={`/events/exhibitions/${card.id}`}
+                    className="block space-y-2"
+                  >
+                    <article>
+                      <div className="aspect-video overflow-hidden rounded-[4px]">
+                        <img
+                          src={card.image}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="space-y-1 text-[12px]">
+                        {/* Tailwindのline-clamp依存を避け、2行省略はインラインで指定します。 */}
+                        <p
+                          className="h-[36px] overflow-hidden text-[#4B5459]"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {card.title}
+                        </p>
+                        <p className="text-right text-[#6A7378]">
+                          {card.author}
+                        </p>
+                      </div>
+                    </article>
+                  </Link>
                 ))}
           </div>
           {loadError ? (
@@ -508,6 +520,7 @@ export default function EventsClient() {
 
       {/* フッターは既存コンポーネントをそのまま使い回します。 */}
       <Footer />
+      </div>
     </div>
   )
 }
