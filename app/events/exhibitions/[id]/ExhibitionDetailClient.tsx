@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 
 import Footer from "../../../components/Footer"
@@ -8,7 +8,7 @@ import NavigationMenu from "../../../components/NavigationMenu"
 import { SkeletonLoader } from "../../../components/SkeletonLoader"
 
 type ExhibitionDetailClientProps = {
-  id: string
+  id?: string
 }
 
 type Exhibition = {
@@ -60,29 +60,41 @@ export default function ExhibitionDetailClient({
   id,
 }: ExhibitionDetailClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [exhibitions, setExhibitions] = useState<Exhibition[]>([])
+  const [exhibition, setExhibition] = useState<Exhibition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
+    const normalizedId = (id ?? "").trim()
 
     const load = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        const exhibitionRes = await fetch("/api/events/exhibitions")
+        if (!normalizedId) {
+          setExhibition(null)
+          return
+        }
+
+        const exhibitionRes = await fetch(
+          `/api/events/exhibitions/${encodeURIComponent(normalizedId)}`,
+        )
 
         if (!exhibitionRes.ok) {
+          if (exhibitionRes.status === 404) {
+            setExhibition(null)
+            return
+          }
           throw new Error("Failed to fetch exhibition detail data.")
         }
 
-        const exhibitionData = await exhibitionRes.json()
+        const exhibitionData = (await exhibitionRes.json()) as Exhibition
 
         if (!active) return
 
-        setExhibitions(Array.isArray(exhibitionData) ? exhibitionData : [])
+        setExhibition(exhibitionData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -100,16 +112,7 @@ export default function ExhibitionDetailClient({
     return () => {
       active = false
     }
-  }, [])
-
-  const exhibition = useMemo(() => {
-    // CSV由来のIDに空白が混入している場合でも一致するように正規化する
-    const normalizedId = id.trim()
-    return (
-      exhibitions.find((item) => (item.id ?? "").trim() === normalizedId) ??
-      null
-    )
-  }, [exhibitions, id])
+  }, [id])
 
   const exhibitionImage = pickOriginalImage(
     exhibition?.image_url,

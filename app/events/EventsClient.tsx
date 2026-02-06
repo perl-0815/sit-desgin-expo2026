@@ -477,13 +477,9 @@ export default function EventsClient() {
                     </div>
                   </article>
                 ))
-              : exhibitions.map((card) => (
-                  <Link
-                    key={card.id}
-                    // 体験展示の詳細ページへ遷移し、カード全体をタップ可能にします。
-                    href={`/events/exhibitions/${card.id}`}
-                    className="block space-y-2"
-                  >
+              : exhibitions.map((card) => {
+                  const isFallback = card.id?.startsWith("exhibition-")
+                  const content = (
                     <article>
                       <div className="aspect-video overflow-hidden rounded-[4px]">
                         <img
@@ -509,8 +505,27 @@ export default function EventsClient() {
                         </p>
                       </div>
                     </article>
-                  </Link>
-                ))}
+                  )
+
+                  if (isFallback) {
+                    return (
+                      <div key={card.id} className="space-y-2">
+                        {content}
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <Link
+                      key={card.id}
+                      // 体験展示の詳細ページへ遷移し、カード全体をタップ可能にします。
+                      href={`/events/exhibitions/${card.id}`}
+                      className="block space-y-2"
+                    >
+                      {content}
+                    </Link>
+                  )
+                })}
           </div>
           {loadError ? (
             <p className="mt-4 text-[12px] text-[#D96E36]">{loadError}</p>
