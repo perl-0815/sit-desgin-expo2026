@@ -52,7 +52,8 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
   ]
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16 md:max-w-[1200px] lg:max-w-[1280px]">
+    // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
+    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 右上メニューは画面全体に重ねて表示し、背景色もFigmaのグレーに合わせます。 */}
       {isMenuOpen ? (

@@ -172,7 +172,9 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
 
   return (
     // 他ページと合わせるため、詳細ページの背景を白に統一します。
-    <div className="mx-auto flex w-full max-w-[393px] flex-col bg-white pb-16">
+    // フッターが下端に張り付くよう、コンテナに最小高さを設定します。
+    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+      {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 右上メニューは画面全体に重ねて表示します。 */}
       {isMenuOpen ? (
         // メニュー展開時の背面も白背景にしてトーンを合わせます。
@@ -194,7 +196,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         </div>
         {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
             <button
               // トップページと同様に白背景のアイコンボタンにします。
               className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"

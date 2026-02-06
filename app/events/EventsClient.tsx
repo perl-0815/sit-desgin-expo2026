@@ -251,81 +251,83 @@ export default function EventsClient() {
   return (
     // ページ外側の白背景を避けるため、イベントページ全体を薄いグレーで塗ります。
     <div className="min-h-screen bg-[#F9F9F9]">
-      <div className="relative mx-auto flex w-full max-w-[393px] flex-col bg-[#F9F9F9] pb-16">
-      {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="events"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      // 画面下端まで余白が残らないよう、コンテナの最小高さを確保します。
+      <div className="relative mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
+        {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
+        {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}
+        {isMenuOpen ? (
+          <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
+            <NavigationMenu
+              items={menuItems}
+              activeId="events"
+              onClose={() => setIsMenuOpen(false)}
+            />
+          </div>
+        ) : null}
 
-      {/* 右上メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-      <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-        <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto">
-          <button
-            type="button"
-            aria-label="メニュー"
-            onClick={() => setIsMenuOpen(true)}
-            className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            <svg
-              aria-hidden="true"
-              className="h-8 w-8"
-              viewBox="0 0 24 24"
-              fill="none"
+        {/* 右上メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
+            <button
+              type="button"
+              aria-label="メニュー"
+              onClick={() => setIsMenuOpen(true)}
+              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
-              <path
-                d="M4 7H20M4 12H20M4 17H20"
-                stroke="#6A7378"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+              <svg
+                aria-hidden="true"
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M4 7H20M4 12H20M4 17H20"
+                  stroke="#6A7378"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 見出しはFigmaのグラデーションバーと書体を再現します。 */}
-      <section className="px-4 pt-2">
-        <div className="flex items-center gap-3">
-          <span className="h-[32px] w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            イベント
-          </h1>
-        </div>
-      </section>
+        {/* 見出しはFigmaのグラデーションバーと書体を再現します。 */}
+        <section className="px-4 pt-2">
+          <div className="flex items-center gap-3">
+            <span className="h-[32px] w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
+            <h1 className="text-[24px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+              イベント
+            </h1>
+          </div>
+        </section>
 
-      {/* 切り替えボタンはピル型の2分割で、選択状態の境界線を強調します。 */}
-      <section className="px-4 pt-6">
-        <div className="flex items-center rounded-full bg-[#EBEEF0] p-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("roundtable")}
-            className={`flex-1 rounded-full px-2 py-3 text-[13px] font-medium transition-colors ${
-              activeTab === "roundtable"
-                ? "border border-[#FB9678] bg-[#F9F9F9] text-[#2E3437]"
-                : "text-[#6A7378]"
-            }`}
-          >
-            座談会(予約必須)
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("exhibition")}
-            className={`flex-1 rounded-full px-2 py-3 text-[13px] font-medium transition-colors ${
-              activeTab === "exhibition"
-                ? "border border-[#FB9678] bg-[#F9F9F9] text-[#2E3437]"
-                : "text-[#6A7378]"
-            }`}
-          >
-            体験展示
-          </button>
-        </div>
-      </section>
+        {/* 切り替えボタンはピル型の2分割で、選択状態の境界線を強調します。 */}
+        <section className="px-4 pt-6">
+          <div className="flex items-center rounded-full bg-[#EBEEF0] p-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab("roundtable")}
+              className={`flex-1 rounded-full px-2 py-3 text-[13px] font-medium transition-colors ${
+                activeTab === "roundtable"
+                  ? "border border-[#FB9678] bg-[#F9F9F9] text-[#2E3437]"
+                  : "text-[#6A7378]"
+              }`}
+            >
+              座談会(予約必須)
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("exhibition")}
+              className={`flex-1 rounded-full px-2 py-3 text-[13px] font-medium transition-colors ${
+                activeTab === "exhibition"
+                  ? "border border-[#FB9678] bg-[#F9F9F9] text-[#2E3437]"
+                  : "text-[#6A7378]"
+              }`}
+            >
+              体験展示
+            </button>
+          </div>
+        </section>
 
       {activeTab === "roundtable" ? (
         <section className="px-4 pb-12 pt-10">
