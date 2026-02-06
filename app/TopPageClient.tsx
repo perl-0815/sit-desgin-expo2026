@@ -30,8 +30,8 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
   const otherPercent =
     totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100
 
-  // 開催開始日までの残り日数を、ローカル日付の0時基準で計算します。
-  const eventStartDate = new Date(2026, 2, 8)
+  // 開催開始日（2026年3月7日）までの残り日数を、ローカル日付の0時基準で計算します。
+  const eventStartDate = new Date(2026, 2, 7)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   eventStartDate.setHours(0, 0, 0, 0)
