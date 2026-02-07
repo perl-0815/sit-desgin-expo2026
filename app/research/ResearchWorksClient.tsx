@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from "react"
+import { useMemo, useState, useEffect, useRef } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
@@ -174,6 +174,8 @@ export default function ResearchWorksClient() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<"research" | "works">("research")
+  // トグル更新直後のURL反映待ちで表示が揺れないよう、直近の手動切り替えを記録します。
+  const pendingTabRef = useRef<"research" | "works" | null>(null)
   // 右上メニューの開閉状態を管理します。
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
@@ -238,6 +240,13 @@ export default function ResearchWorksClient() {
   useEffect(() => {
     const tab = searchParams.get("tab")
     const nextTab = tab === "works" ? "works" : "research"
+    // 直近の手動切り替えと一致するまでは状態を戻さないようにします。
+    if (pendingTabRef.current && pendingTabRef.current !== nextTab) {
+      return
+    }
+    if (pendingTabRef.current === nextTab) {
+      pendingTabRef.current = null
+    }
     if (nextTab !== activeTab) {
       setActiveTab(nextTab)
     }
@@ -396,6 +405,7 @@ export default function ResearchWorksClient() {
   const activeMenuId = activeTab === "works" ? "works" : "research"
 
   const updateTab = (tab: "research" | "works") => {
+    pendingTabRef.current = tab
     setActiveTab(tab)
     // タブ状態をURLに反映して、メニューからの遷移でも状態が揃うようにします。
     if (tab === "works") {
@@ -407,7 +417,7 @@ export default function ResearchWorksClient() {
 
   return (
     // 余白でフッターが浮かないように、最小高さを確保します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
+    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 右上メニューは画面全体に重ねて表示します。 */}
       {isMenuOpen ? (
@@ -420,16 +430,17 @@ export default function ResearchWorksClient() {
         </div>
       ) : null}
       {/* このブロックは画面上部の見出しとメニューボタンの並びを定義し、Figmaの余白・配置に合わせています。 */}
-      <div className="flex items-center justify-between px-4 pt-6">
+      {/* デスクトップは左右128pxのガイド余白で揃え、見出しの高さをFigmaに合わせます。 */}
+      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pb-[24px] md:pt-[36px]">
         <div className="flex items-center gap-3">
           <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.06em]">
             研究・作品紹介
           </h1>
         </div>
         {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px]">
             <button
               className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               type="button"
@@ -455,13 +466,14 @@ export default function ResearchWorksClient() {
       </div>
 
       {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}
-      <div className="px-4 pt-6">
+      {/* 切り替えタブはデスクトップで横幅を広げ、中央寄せのピル形状に揃えます。 */}
+      <div className="px-4 pt-6 md:px-[128px] md:pt-0">
         {/* タブの高さは44px相当、内側余白は上下12pxで、タップしやすさと見た目の均整を両立します。 */}
-        <div className="rounded-full bg-[#EBEEF0] p-1">
-          <div className="grid grid-cols-2 gap-1">
+        <div className="rounded-full bg-[#EBEEF0] p-1 md:rounded-[9999px] md:px-4 md:py-2">
+          <div className="grid grid-cols-2 gap-0 md:flex md:items-center md:justify-center md:gap-0">
             <button
               type="button"
-              className={`min-h-[44px] rounded-full px-4 py-3 text-[13px] font-medium transition ${
+              className={`min-h-[44px] w-full rounded-full px-4 py-3 text-[13px] font-medium transition md:min-h-[56px] md:flex-1 md:px-1 md:py-3 md:text-[13px] ${
                 activeTab === "research"
                   ? "border border-[#FB9678] bg-white text-[#2E3437]"
                   : "text-[#6A7378]"
@@ -473,7 +485,7 @@ export default function ResearchWorksClient() {
             </button>
             <button
               type="button"
-              className={`min-h-[44px] rounded-full px-4 py-3 text-[13px] font-medium transition ${
+              className={`min-h-[44px] w-full rounded-full px-4 py-3 text-[13px] font-medium transition md:min-h-[56px] md:flex-1 md:px-1 md:py-3 md:text-[13px] ${
                 activeTab === "works"
                   ? "border border-[#FB9678] bg-white text-[#2E3437]"
                   : "text-[#6A7378]"
@@ -494,13 +506,16 @@ export default function ResearchWorksClient() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-12 pt-6">
+        <div className="flex flex-col gap-12 pt-6 md:pt-[48px]">
           {visibleCourses.map((course) => {
             const courseMeta = getCourseMeta(course.key)
 
             if (loading) {
               return (
-                <section key={`loading-${course.key}`} className="px-4">
+                <section
+                  key={`loading-${course.key}`}
+                  className="px-4 md:px-[128px] md:py-[96px]"
+                >
                   <div
                     className="border-b pb-2"
                     style={{ borderColor: courseMeta.lineColor }}
@@ -510,7 +525,10 @@ export default function ResearchWorksClient() {
                   {activeTab === "research" ? (
                     <div className="divide-y divide-[#EBEEF0]">
                       {[0, 1].map((index) => (
-                        <div key={`lab-skel-${course.key}-${index}`} className="py-4">
+                        <div
+                          key={`lab-skel-${course.key}-${index}`}
+                          className="py-4 md:py-6"
+                        >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex flex-col gap-2">
                               <SkeletonBlock className="h-4 w-32 rounded-md" />
@@ -526,7 +544,7 @@ export default function ResearchWorksClient() {
                       ))}
                     </div>
                   ) : (
-                    <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6">
+                    <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
                       {Array.from({ length: 4 }).map((_, index) => (
                         <div
                           key={`work-skel-${course.key}-${index}`}
@@ -549,7 +567,10 @@ export default function ResearchWorksClient() {
               const courseLabs = labsByCourse.get(course.key) ?? []
 
               return (
-                <section key={`research-${course.key}`} className="px-4">
+                <section
+                  key={`research-${course.key}`}
+                  className="px-4 md:px-[128px] md:py-[96px]"
+                >
                   <div
                     className="border-b pb-2"
                     style={{ borderColor: courseMeta.lineColor }}
@@ -567,7 +588,7 @@ export default function ResearchWorksClient() {
                       const isExpanded = !!expandedLabs[lab.id]
 
                       return (
-                        <div key={lab.id} className="py-4">
+                        <div key={lab.id} className="py-4 md:py-6">
                           {/* 研究室カードは見出しクリックで詳細を開閉する仕様です。開閉状態に応じてアイコンと色が変わります。 */}
                           <button
                             type="button"
@@ -578,7 +599,7 @@ export default function ResearchWorksClient() {
                             <div className="flex flex-col gap-2">
                               {/* 展開中は見出し色を強調色に切り替え、どの研究室が開いているかを視覚的に示します。 */}
                               <p
-                                className={`text-[16px] font-medium ${
+                                className={`text-[16px] font-medium md:text-[20px] ${
                                   isExpanded ? "" : "text-[#4B5459]"
                                 }`}
                                 style={
@@ -594,7 +615,7 @@ export default function ResearchWorksClient() {
                                 {sliceKeywords(lab.keywords).map((keyword) => (
                                   <span
                                     key={`${lab.id}-${keyword}`}
-                                    className="rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459]"
+                                    className="rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459] md:text-[12px]"
                                   >
                                     {keyword}
                                   </span>
@@ -602,11 +623,11 @@ export default function ResearchWorksClient() {
                               </div>
                             </div>
                           {/* 開閉アイコンは24px固定枠に収め、縦位置の揺れを抑えます。 */}
-                          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center">
+                          <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center md:h-7 md:w-7">
                             {isExpanded ? (
                               <svg
                                 aria-hidden="true"
-                                className="h-6 w-6"
+                                className="h-6 w-6 md:h-7 md:w-7"
                                 viewBox="0 0 24 24"
                                 fill="none"
                               >
@@ -620,7 +641,7 @@ export default function ResearchWorksClient() {
                             ) : (
                               <svg
                                 aria-hidden="true"
-                                className="h-6 w-6"
+                                className="h-6 w-6 md:h-7 md:w-7"
                                 viewBox="0 0 24 24"
                                 fill="none"
                               >
@@ -636,22 +657,24 @@ export default function ResearchWorksClient() {
                           </button>
 
                           {isExpanded ? (
-                            <div className="mt-4 space-y-4">
+                            <div className="mt-4 space-y-4 md:mt-6">
                               {/* 研究室の説明文は本文13px・行間1.9で読みやすさを確保し、Figmaのタイポグラフィに合わせています。 */}
-                              <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378]">
+                              <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[16px]">
                                 <p>{lab.description ?? ""}</p>
                                 {lab.instructor ? (
-                                  <p className="pt-2">指導教員：{lab.instructor}</p>
+                                  <p className="pt-2 text-[14px] text-[#4B5459] md:text-[14px]">
+                                    指導教員：{lab.instructor}
+                                  </p>
                                 ) : null}
                               </div>
 
                               {labResearch.length > 0 ? (
                                 <>
-                                  <p className="text-[12px] font-medium text-[#6A7378]">
+                                  <p className="text-[12px] font-medium text-[#6A7378] md:text-[15px]">
                                     研究一覧
                                   </p>
-                                  {/* 研究一覧のカード間隔は縦24px・横32pxのグリッドで、Figmaの余白設計を再現します。 */}
-                                  <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                                  {/* 研究一覧はデスクトップで4列・横56pxの間隔に拡張します。 */}
+                                  <div className="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
                                     {labResearch.map((item) => (
                                     <Link
                                       key={item.id}
@@ -682,11 +705,11 @@ export default function ResearchWorksClient() {
                                         )}
                                       </div>
                                       {/* 研究カードは「タイトル」と「氏名」のみ表示し、一覧性を優先します。 */}
-                                      <div className="space-y-1 text-[12px]">
-                                        <p className="font-medium leading-[1.5] text-[#4B5459]">
+                                      <div className="space-y-1 text-[12px] md:text-[16px]">
+                                        <p className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]">
                                           {item.title}
                                         </p>
-                                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
                                           {item.studentName}
                                         </p>
                                       </div>
@@ -707,10 +730,12 @@ export default function ResearchWorksClient() {
 
             const items = worksByCourse.get(course.key) ?? []
             const showAll = expandedCourses[course.key]
-            const visibleItems = showAll ? items : items.slice(0, 4)
 
             return (
-              <section key={`works-${course.key}`} className="px-4">
+              <section
+                key={`works-${course.key}`}
+                className="px-4 md:px-[128px] md:py-[96px]"
+              >
                 <div
                   className="border-b pb-2"
                   style={{ borderColor: courseMeta.lineColor }}
@@ -720,13 +745,15 @@ export default function ResearchWorksClient() {
                   </h2>
                 </div>
 
-                {/* 作品一覧のカード間隔も縦24px・横32pxのグリッドで統一します。 */}
-                <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6">
-                  {visibleItems.map((item) => (
+                {/* 作品一覧はデスクトップで4列にし、Figmaの16:9カード配置に合わせます。 */}
+                <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
+                  {items.map((item, index) => {
+                    const isHiddenOnMobile = !showAll && index >= 4
+                    return (
                     <Link
                       key={item.id}
                       href={`/works/${item.id}`}
-                      className="flex flex-col gap-2"
+                      className={`flex flex-col gap-2 ${isHiddenOnMobile ? "hidden md:flex" : ""}`}
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                         {item.imageUrl ? (
@@ -750,20 +777,21 @@ export default function ResearchWorksClient() {
                         )}
                       </div>
                       {/* 作品カードも「タイトル」と「氏名」のみ表示し、情報量を抑えて視認性を上げます。 */}
-                      <div className="space-y-1 text-[12px]">
-                        <p className="font-medium leading-[1.5] text-[#4B5459]">
+                      <div className="space-y-1 text-[12px] md:text-[16px]">
+                        <p className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]">
                           {item.title}
                         </p>
-                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
                           {item.studentName}
                         </p>
                       </div>
                     </Link>
-                  ))}
+                  )
+                  })}
                 </div>
 
                 {items.length > 4 ? (
-                  <div className="mt-6 flex justify-center">
+                  <div className="mt-6 flex justify-center md:hidden">
                     {/* 「もっと見る」ボタンのアイコンはSVGで描画し、フォント依存を避けます。 */}
                     <button
                       type="button"
@@ -795,7 +823,12 @@ export default function ResearchWorksClient() {
       )}
 
       {/* フッターは他ページでも使えるよう共通コンポーネントとして読み込みます。 */}
-      <Footer className="mt-16 w-full px-4" />
+      {/* フッターはデスクトップで横幅1280pxに揃えて中央配置します。 */}
+      <div className="mt-16 px-4 md:mt-[48px] md:px-0">
+        <div className="mx-auto w-full md:max-w-[1280px]">
+          <Footer className="w-full" />
+        </div>
+      </div>
     </div>
   )
 }

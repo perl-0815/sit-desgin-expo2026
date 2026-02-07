@@ -251,7 +251,6 @@ export default function EventsClient() {
   return (
     // ページ外側の白背景を避けるため、イベントページ全体を薄いグレーで塗ります。
     <div className="min-h-screen bg-[#F9F9F9]">
-      // 画面下端まで余白が残らないよう、コンテナの最小高さを確保します。
       <div className="relative mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
         {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
         {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}

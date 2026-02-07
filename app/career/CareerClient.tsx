@@ -293,16 +293,16 @@ export default function CareerClient() {
       ) : null}
 
       {/* Figmaのヘッダー構成に合わせ、左のグラデーションバーとメニューボタンを配置します。 */}
-      <div className="flex items-center justify-between px-4 pt-6">
+      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
         <div className="flex items-center gap-3">
           <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.02em]">
             卒業生の進路
           </h1>
         </div>
         {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
             <button
               className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               type="button"
@@ -328,8 +328,8 @@ export default function CareerClient() {
       </div>
 
       {/* リード文はFigmaの行間と字間を再現して読みやすく整えます。 */}
-      <div className="px-4 pt-6">
-        <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+      <div className="px-4 pt-6 md:px-[128px] md:pt-[24px]">
+        <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
           卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
         </p>
         {error ? (
@@ -340,36 +340,45 @@ export default function CareerClient() {
       </div>
 
       {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
-      <section className="px-4 pb-12 pt-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            進路別の割合
-          </h2>
-        </div>
-        <div className="mt-8 flex justify-center">
-          <div className="relative">
-            {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
-            {loading ? (
-              <SkeletonBlock className="h-40 w-40 rounded-full" />
-            ) : (
-              <CareerPieChart
-                gradPercent={careerStats.gradPercent}
-                jobPercent={careerStats.jobPercent}
-                otherPercent={careerStats.otherPercent}
-                total={careerStats.total}
-              />
-            )}
+      <section className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+        <div className="md:flex md:items-start md:gap-[64px]">
+          <div className="md:w-[480px]">
+            <div className="border-b border-[#FB9678] pb-1 md:pb-2">
+              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.02em]">
+                進路別の割合
+              </h2>
+            </div>
+            {/* デスクトップでは注釈を見出し直下に配置します。 */}
+            <p className="mt-4 hidden text-[14px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:block">
+              ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
+            </p>
           </div>
+          <div className="mt-8 flex justify-center md:mt-0 md:w-[480px] md:justify-start">
+            <div className="relative">
+              {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
+              {loading ? (
+                <SkeletonBlock className="h-40 w-40 rounded-full md:h-[320px] md:w-[320px]" />
+              ) : (
+                <CareerPieChart
+                  gradPercent={careerStats.gradPercent}
+                  jobPercent={careerStats.jobPercent}
+                  otherPercent={careerStats.otherPercent}
+                  total={careerStats.total}
+                />
+              )}
+            </div>
+          </div>
+          {/* モバイルではチャートの下に注釈を置きます。 */}
         </div>
-        <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+        <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:hidden">
           ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
         </p>
       </section>
 
       {/* 就職先一覧はカテゴリごとにまとめ、Figmaのカード構成に合わせます。 */}
-      <section className="px-4 py-12">
+      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
         <div className="flex items-center justify-between border-b border-[#FB9678] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             主な就職先
           </h2>
           {/* Figmaのチェックボックスに合わせ、アイコン+ラベルの余白とサイズを固定します。 */}
@@ -403,12 +412,12 @@ export default function CareerClient() {
                 </span>
               )}
             </span>
-            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437]">
+            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437] md:text-[15px]">
               大学院生を含める
             </span>
           </button>
         </div>
-        <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+        <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px] md:tracking-[0.02em]">
           就職する人の多くが、デザイナーもしくはエンジニアになっています。
         </p>
 
@@ -425,22 +434,22 @@ export default function CareerClient() {
           jobCategories.map((category) => (
             <div key={category.title} className="mt-6">
               {/* 見出し行は数値を強調し、Figmaのタイポグラフィを踏襲します。 */}
-              <p className="text-[16px] font-medium text-[#2E3437]">
+              <p className="text-[16px] font-medium text-[#2E3437] md:text-[20px]">
                 <span className="leading-[1.5]">{category.title}　</span>
-                <span className="text-[24px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                <span className="text-[24px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                   {category.percentage.toFixed(1)}
                 </span>
-                <span className="text-[16px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                <span className="text-[16px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
                   %
                 </span>
               </p>
-              <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+              <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:px-[20px] md:py-[20px] md:text-[18px] md:tracking-[0.04em]">
                 <ul className="list-disc pl-6">
                   {category.items.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p className="mt-2 text-right text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+                <p className="mt-2 text-right text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
                   など
                 </p>
               </div>
@@ -454,18 +463,18 @@ export default function CareerClient() {
       </section>
 
       {/* 就職先の決め手はカード形式で複数項目を並べ、読みやすさを優先します。 */}
-      <section className="px-4 py-12">
+      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
         <div className="border-b border-[#FB9678] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             就職先の決めて
           </h2>
         </div>
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 md:mt-6">
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={`job-reason-skel-${index}`}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 md:px-[20px] md:py-[20px]"
               >
                 <div className="space-y-2">
                   <SkeletonBlock className="h-4 w-full rounded-md" />
@@ -485,11 +494,11 @@ export default function CareerClient() {
             ).map((reason) => (
               <div
                 key={reason.text}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
               >
                 <p>{reason.text}</p>
                 {reason.labels ? (
-                  <div className="mt-2 flex justify-end gap-3 text-[13px] font-medium text-[#4B5459]">
+                  <div className="mt-2 flex justify-end gap-3 text-[13px] font-medium text-[#4B5459] md:text-[15px]">
                     {reason.labels.map((label) => (
                       <span key={label}>{label}</span>
                     ))}
@@ -499,7 +508,7 @@ export default function CareerClient() {
             ))
           ) : (
             <div
-              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
             >
               公開対象の決め手データがまだありません。
             </div>
@@ -509,11 +518,11 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
               {showAllJobReasons ? "閉じる" : "もっと見る"}
-              <span className="text-[16px] leading-none">
+              <span className="text-[16px] leading-none md:text-[24px]">
                 {showAllJobReasons ? "×" : "+"}
               </span>
             </button>
@@ -522,18 +531,18 @@ export default function CareerClient() {
       </section>
 
       {/* 大学院進学の理由は別セクションとしてまとめ、同じカードUIを使い回します。 */}
-      <section className="px-4 py-12">
+      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
         <div className="border-b border-[#FB9678] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             本学大学院進学の理由
           </h2>
         </div>
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 md:mt-6">
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={`grad-reason-skel-${index}`}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 md:px-[20px] md:py-[20px]"
               >
                 <div className="space-y-2">
                   <SkeletonBlock className="h-4 w-full rounded-md" />
@@ -550,10 +559,10 @@ export default function CareerClient() {
               (reason) => (
               <div
                 key={reason.text}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
               >
                 <p>{reason.text}</p>
-                <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459]">
+                <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
                   <span>{reason.course}</span>
                 </div>
               </div>
@@ -561,7 +570,7 @@ export default function CareerClient() {
             )
           ) : (
             <div
-              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437]"
+              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
             >
               公開対象の進学理由データがまだありません。
             </div>
@@ -571,11 +580,11 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >
               {showAllGradReasons ? "閉じる" : "もっと見る"}
-              <span className="text-[16px] leading-none">
+              <span className="text-[16px] leading-none md:text-[24px]">
                 {showAllGradReasons ? "×" : "+"}
               </span>
             </button>
@@ -583,7 +592,7 @@ export default function CareerClient() {
         ) : null}
       </section>
 
-      <Footer />
+      <Footer className="w-full px-4 md:px-[128px]" />
     </div>
   )
 }

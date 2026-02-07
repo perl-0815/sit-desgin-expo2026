@@ -11,6 +11,8 @@ const contactFormUrl = "#"
 
 export default function ContactClient() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
+  const [isToastVisible, setIsToastVisible] = useState(false)
 
   // 共通メニューは他ページと同じ順序で統一し、導線の迷いを防ぎます。
   const menuItems = [
@@ -22,15 +24,25 @@ export default function ContactClient() {
     { id: "contact", label: "お問い合わせ", href: "/contact" },
   ]
 
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    setIsToastVisible(true)
+    window.setTimeout(() => {
+      setIsToastVisible(false)
+    }, 2400)
+  }
+
   const handleCopyEmail = async () => {
-    // クリップボードAPIに対応していない環境もあるため、フォールバックも用意します。
-    try {
-      if (navigator?.clipboard?.writeText && window.isSecureContext) {
+    // クリップボードAPIはセキュアコンテキスト必須のため、使えない場合は確実に動くフォールバックへ回します。
+    const tryClipboardApi = async () => {
+      if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(contactEmail)
-        return
+        return true
       }
-      throw new Error("Clipboard API is not available.")
-    } catch {
+      return false
+    }
+
+    const fallbackCopy = () => {
       const textarea = document.createElement("textarea")
       textarea.value = contactEmail
       // iOS Safari などでのコピー失敗を避けるため、フォーカス可能にして画面外へ退避します。
@@ -42,8 +54,27 @@ export default function ContactClient() {
       document.body.appendChild(textarea)
       textarea.focus()
       textarea.select()
-      document.execCommand("copy")
+      // iOS での選択範囲指定を明示し、コピー成功率を上げます。
+      textarea.setSelectionRange(0, textarea.value.length)
+      const succeeded = document.execCommand("copy")
       document.body.removeChild(textarea)
+      return succeeded
+    }
+
+    try {
+      if (window.isSecureContext && (await tryClipboardApi())) {
+        showToast("メールアドレスをコピーしました")
+        return
+      }
+    } catch {
+      // クリップボードAPIが拒否されてもフォールバックで継続します。
+    }
+
+    const succeeded = fallbackCopy()
+    if (succeeded) {
+      showToast("メールアドレスをコピーしました")
+    } else {
+      showToast("コピーに失敗しました。もう一度お試しください")
     }
   }
 
@@ -62,16 +93,16 @@ export default function ContactClient() {
       ) : null}
 
       {/* 見出し行は左のグラデーションバーと右上メニューでFigma構成を再現します。 */}
-      <div className="flex items-center justify-between px-4 pt-6">
-        <div className="flex items-center gap-3">
-          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px] md:pb-3">
+        <div className="flex items-center gap-3 md:gap-4">
+          <span className="h-6 w-2 rounded-[4px] from-[#FB9678] to-[#E5A967] md:h-8" />
+          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.02em]">
             お問い合せ
           </h1>
         </div>
         {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
             <button
               className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               type="button"
@@ -97,100 +128,116 @@ export default function ContactClient() {
       </div>
 
       {/* リード文はFigma通りに左寄せし、行間を広めに設定します。 */}
-      <div className="px-4 pt-6">
-        <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+      <div className="px-4 pt-6 md:px-[128px] md:pt-3">
+        <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
           卒展に関するご質問などがありましたら、こちらからご連絡をお願いします。
         </p>
       </div>
 
-      {/* メールお問い合わせブロック */}
-      <section className="px-4 py-12">
-        {/* 見出し下のラインカラーはFigma指定のソーシャルカラーに合わせます。 */}
-        <div className="border-b border-[#14BDB1] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            メールでのお問い合せ
-          </h2>
-        </div>
-        <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459]">
-          以下のメールアドレスまで直接ご連絡ください。
-        </p>
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={handleCopyEmail}
-            className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#EBEEF0] px-3 py-2"
-            aria-label={`${contactEmail} をコピー`}
-          >
-            <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-              {contactEmail}
-            </span>
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4 text-[#6A7378]"
-              viewBox="0 0 24 24"
-              fill="none"
+      {/* デスクトップは左右2カラムで配置し、各カラムの情報密度を揃えます。 */}
+      <div className="flex flex-col md:flex-row md:gap-[64px]">
+        {/* メールお問い合わせブロック */}
+        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0">
+          {/* 見出し下のラインカラーはFigma指定のソーシャルカラーに合わせます。 */}
+          <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
+            <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
+              メールでのお問い合せ
+            </h2>
+          </div>
+          <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
+            以下のメールアドレスまで直接ご連絡ください。
+          </p>
+          <div className="mt-3 md:mt-5 md:pb-[20px]">
+            <button
+              type="button"
+              onClick={handleCopyEmail}
+              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#EBEEF0] px-3 py-2 md:mx-auto md:min-h-[56px] md:max-w-[361px] md:px-5 md:py-3"
+              aria-label={`${contactEmail} をコピー`}
             >
-              <path
-                d="M16 4H8C6.89543 4 6 4.89543 6 6V16M8 8H16C17.1046 8 18 8.89543 18 10V18C18 19.1046 17.1046 20 16 20H8C6.89543 20 6 19.1046 6 18V10C6 8.89543 6.89543 8 8 8Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </section>
+              <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                {contactEmail}
+              </span>
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4 text-[#6A7378]"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M16 4H8C6.89543 4 6 4.89543 6 6V16M8 8H16C17.1046 8 18 8.89543 18 10V18C18 19.1046 17.1046 20 16 20H8C6.89543 20 6 19.1046 6 18V10C6 8.89543 6.89543 8 8 8Z"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </section>
 
-      {/* その他方法のお問い合わせブロック */}
-      <section className="px-4 py-12">
-        <div className="border-b border-[#14BDB1] pb-1">
-          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            その他方法のお問い合せ
-          </h2>
-        </div>
-        <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459]">
-          メール以外でのお問い合わせはこちらから行うことができます。
-          <br />
-          （Google Formsに遷移します。）
-        </p>
-        <div className="mt-3 flex justify-center">
-          <a
-            href={contactFormUrl}
-            className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            お問い合せフォーム
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
+        {/* その他方法のお問い合わせブロック */}
+        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]">
+          <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
+            <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
+              その他方法のお問い合せ
+            </h2>
+          </div>
+          <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
+            メール以外でのお問い合わせはこちらから行うことができます。
+            <br />
+            （Google Formsに遷移します。）
+          </p>
+          <div className="mt-3 flex justify-center md:mt-5 md:pb-[20px]">
+            <a
+              href={contactFormUrl}
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:min-h-[56px] md:px-[56px] md:py-[24px]"
             >
-              <path
-                d="M14 5H19V10"
-                stroke="#4B5459"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10 14L19 5"
-                stroke="#4B5459"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M5 7V19H17"
-                stroke="#4B5459"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </a>
+              お問い合せフォーム
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M14 5H19V10"
+                  stroke="#4B5459"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 14L19 5"
+                  stroke="#4B5459"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M5 7V19H17"
+                  stroke="#4B5459"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+        </section>
+      </div>
+
+      {/* トーストはページ全体で使えるよう最下部に固定します。 */}
+      <div
+        className={`fixed inset-x-0 bottom-6 z-50 flex justify-center transition duration-300 ${
+          isToastVisible ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div className="max-w-[90%] rounded-full bg-[#2E3437] px-5 py-3 text-[13px] tracking-[0.02em] text-white shadow-[0_8px_24px_rgba(46,52,55,0.2)] md:text-[14px]">
+          {toastMessage}
         </div>
-      </section>
+      </div>
 
       <Footer />
     </div>

@@ -17,8 +17,8 @@ export default function CareerPieChart({
   const jobEnd = gradPercent + jobPercent
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-[320px] w-[320px] max-w-full">
+    <div className="relative flex flex-col items-center">
+      <div className="relative h-[320px] w-[320px] max-w-full md:h-[463px] md:w-[463px]">
         {/* 円グラフは3レイヤーで分割し、指定のグラデーションと単色で塗り分けます。 */}
         <div
           className="absolute inset-0 rounded-full"
@@ -62,19 +62,24 @@ export default function CareerPieChart({
 
         {/* ラベルは相対配置で位置を固定し、文字スタイルは指定に合わせます。 */}
         <p className="absolute left-[74%] top-[30%] -translate-x-1/2 -translate-y-1/2 font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
-          <span className="text-[18px]">本学大学院へ進学</span>
+          <span className="text-[18px] md:text-[32px]">本学大学院へ進学</span>
           <br />
-          <span className="text-[18px]">{gradPercent.toFixed(1)}</span>
-          <span className="text-[13px]">%</span>
+          <span className="text-[18px] md:text-[32px]">
+            {gradPercent.toFixed(1)}
+          </span>
+          <span className="text-[13px] md:text-[20px]">%</span>
         </p>
         <p className="absolute left-[30%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
-          <span className="text-[18px]">就職</span>{" "}
-          <span className="text-[18px]">{jobPercent.toFixed(1)}</span>
-          <span className="text-[13px]">%</span>
+          <span className="text-[18px] md:text-[32px]">就職</span>{" "}
+          <span className="text-[18px] md:text-[32px]">
+            {jobPercent.toFixed(1)}
+          </span>
+          <span className="text-[13px] md:text-[20px]">%</span>
         </p>
+        {/* 「その他」は比率が小さいためラベルを省略します。 */}
       </div>
       {/* nは円グラフの右下に配置します。 */}
-      <p className="mt-2 w-full text-right text-[12px] text-[#4B5459]">
+      <p className="mt-2 w-full text-right text-[12px] text-[#4B5459] md:absolute md:bottom-0 md:right-0 md:mt-0 md:text-[20px]">
         n={total}
       </p>
     </div>
