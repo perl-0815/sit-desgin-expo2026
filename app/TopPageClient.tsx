@@ -17,9 +17,25 @@ type CareerStats = {
 
 type TopPageClientProps = {
   careerStats: CareerStats
+  previewItems: PreviewItem[]
 }
 
-export default function TopPageClient({ careerStats }: TopPageClientProps) {
+type PreviewItem = {
+  id: string
+  title: string
+  author: string
+  imageUrl: string
+  href: string
+  kind: "research" | "works"
+}
+
+// SIT MAPの画像は公開フォルダ内の最新版を参照します。
+const sitMapImageUrl = "/image/sit_map.png"
+
+export default function TopPageClient({
+  careerStats,
+  previewItems,
+}: TopPageClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total
@@ -50,10 +66,24 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
     { id: "events", label: "イベント", href: "/events" },
     { id: "contact", label: "お問い合わせ", href: "/contact" },
   ]
+  // データ未登録時でもレイアウトが崩れないよう、フォールバック用の表示データを準備します。
+  const fallbackPreviewItems: PreviewItem[] = Array.from({ length: 3 }).map(
+    (_, index) => ({
+      id: `preview-${index}`,
+      title:
+        "研究または作品タイトルが入ります。研究または作品タイトルが入ります。",
+      author: "苗字 名前",
+      imageUrl: "/image/preview.png",
+      href: "/research",
+      kind: "research",
+    }),
+  )
+  const visiblePreviewItems =
+    previewItems.length > 0 ? previewItems : fallbackPreviewItems
 
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
+    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 右上メニューは画面全体に重ねて表示し、背景色もFigmaのグレーに合わせます。 */}
       {isMenuOpen ? (
@@ -67,7 +97,7 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
       ) : null}
 
       {/* ヒーロー領域はFigmaの紙吹雪背景を再現するため、複数のグラデーションとノイズを重ねます。 */}
-      <section className="relative h-[698px] w-full overflow-hidden">
+      <section className="relative h-[698px] w-full overflow-hidden md:h-[720px]">
         <div
           aria-hidden="true"
           className="absolute inset-0"
@@ -90,21 +120,21 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
         />
 
         {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center">
-          <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)]">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-[128px]">
+          <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)] md:text-[14px] md:tracking-[0.35em]">
             SIT DESIGN EXPO 2026
           </p>
-          <h1 className="mt-4 text-[32px] font-extrabold tracking-[0.08em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <h1 className="mt-4 text-[32px] font-extrabold tracking-[0.08em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:mt-6 md:text-[40px] md:tracking-[0.1em]">
             卒業・修了研究展
           </h1>
-          <p className="mt-3 text-[13px] text-[#6A7378]">
+          <p className="mt-3 text-[13px] text-[#6A7378] md:text-[15px]">
             芝浦工業大学 デザイン工学部
           </p>
         </div>
 
         {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] md:px-8 lg:max-w-[1280px]">
+          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px]">
             <button
               className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               type="button"
@@ -130,67 +160,77 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
       </section>
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
-      <section className="px-4 pt-6">
-        <div className="rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+      <section className="px-4 pb-6 pt-6 md:px-[128px] md:pb-[96px] md:pt-[96px]">
+        <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
           <div className="border-b border-[#FB9678] pb-1">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
               開催情報
             </p>
           </div>
-          <div className="mt-4 flex flex-col items-center gap-4 text-center">
-            <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
               3.07
               <span className="text-[16px] text-[#2C68D3]">(土)</span>
               <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
               3.17
               <span className="text-[16px] text-[#6A7378]">(火)</span>
-            </p>
-            <p className="text-[13px] font-medium text-[#6A7378]">
-              芝浦工業大学 豊洲キャンパス
-            </p>
+              </p>
+              <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
+                芝浦工業大学 豊洲キャンパス
+              </p>
+            </div>
             <div className="flex items-center gap-4 text-center">
               <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7]">開催時間</p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+                  開催時間
+                </p>
+                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
                   10:00 - 19:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
               <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7]">入場料</p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+                  入場料
+                </p>
+                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
                   無料
                 </p>
               </div>
             </div>
-            <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9]">
-              <span className="text-[13px]">開催まであと </span>
+            <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9] md:w-[280px] md:px-[56px] md:py-[12px]">
+              <span className="text-[13px] md:text-[15px]">
+                開催まであと{" "}
+              </span>
               <span className="text-[24px] font-extrabold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                 {daysUntilEvent}
               </span>
-              <span className="text-[13px] font-bold">日</span>
+              <span className="text-[13px] font-bold md:text-[15px]">日</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 卒業・修了研究展の説明文は段落間を詰め、読みやすい行間に設定します。 */}
-      <section className="px-4 pt-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+      {/* 卒業・修了研究展は背景色を薄いグレーにして、Figmaのセクション切替を再現します。 */}
+      <section className="bg-[#EBEEF0] px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+        <div className="mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
+          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
             卒業・修了研究展とは
           </p>
         </div>
-        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459]">
+        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:mx-auto md:max-w-[768px] md:text-[18px] md:leading-[2.2] md:tracking-[0.04em]">
           芝浦工業大学デザイン工学部の学生・大学院生による、それぞれの研究を公に発表する場です。
           ここには、プロダクト、システム、UX、感性、理論の探求など、デザイン工学という広い領域における多様な研究が集まります。
           具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに提示する空間です。
         </p>
+        </div>
       </section>
 
       {/* コンセプトの背景は指定画像に差し替え、元デザインの雰囲気を再現します。 */}
       <section
-        className="mt-12 px-4 py-12"
+        className="mt-0 px-4 py-12 md:mt-0 md:px-[128px] md:py-[96px]"
         style={{
           backgroundImage: "url('/image/concept.png')",
           backgroundSize: "cover",
@@ -199,190 +239,280 @@ export default function TopPageClient({ careerStats }: TopPageClientProps) {
         }}
       >
         <div className="flex flex-col items-center">
-          <p className="text-[16px] font-extrabold text-[#EBEEF0] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <p className="text-[16px] font-extrabold text-[#EBEEF0] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
             CONCEPT
           </p>
-          <p className="text-[48px] font-extrabold tracking-[0.02em] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+          <p className="text-[48px] font-extrabold tracking-[0.02em] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[56px] md:tracking-[0.04em]">
             接点
           </p>
         </div>
-        <p className="mt-6 text-[13px] leading-[1.9] text-[#F9F9F9]">
+        <p className="mt-6 text-[13px] leading-[1.9] text-[#F9F9F9] md:text-[18px] md:leading-[2.2] md:tracking-[0.04em] md:text-center">
           卒展は、来場者と研究の接点となるだけでなく、研究と社会の仕組み、研究と過去の経験、研究と新たに生まれる可能性、など接点を持ちうる様々な要素に囲まれている。
           客観的に見た卒展は、そういった外部の接点を多様に持ち、様々な接点の上で成り立っている。そんな卒展を覗くと、たくさんのアイデアにあふれていて、来場者も自分なりに研究との接点を見つけられる空間が広がっている。
         </p>
       </section>
 
-      {/* 学生の成果セクションはボタンを中央に配置して導線を明確にします。 */}
-      <section className="px-4 pt-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            学生の成果
+      {/* 学生の成果セクションは背景色を白に揃えて落ち着いた印象にします。 */}
+      <section className="bg-[#F9F9F9] px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+        <div className="relative mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              研究・作品紹介
+            </p>
+          </div>
+          <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-center md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
+            研究の概要をまとめて閲覧することができます。
+            <br className="hidden md:block" />
+            また、大学でどのような作品を作ってきたのかも見ることができます。
           </p>
-        </div>
-        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459]">
-          研究の概要をまとめて閲覧することができます。また、大学でどのような作品を作ってきたのかも見ることができます。
-        </p>
-        <div className="mt-6 flex justify-center">
-          <Link
-            href="/research"
-            className="flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            学生の成果を見る
-            <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* 進路情報は上下余白を確保し、図表を中央に配置します。 */}
-      <section className="px-4 py-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            卒業生の進路
-          </p>
-        </div>
-        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459]">
-          卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
-        </p>
-        <div className="mt-8 flex justify-center">
-          <CareerPieChart
-            gradPercent={gradPercent}
-            jobPercent={jobPercent}
-            otherPercent={otherPercent}
-            total={totalCareers}
-          />
-        </div>
-        <div className="mt-6 flex justify-center">
-          <Link
-            href="/career"
-            className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            進路をもっと詳しく
-            <span aria-hidden="true">→</span>
-          </Link>
+          <div className="mt-8 hidden grid-cols-3 gap-8 md:grid">
+            {/* 研究/作品ページへの導線を統合し、カード全体をクリックできるようにします。 */}
+            {visiblePreviewItems.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="flex flex-col gap-2 text-center"
+              >
+                <div className="aspect-video w-full overflow-hidden rounded-[4px]">
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459]">
+                  {item.title}
+                </p>
+                <p className="text-[12px] text-[#6A7378]">{item.author}</p>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/research"
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[20px]"
+            >
+              学生の成果を見る
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* イベント紹介は上下余白を設け、指定画像を背景に使い雰囲気を合わせます。 */}
+      {/* イベント背景はFigmaの淡いグレーをベースにし、背景画像で質感を足します。 */}
       <section
-        className="px-4 py-12"
+        className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]"
         style={{
           backgroundImage: "url('/image/event_background.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            イベント
+        <div className="mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              イベント
+            </p>
+          </div>
+          <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-center md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
+            卒業生と直接コミュニケーションをとることができる座談会や、休日でしかみられない体験展示など、さまざまなイベントを予定しています。
           </p>
+          <div className="mt-6 hidden gap-6 md:grid md:grid-cols-2">
+            <div className="h-[364px] rounded-[4px] bg-[#D9D9D9]" />
+            <div className="h-[364px] rounded-[4px] bg-[#D9D9D9]" />
+          </div>
+          <div className="mt-6 flex justify-center">
+            <Link
+              href="/events"
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[20px]"
+            >
+              イベントを見る
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
-        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459]">
-          卒業生と直接コミュニケーションをとることができる座談会や、休日でしかみられない体験展示など、さまざまなイベントを予定しています。
-        </p>
-        <div className="mt-6 flex justify-center">
-          <Link
-            href="/events"
-            className="flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-          >
-            イベントを見る
-            <span aria-hidden="true">→</span>
-          </Link>
+      </section>
+
+      {/* 進路情報はイベントの後に配置し、図表を中央に配置します。 */}
+      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+        <div className="mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              卒業生の進路
+            </p>
+          </div>
+          <div className="mt-4 flex flex-col gap-8 md:mt-8 md:grid md:grid-cols-[480px_480px] md:items-center md:gap-[64px]">
+            <div>
+              <p className="text-[13px] leading-[1.9] text-[#4B5459] md:text-[18px] md:leading-[2.2] md:tracking-[0.04em]">
+                卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
+              </p>
+              <div className="mt-6 hidden justify-center md:flex md:justify-start">
+                <Link
+                  href="/career"
+                  className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+                >
+                  進路をもっと詳しく
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <CareerPieChart
+                gradPercent={gradPercent}
+                jobPercent={jobPercent}
+                otherPercent={otherPercent}
+                total={totalCareers}
+              />
+            </div>
+          </div>
+          <div className="mt-6 flex justify-center md:hidden">
+            <Link
+              href="/career"
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+            >
+              進路をもっと詳しく
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* 開催場所は上下余白を設け、指定の背景色に合わせて読みやすく示します。 */}
-      <section className="bg-[#EBEEF0] px-4 py-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            開催場所
-          </p>
-        </div>
-        <div className="mt-6 space-y-4">
-          <div className="rounded-lg bg-[#F9F9F9] p-3">
-            <p className="text-[16px] font-medium text-[#D3793D]">平日</p>
-            <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-              有元史郎記念校友会館交流プラザにて研究の展示をします。展示されている研究の一覧は
-              <Link href="/research" className="text-[#D3793D] underline">
-                こちら
-              </Link>
-              から。
+      <section className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]">
+        <div className="mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              開催場所
             </p>
           </div>
-          <div className="rounded-lg bg-[#F9F9F9] p-3">
-            <p className="text-[16px] font-medium text-[#D3793D]">土日</p>
-            <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-              平日の研究展示に加え、本部棟5階オープンラボにて体験展示を開催します。体験展示の詳細は
-              <Link href="/events" className="text-[#D3793D] underline">
-                こちら
-              </Link>
-              から
-            </p>
+          <div className="mt-6 space-y-4 md:flex md:gap-6 md:space-y-0">
+            <div className="rounded-lg bg-[#F9F9F9] p-3 md:w-[480px] md:p-4">
+              <p className="text-[16px] font-medium text-[#D3793D] md:text-center">
+                平日
+              </p>
+              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[13px] md:tracking-[0.02em]">
+                有元史郎記念校友会館交流プラザにて研究の展示をします。展示されている研究の一覧は
+                <Link href="/research" className="text-[#D3793D] underline">
+                  こちら
+                </Link>
+                から。
+              </p>
+            </div>
+            <div className="rounded-lg bg-[#F9F9F9] p-3 md:w-[480px] md:p-4">
+              <p className="text-[16px] font-medium text-[#D3793D] md:text-center">
+                土日
+              </p>
+              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[13px] md:tracking-[0.02em]">
+                平日の研究展示に加え、本部棟5階オープンラボにて体験展示を開催します。体験展示の詳細は
+                <Link href="/events" className="text-[#D3793D] underline">
+                  こちら
+                </Link>
+                から
+              </p>
+            </div>
+          </div>
+          {/* デスクトップではSIT MAPを追加して学内の位置関係を伝えます。 */}
+          <div className="mt-6 hidden md:block">
+            <div className="rounded-2xl bg-[#F9F9F9] px-4 py-6">
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+                <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
+                  SIT MAP
+                </p>
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+              </div>
+              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                開催場所の大学内の位置はこのようになっています。
+              </p>
+              <div className="mt-4 overflow-hidden rounded-2xl">
+                <img
+                  src={sitMapImageUrl}
+                  alt="豊洲キャンパス構内の配置図"
+                  className="w-full object-cover"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
-      <section className="px-4 pt-12">
-        <div className="border-b border-[#FB9678] pb-1">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            アクセス
-          </p>
-        </div>
-        <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459]">
-          〒135-8548 東京都江東区豊洲3-7-5
-        </p>
-        <p className="mt-2 text-[13px] leading-[1.9] text-[#4B5459]">
-          東京メトロ有楽町線「豊洲駅」１cまたは３番出口から徒歩７分
-          <br />
-          ゆりかもめ「豊洲駅」から徒歩９分
-          <br />
-          JR京葉線「越中島駅」２番出口から徒歩15分
-        </p>
-        <div className="mt-6 overflow-hidden rounded-2xl">
-          {/* 指定されたGoogle Mapsの埋め込みコードをそのまま使用し、表示領域をレスポンシブに調整します。 */}
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.6646539508483!2d139.79262397577705!3d35.6606329725939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601889a0774db467%3A0x341667956857f1f8!2z44CSMTM1LTg1NDgg5p2x5Lqs6YO95rGf5p2x5Yy66LGK5rSy77yT5LiB55uu77yX4oiS77yVIOiKnea1puW3pealreWkp-WtpiDosYrmtLLjgq3jg6Pjg7Pjg5Hjgrk!5e0!3m2!1sja!2sjp!4v1770220456567!5m2!1sja!2sjp"
-            width="600"
-            height="450"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="h-[209px] w-full"
-            title="芝浦工業大学 豊洲キャンパスの地図"
-          />
-        </div>
-        <div className="mt-6">
-          <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-[#DDE1E4]" />
-            <p className="text-[12px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
-              GUIDE VIDEOS
+      <section className="px-4 pt-12 md:px-[128px] md:py-[96px]">
+        <div className="mx-auto md:max-w-[1024px]">
+          <div className="border-b border-[#FB9678] pb-1">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              アクセス
             </p>
-            <span className="h-px flex-1 bg-[#DDE1E4]" />
           </div>
-          <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-            大学への行き方動画はこちらから
-          </p>
-          <div className="mt-4 flex items-center gap-4">
-            <Link
-              href="/about"
-              className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-            >
-              豊洲駅から
-            </Link>
-            <Link
-              href="/about"
-              className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-            >
-              越中島駅から
-            </Link>
+          {/* デスクトップではテキストと地図を2カラムで並べ、Figmaのレイアウトに合わせます。 */}
+          <div className="mt-4 flex flex-col gap-6 md:mt-8 md:grid md:grid-cols-[480px_480px] md:gap-[64px]">
+            <div className="flex flex-col gap-6">
+              <div>
+                <p className="text-[13px] leading-[1.9] text-[#4B5459] md:text-[16px] md:tracking-[0.04em]">
+                  〒135-8548 東京都江東区豊洲3-7-5
+                </p>
+                <p className="mt-2 text-[13px] leading-[1.9] text-[#4B5459] md:text-[16px] md:tracking-[0.04em]">
+                  東京メトロ有楽町線「豊洲駅」１cまたは３番出口から徒歩７分
+                  <br />
+                  ゆりかもめ「豊洲駅」から徒歩９分
+                  <br />
+                  JR京葉線「越中島駅」２番出口から徒歩15分
+                </p>
+              </div>
+            </div>
+            <div className="overflow-hidden rounded-2xl">
+              {/* 指定されたGoogle Mapsの埋め込みコードをそのまま使用し、表示領域をレスポンシブに調整します。 */}
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.6646539508483!2d139.79262397577705!3d35.6606329725939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601889a0774db467%3A0x341667956857f1f8!2z44CSMTM1LTg1NDgg5p2x5Lqs6YO95rGf5p2x5Yy66LGK5rSy77yT5LiB55uu77yX4oiS77yVIOiKnea1puW3pealreWkp-WtpiDosYrmtLLjgq3jg6Pjg7Pjg5Hjgrk!5e0!3m2!1sja!2sjp!4v1770220456567!5m2!1sja!2sjp"
+                width="600"
+                height="450"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-[209px] w-full md:h-[278px]"
+                title="芝浦工業大学 豊洲キャンパスの地図"
+              />
+            </div>
+          </div>
+          {/* ガイド動画導線は2段目で中央配置に整えます。 */}
+          <div className="mt-6 md:mt-8">
+            <div className="mx-auto max-w-[768px]">
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+                <p className="text-[12px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)] md:text-[16px] md:tracking-[0.2em]">
+                  GUIDE VIDEOS
+                </p>
+                <span className="h-px flex-1 bg-[#DDE1E4]" />
+              </div>
+              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
+                大学への行き方動画はこちらから
+              </p>
+              <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
+                <Link
+                  href="/about"
+                  className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                >
+                  豊洲駅から
+                </Link>
+                <Link
+                  href="/about"
+                  className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                >
+                  越中島駅から
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* フッターは既存コンポーネントを使用し、SNS導線をまとめます。 */}
-      <div className="px-4 pt-12">
-        <Footer />
+      <div className="px-4 pt-12 md:px-0 md:pt-[48px]">
+        <div className="mx-auto w-full md:max-w-[1280px]">
+          <Footer className="w-full" />
+        </div>
       </div>
     </div>
   )
