@@ -13,6 +13,25 @@ type PreviewItem = {
   kind: "research" | "works"
 }
 
+type ResearchPreviewSource = {
+  id: string
+  title: string | null
+  image_url: string | null
+  image_thumb_url: string | null
+  student: { name: string | null } | null
+}
+
+type PortfolioPreviewSource = {
+  id: string
+  title1: string | null
+  title2: string | null
+  image1_url: string | null
+  image1_thumb_url: string | null
+  image2_url: string | null
+  image2_thumb_url: string | null
+  student: { name: string | null } | null
+}
+
 export default async function Home() {
   // ランダム表示を都度更新するため、トップページはキャッシュを無効化します。
   noStore()
@@ -32,7 +51,12 @@ export default async function Home() {
     })
 
   // 研究・作品のプレビューはトップページ用に軽量な項目だけ取得します。
-  const [researchList, portfolioList] = await Promise.all([
+  // Vercel のビルド環境で Prisma 型が解決できず any 扱いになることがあるため、
+  // ここで明示的に型付けして implicit any を防止します。
+  const [researchList, portfolioList]: [
+    ResearchPreviewSource[],
+    PortfolioPreviewSource[],
+  ] = await Promise.all([
     prisma.research.findMany({
       select: {
         id: true,
