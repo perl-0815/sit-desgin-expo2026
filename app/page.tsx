@@ -18,16 +18,18 @@ export default async function Home() {
   noStore()
 
   // 進路データは非公開以外のみ集計し、トップページのグラフに反映します。
-  const careers = await prisma.career.findMany({
-    where: {
-      NOT: {
-        visibility: "非公開",
+  // Prismaの戻り値がビルド時にany扱いになるのを防ぐため、必要最小限の型を明示します。
+  const careers: Array<{ category: string | null }> =
+    await prisma.career.findMany({
+      where: {
+        NOT: {
+          visibility: "非公開",
+        },
       },
-    },
-    select: {
-      category: true,
-    },
-  })
+      select: {
+        category: true,
+      },
+    })
 
   // 研究・作品のプレビューはトップページ用に軽量な項目だけ取得します。
   const [researchList, portfolioList] = await Promise.all([
