@@ -53,8 +53,8 @@ export default function GlobalHeader({
           className ?? ""
         }`.trim()}
       >
-        {/* モバイル版のヘッダー高さを少し詰め、全ページで縦幅を抑えます。 */}
-        <div className="w-full max-w-[393px] px-4 pt-2 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
+        {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+        <div className="w-full px-4 pt-2 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
           <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] md:py-2">
             <Link
               href="/"

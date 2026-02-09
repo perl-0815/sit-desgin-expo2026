@@ -10,7 +10,8 @@ export default function EventsClient() {
     // ページ全体は淡いグレーを敷き、白背景のギャップを目立たせないようにします。
     <div className="min-h-screen bg-[#F9F9F9]">
       {/* 研究・作品紹介ページに合わせて、外側の最大幅と中央寄せを統一します。 */}
-      <div className="relative mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="relative mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
         {/* ヘッダーは既存コンポーネントを使い回します。 */}
         <GlobalHeader activeId="events" />
         {/* 固定ヘッダーと本文が重ならないよう、上部に余白を確保します。 */}

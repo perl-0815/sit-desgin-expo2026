@@ -117,7 +117,8 @@ export default function TopPageClient({
   const mobileNextItem = visiblePreviewItems[mobileNextIndex]
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
+    // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" />

@@ -69,15 +69,19 @@ export default function ContactClient() {
 
   return (
     // フッターが下端に揃うように、ページ全体の最小高さを確保します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="contact" />
 
+      {/* 固定ヘッダーとコンテンツが重ならないよう、他ページと同じ上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
       {/* 見出し行は左のグラデーションバーと右上メニューでFigma構成を再現します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px] md:pb-3">
         <div className="flex items-center gap-3 md:gap-4">
-          <span className="h-6 w-2 rounded-[4px] from-[#FB9678] to-[#E5A967] md:h-8" />
+          {/* 研究ページと同様に、左のオレンジバーは縦グラデーションで表現します。 */}
+          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967] md:h-8" />
           <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.02em]">
             お問い合せ
           </h1>
@@ -105,7 +109,8 @@ export default function ContactClient() {
           <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
             以下のメールアドレスまで直接ご連絡ください。
           </p>
-          <div className="mt-3 md:mt-5 md:pb-[20px]">
+          {/* デスクトップ版ではコピー欄の前に少し余白を足して視線の抜けを作ります。 */}
+          <div className="mt-3 md:mt-12 md:pb-[20px]">
             <button
               type="button"
               onClick={handleCopyEmail}
@@ -182,6 +187,7 @@ export default function ContactClient() {
             </a>
           </div>
         </section>
+      </div>
       </div>
 
       {/* トーストはページ全体で使えるよう最下部に固定します。 */}

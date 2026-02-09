@@ -250,7 +250,8 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   return (
     // 他ページと合わせるため、詳細ページの背景を白に統一します。
     // フッターが下端に張り付くよう、コンテナに最小高さを設定します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="works" />
