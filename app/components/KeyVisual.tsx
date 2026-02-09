@@ -12,10 +12,10 @@ export default function KeyVisual() {
     const updateScale = () => {
       const vw = window.innerWidth
       const vh = window.innerHeight
-      const isVertical = vw / vh <= 4 / 3
+      const isVertical = vw / vh <= 3 / 4
       const base = isVertical ? verticalBase : horizontalBase
       setLayout(isVertical ? "vertical" : "horizontal")
-      setScale(isVertical ? vh / base.h : Math.max(vw / base.w, vh / base.h))
+      setScale(isVertical ? Math.min(vw / base.w, vh / base.h) : Math.max(vw / base.w, vh / base.h))
     }
     updateScale()
     window.addEventListener("resize", updateScale)
