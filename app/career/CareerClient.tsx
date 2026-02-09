@@ -4,7 +4,8 @@ import { useMemo, useEffect, useState } from "react"
 
 import CareerPieChart from "../components/CareerPieChart"
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
+import useSectionReveal from "../components/useSectionReveal"
 
 type JobCategory = {
   title: string
@@ -54,15 +55,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const normalizeText = (value?: string | null) => value?.trim() ?? ""
 
 const buildJobLabel = (career: Career) => {
@@ -109,7 +101,6 @@ const buildCourseLabel = (career: Career) => {
 }
 
 export default function CareerClient() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -118,6 +109,9 @@ export default function CareerClient() {
   // 「もっと見る」制御: 就職先の決め手/大学院進学の理由で5件超えた場合に展開します。
   const [showAllJobReasons, setShowAllJobReasons] = useState(false)
   const [showAllGradReasons, setShowAllGradReasons] = useState(false)
+
+  // 進路ページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -194,12 +188,15 @@ export default function CareerClient() {
       const studentNo = normalizeText(career.student?.student_no)
       return !studentNo.startsWith("cy20")
     })
-    const total = jobCareers.length
+    let total = 0
     const grouped = new Map<string, { count: number; items: string[] }>()
 
     jobCareers.forEach((career) => {
       const label = resolveJobCategory(career)
       const item = buildJobLabel(career)
+      // 「その他」は企業名がある就職者のみを集計対象にし、未記入は割合から除外します。
+      if (label === "その他" && !item) return
+      total += 1
       if (!grouped.has(label)) {
         grouped.set(label, { count: 0, items: [] })
       }
@@ -280,17 +277,13 @@ export default function CareerClient() {
 
   return (
     // 短いページでもフッター下に余白が出ないように、最小高さを設定します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] text-[#2E3437] md:max-w-[1200px] lg:max-w-[1280px]">
+    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] text-[#2E3437] md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="career"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="career" />
+      {/* 固定ヘッダーと内容が重ならないよう、ページ全体の上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
 
       {/* Figmaのヘッダー構成に合わせ、左のグラデーションバーとメニューボタンを配置します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
@@ -300,31 +293,7 @@ export default function CareerClient() {
             卒業生の進路
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* リード文はFigmaの行間と字間を再現して読みやすく整えます。 */}
@@ -340,7 +309,10 @@ export default function CareerClient() {
       </div>
 
       {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
-      <section className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="md:flex md:items-start md:gap-[64px]">
           <div className="md:w-[480px]">
             <div className="border-b border-[#FB9678] pb-1 md:pb-2">
@@ -376,7 +348,10 @@ export default function CareerClient() {
       </section>
 
       {/* 就職先一覧はカテゴリごとにまとめ、Figmaのカード構成に合わせます。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="flex items-center justify-between border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             主な就職先
@@ -463,7 +438,10 @@ export default function CareerClient() {
       </section>
 
       {/* 就職先の決め手はカード形式で複数項目を並べ、読みやすさを優先します。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             就職先の決めて
@@ -518,7 +496,8 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
               {showAllJobReasons ? "閉じる" : "もっと見る"}
@@ -531,7 +510,10 @@ export default function CareerClient() {
       </section>
 
       {/* 大学院進学の理由は別セクションとしてまとめ、同じカードUIを使い回します。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             本学大学院進学の理由
@@ -580,7 +562,8 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >
               {showAllGradReasons ? "閉じる" : "もっと見る"}
@@ -592,7 +575,13 @@ export default function CareerClient() {
         ) : null}
       </section>
 
-      <Footer className="w-full px-4 md:px-[128px]" />
+      {/* フッターはトップページ・研究ページと同じ横幅(1280px)で中央揃えにします。 */}
+      <div className="mt-16 px-4 md:mt-[48px] md:px-0">
+        <div className="mx-auto w-full md:max-w-[1280px]">
+          <Footer className="w-full" />
+        </div>
+      </div>
+      </div>
     </div>
   )
 }

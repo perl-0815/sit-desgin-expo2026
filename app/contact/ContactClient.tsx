@@ -3,26 +3,19 @@
 import { useState } from "react"
 
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
+import useSectionReveal from "../components/useSectionReveal"
 
 const contactEmail = "cy22000@shibaura-it.ac.jp"
 // お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
 const contactFormUrl = "#"
 
 export default function ContactClient() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   const [isToastVisible, setIsToastVisible] = useState(false)
 
-  // 共通メニューは他ページと同じ順序で統一し、導線の迷いを防ぎます。
-  const menuItems = [
-    { id: "top", label: "TOP", href: "/" },
-    { id: "research", label: "研究紹介", href: "/research" },
-    { id: "works", label: "作品紹介", href: "/research?tab=works" },
-    { id: "career", label: "卒業生の進路", href: "/career" },
-    { id: "events", label: "イベント", href: "/events" },
-    { id: "contact", label: "お問い合わせ", href: "/contact" },
-  ]
+  // お問い合わせページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -80,51 +73,24 @@ export default function ContactClient() {
 
   return (
     // フッターが下端に揃うように、ページ全体の最小高さを確保します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="contact"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="contact" />
 
+      {/* 固定ヘッダーとコンテンツが重ならないよう、他ページと同じ上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
       {/* 見出し行は左のグラデーションバーと右上メニューでFigma構成を再現します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px] md:pb-3">
         <div className="flex items-center gap-3 md:gap-4">
-          <span className="h-6 w-2 rounded-[4px] from-[#FB9678] to-[#E5A967] md:h-8" />
+          {/* 研究ページと同様に、左のオレンジバーは縦グラデーションで表現します。 */}
+          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967] md:h-8" />
           <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.02em]">
             お問い合せ
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* リード文はFigma通りに左寄せし、行間を広めに設定します。 */}
@@ -137,7 +103,10 @@ export default function ContactClient() {
       {/* デスクトップは左右2カラムで配置し、各カラムの情報密度を揃えます。 */}
       <div className="flex flex-col md:flex-row md:gap-[64px]">
         {/* メールお問い合わせブロック */}
-        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0">
+        <section
+          data-reveal
+          className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0"
+        >
           {/* 見出し下のラインカラーはFigma指定のソーシャルカラーに合わせます。 */}
           <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
             <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
@@ -147,7 +116,8 @@ export default function ContactClient() {
           <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
             以下のメールアドレスまで直接ご連絡ください。
           </p>
-          <div className="mt-3 md:mt-5 md:pb-[20px]">
+          {/* デスクトップ版ではコピー欄の前に少し余白を足して視線の抜けを作ります。 */}
+          <div className="mt-3 md:mt-12 md:pb-[20px]">
             <button
               type="button"
               onClick={handleCopyEmail}
@@ -176,7 +146,10 @@ export default function ContactClient() {
         </section>
 
         {/* その他方法のお問い合わせブロック */}
-        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]">
+        <section
+          data-reveal
+          className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]"
+        >
           <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
             <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
               その他方法のお問い合せ
@@ -224,6 +197,7 @@ export default function ContactClient() {
             </a>
           </div>
         </section>
+      </div>
       </div>
 
       {/* トーストはページ全体で使えるよう最下部に固定します。 */}

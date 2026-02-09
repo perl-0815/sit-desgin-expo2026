@@ -36,5 +36,9 @@ export const proxy = (req: NextRequest) => {
 
 export const config = {
   // 静的アセットはミドルウェアを通さない。
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  // SNSクローラが画像を取得できるよう、/image 配下も認証対象から除外します。
+  // favicon / アイコン類もクローラが参照できるよう除外します。
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|image/|icon.png|apple-icon.png|manifest.webmanifest).*)",
+  ],
 };

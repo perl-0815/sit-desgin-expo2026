@@ -17,7 +17,8 @@ export default function Footer({ className }: FooterProps) {
     // フッターを常に下端に寄せるため、親がflex-colの場合に効くmt-autoを付与します。
     <footer className={`${className ?? ""} mt-auto`.trim()}>
       {/* トップページの指示に合わせ、フッターの角丸は外してフラットな形状にします。 */}
-      <div className="relative w-full overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-4 py-12 text-center text-white">
+      {/* モバイルは左右余白をなくして全幅表示にし、md以上で既存の余白を維持します。 */}
+      <div className="relative w-full overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-0 py-12 text-center text-white md:px-4">
         {/* 背景グラデーションの上にテクスチャ画像を重ね、Figmaの質感を再現します。 */}
         <div
           aria-hidden="true"

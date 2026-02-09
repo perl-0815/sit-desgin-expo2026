@@ -62,19 +62,19 @@ export default function CareerPieChart({
 
         {/* ラベルは相対配置で位置を固定し、文字スタイルは指定に合わせます。 */}
         <p className="absolute left-[74%] top-[30%] -translate-x-1/2 -translate-y-1/2 font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
-          <span className="text-[18px] md:text-[32px]">本学大学院へ進学</span>
+          <span className="text-[18px] md:text-[28px]">本学大学院へ進学</span>
           <br />
-          <span className="text-[18px] md:text-[32px]">
+          <span className="text-[18px] md:text-[28px]">
             {gradPercent.toFixed(1)}
           </span>
-          <span className="text-[13px] md:text-[20px]">%</span>
+          <span className="text-[13px] md:text-[18px]">%</span>
         </p>
         <p className="absolute left-[30%] top-[58%] -translate-x-1/2 -translate-y-1/2 font-bold leading-[1.5] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif]">
-          <span className="text-[18px] md:text-[32px]">就職</span>{" "}
-          <span className="text-[18px] md:text-[32px]">
+          <span className="text-[18px] md:text-[28px]">就職</span>{" "}
+          <span className="text-[18px] md:text-[28px]">
             {jobPercent.toFixed(1)}
           </span>
-          <span className="text-[13px] md:text-[20px]">%</span>
+          <span className="text-[13px] md:text-[18px]">%</span>
         </p>
         {/* 「その他」は比率が小さいためラベルを省略します。 */}
       </div>

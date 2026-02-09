@@ -21,7 +21,8 @@ const DevAuthPage = ({ searchParams }: DevAuthPageProps) => {
 
   return (
     <main className="min-h-screen bg-white text-gray-900">
-      <div className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center px-6 py-12">
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col justify-center px-6 py-12 md:max-w-xl">
         <h1 className="text-2xl font-semibold">開発用アクセス認証</h1>
         <p className="mt-3 text-sm text-gray-600">
           デザイナー確認用の簡易認証です。開発フラグが有効な場合のみ入力が必要です。

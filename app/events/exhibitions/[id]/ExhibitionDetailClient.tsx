@@ -1,11 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import Footer from "../../../components/Footer"
-import NavigationMenu from "../../../components/NavigationMenu"
+import GlobalHeader from "../../../components/GlobalHeader"
 import { SkeletonLoader } from "../../../components/SkeletonLoader"
+import useSectionReveal from "../../../components/useSectionReveal"
 
 type ExhibitionDetailClientProps = {
   id?: string
@@ -36,15 +37,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 const PLACEHOLDER_BODY =
   "これはダミー文章です。体験展示の狙いや体験内容をここに記載します。"
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const isAbsoluteUrl = (value?: string | null) => {
   return !!value && /^https?:\/\//i.test(value)
 }
@@ -59,10 +51,13 @@ const pickOriginalImage = (original?: string | null, thumb?: string | null) => {
 export default function ExhibitionDetailClient({
   id,
 }: ExhibitionDetailClientProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const router = useRouter()
   const [exhibition, setExhibition] = useState<Exhibition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // 体験展示の詳細ページにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -122,56 +117,36 @@ export default function ExhibitionDetailClient({
   return (
     // 詳細ページの背景は作品・研究と揃えて白に統一します。
     // フッター下の余白を防ぎ、短い場合も下端に揃えるため最小高さを付与します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        // メニュー展開時も白背景で統一し、トーンがぶれないようにします。
-        <div className="fixed inset-0 z-50 flex justify-center bg-white">
-          <NavigationMenu
-            items={menuItems}
-            activeId="events"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="events" />
+      {/* 固定ヘッダーと内容が重ならないよう、ページ全体の上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
 
-      <div className="flex items-center justify-between px-4 pt-6">
+      {/* 他ページの見出しブロックと同じ余白に合わせます。 */}
+      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
         <div className="flex items-center gap-3">
           <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
           <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
             イベント
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
-      {/* 戻るボタンはイベント一覧に戻る導線として表示します。 */}
-      <Link
-        href="/events"
+      {/* 戻るボタンは直前のページへ戻れる場合を優先し、無いときはイベント一覧へ戻します。 */}
+      {/* デスクトップで新規タブ遷移した場合でも必ず戻れるようにフォールバックを用意します。 */}
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back()
+            return
+          }
+          router.push("/events")
+        }}
         className="flex h-20 items-center gap-2 px-4 text-[13px] font-medium text-[#6A7378]"
       >
         <svg
@@ -189,7 +164,7 @@ export default function ExhibitionDetailClient({
           />
         </svg>
         戻る
-      </Link>
+      </button>
 
       {error ? (
         <div className="px-4 pb-12">
@@ -204,7 +179,7 @@ export default function ExhibitionDetailClient({
           </div>
         </div>
       ) : (
-        <section className="px-4 pb-12">
+        <section data-reveal className="px-4 pb-12">
           <div className="flex flex-col gap-4">
             <div className="space-y-1">
               {loading ? (
@@ -260,8 +235,16 @@ export default function ExhibitionDetailClient({
             </div>
 
             <div className="flex justify-center pt-4">
-              <Link
-                href="/events"
+              <button
+                type="button"
+                // 一覧へ戻る導線も、直前のページへ戻れる場合は優先します。
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    router.back()
+                    return
+                  }
+                  router.push("/events")
+                }}
                 className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               >
                 一覧へ戻る
@@ -270,13 +253,15 @@ export default function ExhibitionDetailClient({
                   alt=""
                   className="h-3 w-3"
                 />
-              </Link>
+              </button>
             </div>
           </div>
         </section>
       )}
 
-      <Footer className="mt-8 w-full px-4" />
+      {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
+      <Footer className="mt-8 w-full md:px-[128px]" />
+      </div>
     </div>
   )
 }

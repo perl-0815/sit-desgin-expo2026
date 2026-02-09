@@ -1,12 +1,12 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import Footer from "../../components/Footer"
-import NavigationMenu from "../../components/NavigationMenu"
+import GlobalHeader from "../../components/GlobalHeader"
 import { SkeletonLoader } from "../../components/SkeletonLoader"
+import useSectionReveal from "../../components/useSectionReveal"
 
 type ResearchDetailClientProps = {
   id: string
@@ -74,15 +74,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 const PLACEHOLDER_BODY =
   "これはダミー文章です。研究内容の背景・狙い・検証結果などをここに記載します。"
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const sliceKeywords = (keywords?: string | null) => {
   if (!keywords) return []
   return keywords
@@ -109,14 +100,16 @@ export default function ResearchDetailClient({
   id,
 }: ResearchDetailClientProps) {
   const router = useRouter()
-  // 右上メニューの開閉状態を管理します。
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const searchParams = useSearchParams()
   const [labs, setLabs] = useState<Lab[]>([])
   const [researchList, setResearchList] = useState<Research[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [studentCareers, setStudentCareers] = useState<Career[]>([])
   const [careerLoading, setCareerLoading] = useState(false)
+
+  // 研究詳細ページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -258,22 +251,36 @@ export default function ResearchDetailClient({
   const hasCareerContent =
     careerCompany || careerRole || careerIndustry || careerDescription
 
+  const returnUrl = useMemo(() => {
+    const params = new URLSearchParams()
+    const returnTab = searchParams.get("returnTab")
+    const focus = searchParams.get("focus")
+    const lab = searchParams.get("lab")
+    const course = searchParams.get("course")
+
+    if (returnTab === "works") {
+      params.set("tab", "works")
+    }
+    if (focus) params.set("focus", focus)
+    if (lab) params.set("lab", lab)
+    if (course) params.set("course", course)
+
+    const suffix = params.toString()
+    return suffix ? `/research?${suffix}` : "/research"
+  }, [searchParams])
+
   return (
-    // トップページの見た目に揃えるため、詳細ページの背景を白に統一します。
-    // フッターが下端に揃うよう、コンテナに最小高さを追加します。
-    <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
-      {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {/* 右上メニューは画面全体に重ねて表示します。 */}
-      {isMenuOpen ? (
-        // メニュー展開時の背面も白背景にしてトーンを合わせます。
-        <div className="fixed inset-0 z-50 flex justify-center bg-white">
-          <NavigationMenu
-            items={menuItems}
-            activeId="research"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+    <>
+      {/* JSXコメントはフラグメント内に配置してパースエラーを防ぎます。 */}
+      {/* トップページの見た目に揃えるため、詳細ページの背景を白に統一します。 */}
+      {/* フッターが下端に揃うよう、コンテナに最小高さを追加します。 */}
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+        {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
+        {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+        <GlobalHeader activeId="research" />
+        {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
+        <div className="pt-[84px] md:pt-[96px]">
 
       {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:hidden">
@@ -285,32 +292,7 @@ export default function ResearchDetailClient({
         </div>
       </div>
 
-      {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-      <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-        <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-          <button
-            // トップページと同様に白背景のアイコンボタンにします。
-            className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-            type="button"
-            aria-label="メニュー"
-            onClick={() => setIsMenuOpen(true)}
-          >
-            <svg
-              aria-hidden="true"
-              className="h-8 w-8"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M4 7H20M4 12H20M4 17H20"
-                stroke="#6A7378"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
+      {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
 
       {/* 戻るボタンは一覧への導線として常に表示します。 */}
       <div className="px-4 md:px-[128px]">
@@ -318,11 +300,15 @@ export default function ResearchDetailClient({
           type="button"
           // 履歴がない場合に備えて一覧へフォールバックします。
           onClick={() => {
+            if (searchParams.get("focus")) {
+              router.push(returnUrl)
+              return
+            }
             if (window.history.length > 1) {
               router.back()
-            } else {
-              router.push("/research")
+              return
             }
+            router.push("/research")
           }}
           className="flex h-20 items-center gap-2 text-[13px] font-medium text-[#6A7378]"
         >
@@ -358,7 +344,10 @@ export default function ResearchDetailClient({
         </div>
       ) : (
         <>
-          <section className="px-4 pb-12 md:px-[128px] md:pb-[96px]">
+          <section
+            data-reveal
+            className="px-4 pb-12 md:px-[128px] md:pb-[96px]"
+          >
             <div className="flex flex-col gap-4 md:gap-5">
               {loading ? (
                 <div className="flex flex-wrap gap-2">
@@ -396,7 +385,8 @@ export default function ResearchDetailClient({
                       {research?.title ?? "研究タイトル"}
                     </h2>
                     {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
-                    <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5] md:text-[15px]">
+                    {/* 研究室名と氏名は詳細ページでも左寄せに揃えます。 */}
+                    <div className="flex flex-wrap justify-start gap-2 text-[13px] font-medium leading-[1.5] md:text-[15px]">
                       <span className="text-[#6A7378]">
                         {lab?.official_name ?? lab?.name ?? "研究室名"}
                       </span>
@@ -448,7 +438,7 @@ export default function ResearchDetailClient({
           </section>
 
           {careerLoading || hasCareerContent ? (
-            <section className="px-4 md:px-[128px]">
+            <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
                 <div className="border-b border-[#14BDB1] pb-2">
                   <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
@@ -491,7 +481,7 @@ export default function ResearchDetailClient({
           ) : null}
 
           {loading || qaItems.length > 0 ? (
-            <section className="px-4 md:px-[128px]">
+            <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
                 <div className="border-b border-[#14BDB1] pb-2">
                   <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
@@ -527,8 +517,20 @@ export default function ResearchDetailClient({
           ) : null}
 
           <div className="flex justify-center px-4 py-12 md:px-[16px] md:py-[96px]">
-            <Link
-              href="/research"
+            <button
+              type="button"
+              // 一覧へ戻る導線も、直前のページへ戻れる場合は優先します。
+              onClick={() => {
+                if (searchParams.get("focus")) {
+                  router.push(returnUrl)
+                  return
+                }
+                if (window.history.length > 1) {
+                  router.back()
+                  return
+                }
+                router.push("/research")
+              }}
               className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
               一覧へ戻る
@@ -538,13 +540,16 @@ export default function ResearchDetailClient({
                 alt=""
                 className="h-3 w-3"
               />
-            </Link>
+            </button>
           </div>
         </>
       )}
 
-      {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
-      <Footer className="w-full px-4 md:px-[128px]" />
-    </div>
+        {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
+        {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
+        <Footer className="w-full md:px-[128px]" />
+        </div>
+      </div>
+    </>
   )
 }
