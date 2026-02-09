@@ -68,7 +68,7 @@ export default function GlobalHeader({
             </Link>
             {/* 既存のハンバーガーメニューを流用し、見た目と操作感を揃えます。 */}
             <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              className="grid h-12 w-12 place-items-center rounded-full"
               type="button"
               aria-label="メニュー"
               onClick={() => setIsMenuOpen(true)}

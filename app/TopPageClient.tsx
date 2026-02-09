@@ -35,6 +35,9 @@ const sitMapImageUrl = "/image/sit_map.png"
 // 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
 const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg"
 const exhibitionDecorationRightUrl = "/image/top-decoration2.svg"
+// 研究・作品紹介の装飾はトップ専用のSVGに切り替えます。
+const worksDecorationPrimaryUrl = "/image/top-decoration4.svg"
+const worksDecorationSecondaryUrl = "/image/top-decoration3.svg"
 // コンセプト背景はローカルの単一画像に統一します。
 const conceptBackgroundUrl = "/image/concept.png"
 
@@ -106,7 +109,6 @@ export default function TopPageClient({
     (mobilePreviewIndex + 1) % visiblePreviewItems.length
   const mobilePrevItem = visiblePreviewItems[mobilePrevIndex]
   const mobileNextItem = visiblePreviewItems[mobileNextIndex]
-
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
@@ -201,7 +203,8 @@ export default function TopPageClient({
       </section>
 
       {/* 卒業・修了研究展セクションはFigmaの装飾と本文の改行を忠実に再現します。 */}
-      <section className="relative overflow-hidden bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]">
+      {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
+      <section className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]">
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
           <img
@@ -275,7 +278,8 @@ export default function TopPageClient({
       </section>
 
       {/* コンセプトは背景のレイヤーと改行位置をFigma通りに合わせます。 */}
-      <section className="relative mt-0 overflow-hidden px-4 py-12 md:mt-0 md:px-[128px] md:py-[96px]">
+      {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}
+      <section className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-[128px] md:py-[96px]">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -348,7 +352,32 @@ export default function TopPageClient({
       </section>
 
       {/* 学生の成果セクションは背景色を白に揃えて落ち着いた印象にします。 */}
-      <section className="bg-[#F9F9F9] px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+      {/* モバイルの下余白のみ増やして、セクション終端の詰まり感を解消します。 */}
+      <section className="relative bg-[#F9F9F9] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]">
+        {/* 背景装飾はFigma指定のtop-decoration3/4を使用します。 */}
+        <div className="pointer-events-none absolute right-0 top-0 hidden md:block">
+          <img
+            src={worksDecorationPrimaryUrl}
+            alt=""
+            className="h-[565px] w-[389px]"
+          />
+        </div>
+        <div className="pointer-events-none absolute left-0 top-[320px] hidden md:block">
+          <img
+            src={worksDecorationSecondaryUrl}
+            alt=""
+            className="h-[260px] w-[550px]"
+          />
+        </div>
+        {/* モバイル装飾はtop-decoration4に統一します。 */}
+        <div className="pointer-events-none absolute right-0 top-[120px] md:hidden">
+          <img
+            src={worksDecorationSecondaryUrl}
+            alt=""
+            className="h-[260px] w-[260px]"
+          />
+        </div>
+
         <div className="relative mx-auto md:max-w-[1024px]">
           <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
             <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
@@ -368,7 +397,7 @@ export default function TopPageClient({
                   {hasMultiplePreviews ? (
                     <Link
                       href={mobilePrevItem.href}
-                      className="flex w-[200px] shrink-0 flex-col gap-2 opacity-40 z-0"
+                      className="z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40"
                     >
                       <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                         <img
@@ -386,7 +415,7 @@ export default function TopPageClient({
                   <Link
                     key={mobilePreviewKey}
                     href={mobilePreviewItem.href}
-                    className={`flex w-[236px] shrink-0 flex-col gap-2 z-10 ${
+                    className={`z-10 flex w-[236px] shrink-0 flex-col gap-2 ${
                       hasMultiplePreviews
                         ? "animate-[top-page-slide-fade_4200ms_ease]"
                         : ""
@@ -410,7 +439,7 @@ export default function TopPageClient({
                   {hasMultiplePreviews ? (
                     <Link
                       href={mobileNextItem.href}
-                      className="flex w-[200px] shrink-0 flex-col gap-2 opacity-40 z-0"
+                      className="z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40"
                     >
                       <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                         <img
@@ -526,30 +555,36 @@ export default function TopPageClient({
         </div>
       </section>
 
-      {/* 進路情報はイベントの後に配置し、図表を中央に配置します。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      {/* 進路情報はイベントの後に配置し、Figmaの2カラム構成を再現します。 */}
+      <section className="relative bg-[#F9F9F9] px-4 py-12 md:px-[128px] md:py-[96px]">
+        {/* 背景装飾は指定のdotgrid.svgを使用します。 */}
+        <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
+          <img src="/image/dotgrid.svg" alt="" className="h-[144px] w-[192px]" />
+        </div>
+
         <div className="mx-auto md:max-w-[1024px]">
-          <div className="border-b border-[#FB9678] pb-1">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
-              卒業生の進路
-            </p>
-          </div>
-          <div className="mt-4 flex flex-col gap-8 md:mt-8 md:grid md:grid-cols-[480px_480px] md:items-center md:gap-[64px]">
-            <div>
-              <p className="text-[13px] leading-[1.9] text-[#4B5459] md:text-[18px] md:leading-[2.2] md:tracking-[0.04em]">
+          <div className="mt-4 flex flex-col gap-8 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
+            <div className="flex flex-col justify-between md:min-h-[463px]">
+              {/* 見出し下の線は左カラム幅に合わせ、右側にグラフが来る構成にします。 */}
+              <div className="border-b-2 border-[#FB9678] pb-1">
+                <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  卒業生の進路
+                </p>
+              </div>
+              <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
                 卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
               </p>
               <div className="mt-6 hidden justify-center md:flex md:justify-start">
                 <Link
                   href="/career"
-                  className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
                 >
                   進路をもっと詳しく
                   <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center md:justify-end">
               <CareerPieChart
                 gradPercent={gradPercent}
                 jobPercent={jobPercent}
@@ -570,20 +605,23 @@ export default function TopPageClient({
         </div>
       </section>
 
-      {/* 開催場所は上下余白を設け、指定の背景色に合わせて読みやすく示します。 */}
+      {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
       <section className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]">
-        <div className="mx-auto md:max-w-[1024px]">
-          <div className="border-b border-[#FB9678] pb-1 md:flex md:justify-center">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+        <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
+          {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
+          <div className="w-full border-b-2 border-[#FB9678] py-1">
+            <p className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
               開催場所
             </p>
           </div>
-          <div className="mt-6 space-y-4 md:flex md:gap-6 md:space-y-0">
-            <div className="rounded-lg bg-[#F9F9F9] p-3 md:w-[480px] md:p-4">
-              <p className="text-[16px] font-medium text-[#D3793D] md:text-center">
+
+          {/* 開催まとめはモバイルで縦並び、デスクトップで2カラムにします。 */}
+          <div className="flex flex-col gap-3 md:flex-row md:gap-6">
+            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+              <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 平日
               </p>
-              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[13px] md:tracking-[0.02em]">
+              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-center">
                 有元史郎記念校友会館交流プラザにて研究の展示をします。展示されている研究の一覧は
                 <Link href="/research" className="text-[#D3793D] underline">
                   こちら
@@ -591,11 +629,11 @@ export default function TopPageClient({
                 から。
               </p>
             </div>
-            <div className="rounded-lg bg-[#F9F9F9] p-3 md:w-[480px] md:p-4">
-              <p className="text-[16px] font-medium text-[#D3793D] md:text-center">
+            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+              <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 土日
               </p>
-              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[13px] md:tracking-[0.02em]">
+              <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-center">
                 平日の研究展示に加え、本部棟5階オープンラボにて体験展示を開催します。体験展示の詳細は
                 <Link href="/events" className="text-[#D3793D] underline">
                   こちら
@@ -604,26 +642,25 @@ export default function TopPageClient({
               </p>
             </div>
           </div>
-          {/* デスクトップではSIT MAPを追加して学内の位置関係を伝えます。 */}
-          <div className="mt-6 hidden md:block">
-            <div className="rounded-2xl bg-[#F9F9F9] px-4 py-6">
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-                <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
-                  SIT MAP
-                </p>
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-              </div>
-              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                開催場所の大学内の位置はこのようになっています。
+
+          {/* SIT MAPはデスクトップのみ表示し、カード内の罫線は均等に配置します。 */}
+          <div className="hidden rounded-2xl bg-[#F9F9F9] px-4 py-6 md:block">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-[#DDE1E4]" />
+              <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
+                SIT MAP
               </p>
-              <div className="mt-4 overflow-hidden rounded-2xl">
-                <img
-                  src={sitMapImageUrl}
-                  alt="豊洲キャンパス構内の配置図"
-                  className="w-full object-cover"
-                />
-              </div>
+              <span className="h-px flex-1 bg-[#DDE1E4]" />
+            </div>
+            <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+              開催場所の大学内の位置はこのようになっています。
+            </p>
+            <div className="mt-4 overflow-hidden rounded-2xl">
+              <img
+                src={sitMapImageUrl}
+                alt="豊洲キャンパス構内の配置図"
+                className="w-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -632,15 +669,16 @@ export default function TopPageClient({
       {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
       <section className="px-4 pt-12 md:px-[128px] md:py-[96px]">
         <div className="mx-auto md:max-w-[1024px]">
-          <div className="border-b border-[#FB9678] pb-1">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
-              アクセス
-            </p>
-          </div>
-          {/* デスクトップではテキストと地図を2カラムで並べ、Figmaのレイアウトに合わせます。 */}
-          <div className="mt-4 flex flex-col gap-6 md:mt-8 md:grid md:grid-cols-[480px_480px] md:gap-[64px]">
-            <div className="flex flex-col gap-6">
-              <div>
+          {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}
+          <div className="mt-4 flex flex-col gap-6 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
+            <div>
+              {/* 見出し下の線はFigmaに合わせて361pxで止めます。 */}
+              <div className="border-b-2 border-[#FB9678] pb-1 md:w-[361px]">
+                <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+                  アクセス
+                </p>
+              </div>
+              <div className="mt-4">
                 <p className="text-[13px] leading-[1.9] text-[#4B5459] md:text-[16px] md:tracking-[0.04em]">
                   〒135-8548 東京都江東区豊洲3-7-5
                 </p>
@@ -653,7 +691,7 @@ export default function TopPageClient({
                 </p>
               </div>
             </div>
-            <div className="overflow-hidden rounded-2xl">
+            <div className="overflow-hidden rounded-2xl md:mt-0">
               {/* 指定されたGoogle Mapsの埋め込みコードをそのまま使用し、表示領域をレスポンシブに調整します。 */}
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.6646539508483!2d139.79262397577705!3d35.6606329725939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601889a0774db467%3A0x341667956857f1f8!2z44CSMTM1LTg1NDgg5p2x5Lqs6YO95rGf5p2x5Yy66LGK5rSy77yT5LiB55uu77yX4oiS77yVIOiKnea1puW3pealreWkp-WtpiDosYrmtLLjgq3jg6Pjg7Pjg5Hjgrk!5e0!3m2!1sja!2sjp!4v1770220456567!5m2!1sja!2sjp"
