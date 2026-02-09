@@ -31,47 +31,10 @@ type PreviewItem = {
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
 const sitMapImageUrl = "/image/sit_map.png"
-// 「卒業・修了研究展とは」セクションの装飾はFigma指定のアセットを使用します。
-const exhibitionDesktopFloatingCircleUrl =
-  "https://www.figma.com/api/mcp/asset/5cb11781-8222-482b-885f-1590f7b0e682"
-const exhibitionDesktopDashedCircleUrl =
-  "https://www.figma.com/api/mcp/asset/3d2a296b-6bd0-45bc-904b-908d04046c98"
-const exhibitionDesktopTriangleOutlineUrl =
-  "https://www.figma.com/api/mcp/asset/a17c98b1-b93f-430d-9768-18bb2fa215d2"
-const exhibitionDesktopDotUrl =
-  "https://www.figma.com/api/mcp/asset/ba77d3d7-9d9e-45b9-9939-85b21b65f6d4"
-const exhibitionDesktopConcentric1Url =
-  "https://www.figma.com/api/mcp/asset/68cf0756-7148-4971-a5ff-2f9adbb52f24"
-const exhibitionDesktopConcentric2Url =
-  "https://www.figma.com/api/mcp/asset/9875ef01-7e71-48f9-816f-d2438d80df17"
-const exhibitionDesktopConcentric3Url =
-  "https://www.figma.com/api/mcp/asset/75a9b5b9-7602-45e3-993f-74551e9b3a57"
-const exhibitionDesktopConcentric4Url =
-  "https://www.figma.com/api/mcp/asset/03569b2f-fca7-473d-8909-9779b6871ebe"
-const exhibitionDesktopConcentric5Url =
-  "https://www.figma.com/api/mcp/asset/e9cae7cd-9863-4bad-8ae0-94468515cd37"
-const exhibitionDesktopConcentric6Url =
-  "https://www.figma.com/api/mcp/asset/1218c970-0105-47f4-ac29-0258418a5bf2"
-const exhibitionDesktopSquare1Url =
-  "https://www.figma.com/api/mcp/asset/608fb585-7bec-406c-8176-8d0d0f2e6f74"
-const exhibitionDesktopSquare2Url =
-  "https://www.figma.com/api/mcp/asset/8d438c30-6e79-47bd-87a1-1b967ca505e0"
-const exhibitionDesktopSquare3Url =
-  "https://www.figma.com/api/mcp/asset/71c2b560-ac2f-4393-947b-0c2629cdf915"
-const exhibitionDesktopSquare4Url =
-  "https://www.figma.com/api/mcp/asset/0656f9db-1bae-486c-b503-20951d418697"
-const exhibitionDesktopCrossVUrl =
-  "https://www.figma.com/api/mcp/asset/cd29f787-e90b-4441-8164-cdc0b3e026e6"
-const exhibitionDesktopCrossHUrl =
-  "https://www.figma.com/api/mcp/asset/b8eb908c-7c2e-46ed-806e-06c7eb0e95a8"
-const exhibitionMobileFloatingCircleUrl =
-  "https://www.figma.com/api/mcp/asset/65bfb434-f87a-4c84-b1da-c8d6602970a0"
-const exhibitionMobileDashedCircleUrl =
-  "https://www.figma.com/api/mcp/asset/ec108a7f-ecec-40dd-b4f0-fa414ae09c88"
-const exhibitionMobileTriangleOutlineUrl =
-  "https://www.figma.com/api/mcp/asset/45f97d34-fa0b-444c-88ce-5a14f8c339bf"
-const exhibitionMobileDotUrl =
-  "https://www.figma.com/api/mcp/asset/79c2e06e-3fbc-4420-9fb2-41e3361bd460"
+// 「卒業・修了研究展とは」セクションの装飾は、公開フォルダのSVGに集約して読み込みます。
+// 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
+const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg"
+const exhibitionDecorationRightUrl = "/image/top-decoration2.svg"
 // コンセプト背景はデスクトップ/モバイルでアセットが異なるため分けて管理します。
 const conceptDesktopBackgroundUrl =
   "https://www.figma.com/api/mcp/asset/032915e2-f3f2-43b2-97ce-6ae6dd659ba8"
@@ -293,208 +256,31 @@ export default function TopPageClient({
 
       {/* 卒業・修了研究展セクションはFigmaの装飾と本文の改行を忠実に再現します。 */}
       <section className="relative overflow-hidden bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]">
-        {/* デスクトップの左上装飾はFigmaの配置値に合わせ、背景として配置します。 */}
-        <div className="pointer-events-none absolute left-0 top-0 hidden h-[260px] w-[550px] overflow-hidden md:block">
-          <div className="absolute left-[-60px] top-[-50px] h-[300px] w-[300px]">
-            <div className="relative h-full w-full">
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric1Url}
-                className="absolute inset-[41.78%] block h-full w-full"
-              />
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric2Url}
-                className="absolute inset-[33.56%] block h-full w-full"
-              />
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric3Url}
-                className="absolute inset-[25.33%] block h-full w-full"
-              />
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric4Url}
-                className="absolute inset-[17.11%] block h-full w-full"
-              />
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric5Url}
-                className="absolute inset-[8.89%] block h-full w-full"
-              />
-              <img
-                alt=""
-                src={exhibitionDesktopConcentric6Url}
-                className="absolute inset-[0.67%] block h-full w-full"
-              />
-            </div>
-          </div>
-          <div className="absolute left-[22.72px] top-[59.77px] flex h-[270px] w-[270px] items-center justify-center">
-            <div className="rotate-[15deg]">
-              <div className="relative h-[220.454px] w-[220.454px]">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rotate-[15deg]">
-                    <div className="relative h-[245.885px] w-[245.885px]">
-                      <img
-                        alt=""
-                        src={exhibitionDesktopSquare1Url}
-                        className="absolute inset-[37.78%] block h-full w-full"
-                      />
-                      <img
-                        alt=""
-                        src={exhibitionDesktopSquare2Url}
-                        className="absolute inset-[25.56%] block h-full w-full"
-                      />
-                      <img
-                        alt=""
-                        src={exhibitionDesktopSquare3Url}
-                        className="absolute inset-[13.33%] block h-full w-full"
-                      />
-                      <img
-                        alt=""
-                        src={exhibitionDesktopSquare4Url}
-                        className="absolute inset-[1.11%] block h-full w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[260px] top-[50px] h-[100px] w-[100px]">
-            <div className="flex h-[169.466px] items-center justify-center">
-              <div className="rotate-[22deg]">
-                <div className="relative h-[130.179px] w-[130.179px]">
-                  <img
-                    alt=""
-                    src={exhibitionDesktopCrossVUrl}
-                    className="absolute inset-y-0 left-1/2 right-1/2 block h-full w-full"
-                  />
-                  <img
-                    alt=""
-                    src={exhibitionDesktopCrossHUrl}
-                    className="absolute inset-x-0 bottom-1/2 top-1/2 block h-full w-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
+        <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
+          <img
+            alt=""
+            src={exhibitionDecorationLeftUrl}
+            className="block h-full w-full"
+          />
         </div>
 
-        {/* デスクトップの右側装飾は文章領域を避け、右側に配置します。 */}
+        {/* 右側装飾も一枚SVGに置き換え、本文領域と干渉しない位置に固定します。 */}
         <div className="pointer-events-none absolute right-0 top-[169px] hidden h-[471px] w-[450px] overflow-hidden md:block">
-          <div className="absolute left-[-441.72px] top-[-180.72px] flex h-[394.675px] w-[394.675px] items-center justify-center">
-            <div className="rotate-[170.8deg]">
-              <div className="h-[344.097px] w-[344.097px]">
-                <img
-                  alt=""
-                  src={exhibitionDesktopFloatingCircleUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[86.53px] top-[16.37px] flex h-[255.166px] w-[255.166px] items-center justify-center">
-            <div className="rotate-[-85.4deg]">
-              <div className="h-[236.932px] w-[236.932px]">
-                <img
-                  alt=""
-                  src={exhibitionDesktopDashedCircleUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[222.32px] top-[211.12px] flex h-[99.409px] w-[111.091px] items-center justify-center">
-            <div className="rotate-[-3.68deg]">
-              <div className="h-[92.84px] w-[105.351px]">
-                <img
-                  alt=""
-                  src={exhibitionDesktopTriangleOutlineUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[15px] top-[381px] h-[100px] w-[100px]">
-            <div className="relative h-full w-full">
-              {Array.from({ length: 25 }).map((_, index) => {
-                const row = Math.floor(index / 5)
-                const col = index % 5
-                return (
-                  <img
-                    // ドットは5x5の規則配置なので、インデックスから位置を計算します。
-                    key={`desktop-dot-${row}-${col}`}
-                    alt=""
-                    src={exhibitionDesktopDotUrl}
-                    className="absolute block h-[6px] w-[6px]"
-                    style={{
-                      left: `${7 + col * 20}%`,
-                      top: `${7 + row * 20}%`,
-                    }}
-                  />
-                )
-              })}
-            </div>
-          </div>
+          <img
+            alt=""
+            src={exhibitionDecorationRightUrl}
+            className="block h-full w-full"
+          />
         </div>
 
-        {/* モバイルは右上装飾のみ表示し、本文の読みやすさを優先します。 */}
+        {/* モバイルは右上装飾のみ表示し、視線の主導権を本文に戻します。 */}
         <div className="pointer-events-none absolute left-[-57px] top-[79.33px] h-[471px] w-[450px] overflow-hidden md:hidden">
-          <div className="absolute left-[-441.72px] top-[-180.72px] flex h-[394.675px] w-[394.675px] items-center justify-center">
-            <div className="rotate-[170.8deg]">
-              <div className="h-[344.097px] w-[344.097px]">
-                <img
-                  alt=""
-                  src={exhibitionMobileFloatingCircleUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[86.53px] top-[16.37px] flex h-[255.166px] w-[255.166px] items-center justify-center">
-            <div className="rotate-[-85.4deg]">
-              <div className="h-[236.932px] w-[236.932px]">
-                <img
-                  alt=""
-                  src={exhibitionMobileDashedCircleUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[222.32px] top-[211.12px] flex h-[99.409px] w-[111.091px] items-center justify-center">
-            <div className="rotate-[-3.68deg]">
-              <div className="h-[92.84px] w-[105.351px]">
-                <img
-                  alt=""
-                  src={exhibitionMobileTriangleOutlineUrl}
-                  className="block h-full w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="absolute left-[15px] top-[381px] h-[100px] w-[100px]">
-            <div className="relative h-full w-full">
-              {Array.from({ length: 25 }).map((_, index) => {
-                const row = Math.floor(index / 5)
-                const col = index % 5
-                return (
-                  <img
-                    // モバイルのドットも5x5で配置し、Figmaの余白感を再現します。
-                    key={`mobile-dot-${row}-${col}`}
-                    alt=""
-                    src={exhibitionMobileDotUrl}
-                    className="absolute block h-[6px] w-[6px]"
-                    style={{
-                      left: `${7 + col * 20}%`,
-                      top: `${7 + row * 20}%`,
-                    }}
-                  />
-                )
-              })}
-            </div>
-          </div>
+          <img
+            alt=""
+            src={exhibitionDecorationRightUrl}
+            className="block h-full w-full"
+          />
         </div>
 
         <div className="relative mx-auto md:max-w-[1024px]">

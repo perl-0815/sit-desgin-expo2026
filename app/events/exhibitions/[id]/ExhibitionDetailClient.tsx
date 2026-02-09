@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import Footer from "../../../components/Footer"
 import NavigationMenu from "../../../components/NavigationMenu"
@@ -59,6 +59,7 @@ const pickOriginalImage = (original?: string | null, thumb?: string | null) => {
 export default function ExhibitionDetailClient({
   id,
 }: ExhibitionDetailClientProps) {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [exhibition, setExhibition] = useState<Exhibition | null>(null)
   const [loading, setLoading] = useState(true)
@@ -169,9 +170,17 @@ export default function ExhibitionDetailClient({
         </div>
       </div>
 
-      {/* 戻るボタンはイベント一覧に戻る導線として表示します。 */}
-      <Link
-        href="/events"
+      {/* 戻るボタンは履歴があるときはブラウザバックを優先し、無いときはイベント一覧へ戻します。 */}
+      {/* デスクトップで新規タブ遷移した場合でも必ず戻れるようにフォールバックを用意します。 */}
+      <button
+        type="button"
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back()
+          } else {
+            router.push("/events")
+          }
+        }}
         className="flex h-20 items-center gap-2 px-4 text-[13px] font-medium text-[#6A7378]"
       >
         <svg
@@ -189,7 +198,7 @@ export default function ExhibitionDetailClient({
           />
         </svg>
         戻る
-      </Link>
+      </button>
 
       {error ? (
         <div className="px-4 pb-12">
