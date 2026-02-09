@@ -59,12 +59,12 @@ export default function GlobalHeader({
           className ?? ""
         }`.trim()}
       >
-        {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
-        <div className="w-full px-4 pt-2 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] md:px-5 md:py-3">
+        {/* モバイルは画面幅いっぱいに広げ、iPad縦画面程度まではモバイル表示に寄せます。 */}
+        <div className="w-full px-4 pt-2 pointer-events-auto lg:max-w-[1280px] lg:px-[128px] lg:pt-[24px]">
+          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] lg:px-5 lg:py-3">
             <Link
               href="/"
-              className="flex h-[48px] items-center md:h-[56px]"
+              className="flex h-[48px] items-center lg:h-[56px]"
               aria-label="トップページへ"
             >
               <img
@@ -74,7 +74,7 @@ export default function GlobalHeader({
               />
             </Link>
             {/* デスクトップ版はFigma通りの横並びメニューを表示し、ハンバーガーはモバイルのみ残します。 */}
-            <div className="hidden items-center gap-6 md:flex">
+            <div className="hidden items-center gap-6 lg:flex">
               <nav className="flex items-center">
                 {desktopMenuItems.map((item, index) => {
                   const isActive = item.id === activeId
@@ -88,13 +88,16 @@ export default function GlobalHeader({
                           : ""
                       } ${isActive ? "text-[#2E3437]" : "text-[#6A7378]"}`}
                     >
-                      {/* アクティブ時のみ丸印を表示し、非アクティブ時は非表示にします。 */}
-                      {isActive ? (
-                        <span
-                          className="h-2.5 w-2.5 rounded-full bg-[#FB9678]"
-                          aria-hidden="true"
-                        />
-                      ) : null}
+                      {/* 
+                        ラベルの横幅がページ遷移でブレないよう、丸印は常に同じ幅を確保します。
+                        アクティブ時は色付き、非アクティブ時は不可視（スペースは維持）にします。
+                      */}
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full bg-[#FB9678] ${
+                          isActive ? "opacity-100" : "invisible"
+                        }`}
+                        aria-hidden="true"
+                      />
                       {item.label}
                     </Link>
                   )
@@ -112,7 +115,7 @@ export default function GlobalHeader({
             </div>
             {/* 既存のハンバーガーメニューはモバイル専用として維持します。 */}
             <button
-              className="grid h-10 w-10 place-items-center rounded-full md:hidden"
+              className="grid h-10 w-10 place-items-center rounded-full lg:hidden"
               type="button"
               aria-label="メニュー"
               onClick={() => setIsMenuOpen(true)}
