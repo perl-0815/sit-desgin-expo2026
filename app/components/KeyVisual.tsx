@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-const SCROLL_PAGES = 1.5
+const SCROLL_PAGES = 2.0
 
 export default function KeyVisual() {
   const [scale, setScale] = useState(1)
@@ -59,17 +59,17 @@ export default function KeyVisual() {
   const horizontalLayers = [
     { src: "/key-visual/horizontal/hoka.svg", w: 1280, h: 720, x: 640, y: 360, scale: 1, rotate: 0, z: -30, opacity: 1, animate: false },
     { src: "/key-visual/horizontal/setu.svg", w: 509, h: 519, x: -49, y: 158.971, scale: 1, rotate: 0, z: -20, opacity: 1, animate: false },
-    { src: "/key-visual/horizontal/setu-color.svg", w: 509, h: 519, x: -49, y: 159.771, scale: 1, rotate: 0, z: -19, opacity: colorRevealed ? 1 : 0, animate: true },
-    { src: "/key-visual/horizontal/ten.svg", w: 521, h: 549, x: 535, y: 360, scale: 1, rotate: 0, z: -10, opacity: 1, animate: false },
-    { src: "/key-visual/horizontal/ten-color.svg", w: 521, h: 549, x: 535, y: 376, scale: 1, rotate: 0, z: -9, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/horizontal/setu-color.svg", w: 509, h: 519, x: -49, y: 159.071, scale: 1, rotate: 0, z: -21, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/horizontal/ten.svg", w: 521, h: 549, x: 535, y: 360, scale: 1, rotate: 0, z: -9, opacity: 1, animate: false },
+    { src: "/key-visual/horizontal/ten-color.svg", w: 521, h: 549, x: 535, y: 368, scale: 1.03, rotate: 0, z: -10, opacity: colorRevealed ? 1 : 0, animate: true },
   ]
 
   const verticalLayers = [
     { src: "/key-visual/vertical/hoka.svg", w: 1080, h: 1920, x: 540, y: 960, scale: 1, rotate: 0, z: -30, opacity: 1, animate: false },
     { src: "/key-visual/vertical/setu.svg", w: 649, h: 648, x: 203, y: -119, scale: 0.98, rotate: 0, z: -20, opacity: 1, animate: false },
-    { src: "/key-visual/vertical/setu-color.svg", w: 649, h: 648, x: 203, y: -119, scale: 0.98, rotate: 0, z: -19, opacity: colorRevealed ? 1 : 0, animate: true },
-    { src: "/key-visual/vertical/ten.svg", w: 600, h: 651, x: 439, y: 775, scale: 1, rotate: 0, z: -10, opacity: 1, animate: false },
-    { src: "/key-visual/vertical/ten-color.svg", w: 600, h: 651, x: 439, y: 791, scale: 1, rotate: 0, z: -9, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/vertical/setu-color.svg", w: 649, h: 648, x: 203, y: -126, scale: 1, rotate: 0, z: -21, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/vertical/ten.svg", w: 600, h: 651, x: 439, y: 775, scale: 1, rotate: 0, z: -9, opacity: 1, animate: false },
+    { src: "/key-visual/vertical/ten-color.svg", w: 600, h: 651, x: 439, y: 794, scale: 1, rotate: 0, z: -10, opacity: colorRevealed ? 1 : 0, animate: true },
   ]
 
   const layers = layout === "vertical" ? verticalLayers : horizontalLayers
@@ -95,30 +95,78 @@ export default function KeyVisual() {
             aria-hidden="true"
             width={base.w}
             height={base.h}
-            className="absolute inset-0 h-full w-full"
+            className="absolute inset-0 h-full w-full bg-repeat"
             style={{ zIndex: -100 }}
           />
-          {layers.map((l) => (
-            <img
-              key={l.src}
-              src={l.src}
-              alt=""
-              aria-hidden="true"
-              width={l.w}
-              height={l.h}
-              decoding="async"
-              loading="eager"
-              fetchPriority="high"
-              draggable={false}
-              className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
-              style={{
-                transform: `translate(-50%, -50%) translate(${l.x}px, ${l.y}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
-                zIndex: l.z,
-                opacity: l.opacity,
-                transition: l.animate ? "opacity 0.8s ease" : undefined,
-              }}
-            />
-          ))}
+          {layers.map((l) => {
+            const isColor = l.src.includes("-color")
+            const common = {
+              transform: `translate(-50%, -50%) translate(${l.x}px, ${l.y}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
+              zIndex: l.z,
+              opacity: l.opacity,
+              transition: l.animate ? "opacity 0.8s ease-in" : undefined,
+            } as const
+
+            if (isColor) {
+              return (
+                <div
+                  key={l.src}
+                  aria-hidden="true"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
+                  style={{ ...common, width: l.w, height: l.h, isolation: "isolate" }}
+                >
+                  <img
+                    src={l.src}
+                    alt=""
+                    aria-hidden="true"
+                    width={l.w}
+                    height={l.h}
+                    decoding="async"
+                    loading="eager"
+                    fetchPriority="high"
+                    draggable={false}
+                    className="block h-full w-full"
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      mixBlendMode: "screen",
+                      backgroundImage: `url(${backgroundSrc})`,
+                      backgroundSize: `${base.w / l.scale}px ${base.h / l.scale}px`,
+                      backgroundPosition: `${(l.w - l.x - base.w / 2) / l.scale}px ${(l.h - l.y - base.h / 2) / l.scale}px`,
+                      backgroundColor: "white",
+                      backgroundRepeat: "no-repeat",
+                      filter: " invert(1) brightness(3.4) contrast(1.0)",
+                      WebkitMaskImage: `url(${l.src})`,
+                      maskImage: `url(${l.src})`,
+                      WebkitMaskSize: "100% 100%",
+                      maskSize: "100% 100%",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskRepeat: "no-repeat" as const,
+                    }}
+                  />
+                </div>
+              )
+            }
+
+            return (
+              <img
+                key={l.src}
+                src={l.src}
+                alt=""
+                aria-hidden="true"
+                width={l.w}
+                height={l.h}
+                decoding="async"
+                loading="eager"
+                fetchPriority="high"
+                draggable={false}
+                className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
+                style={common}
+              />
+            )
+          })}
         </div>
       </section>
     </div>
