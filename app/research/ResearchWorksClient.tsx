@@ -110,11 +110,40 @@ type SkeletonBlockProps = {
   className?: string
 }
 
+type LabKeywordsProps = {
+  keywords: string[]
+  isExpanded: boolean
+  labId: string
+}
+
 const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
   return (
     <div className={`relative overflow-hidden bg-[#f0f2f3] ${className}`}>
       <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
+}
+
+const LabKeywords = ({ keywords, isExpanded, labId }: LabKeywordsProps) => {
+  // モバイルの畳み状態では1行分だけ表示し、折り返し分は見切れるようにします。
+  // 展開時とデスクトップは制限せず全件表示します。
+  const containerClassName = isExpanded
+    ? "flex flex-wrap gap-2"
+    : "flex max-h-[24px] flex-wrap gap-2 overflow-hidden md:max-h-none md:overflow-visible"
+
+  return (
+    <div className={containerClassName}>
+      {keywords.map((keyword, index) => (
+        <span
+          key={`${labId}-${keyword}`}
+          className={`rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459] md:text-[12px] ${
+            !isExpanded && index >= 3 ? "md:hidden" : ""
+          }`}
+        >
+          {keyword}
+        </span>
+      ))}
     </div>
   )
 }
@@ -131,13 +160,12 @@ const getCourseMeta = (courseKey: string) => {
   return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
 }
 
-const sliceKeywords = (keywords?: string | null) => {
+const splitKeywords = (keywords?: string | null) => {
   if (!keywords) return []
   return keywords
     .split(/[,、]/)
     .map((keyword) => keyword.trim())
     .filter(Boolean)
-    .slice(0, 3)
 }
 
 const isAbsoluteUrl = (value?: string | null) => {
@@ -185,6 +213,7 @@ export default function ResearchWorksClient() {
     {},
   )
   const [expandedLabs, setExpandedLabs] = useState<Record<string, boolean>>({})
+  const restoredFocusRef = useRef(false)
 
   useEffect(() => {
     let active = true
@@ -249,6 +278,36 @@ export default function ResearchWorksClient() {
       setActiveTab(nextTab)
     }
   }, [searchParams, activeTab])
+
+  // 詳細ページから戻ってきた場合、対象コース/研究室を展開し、位置までスクロールします。
+  useEffect(() => {
+    if (loading || restoredFocusRef.current) return
+
+    const focusId = searchParams.get("focus")
+    const focusLabId = searchParams.get("lab")
+    const focusCourseKey = searchParams.get("course")
+
+    if (!focusId) return
+
+    if (activeTab === "research" && focusLabId) {
+      setExpandedLabs((prev) => ({ ...prev, [focusLabId]: true }))
+    }
+    if (activeTab === "works" && focusCourseKey) {
+      setExpandedCourses((prev) => ({ ...prev, [focusCourseKey]: true }))
+    }
+
+    restoredFocusRef.current = true
+
+    // 展開が反映された後にスクロールするため、次フレームで実行します。
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const target = document.getElementById(focusId)
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+      })
+    })
+  }, [activeTab, loading, searchParams])
 
   const labById = useMemo(() => {
     return new Map(labs.map((lab) => [lab.id, lab]))
@@ -403,74 +462,91 @@ export default function ResearchWorksClient() {
     }
   }
 
+  const buildDetailHref = (
+    base: string,
+    params: Record<string, string | null | undefined>,
+  ) => {
+    const query = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (!value) return
+      query.set(key, value)
+    })
+    const suffix = query.toString()
+    return suffix ? `${base}?${suffix}` : base
+  }
+
   return (
     // 余白でフッターが浮かないように、最小高さを確保します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId={activeMenuId} />
-      {/* このブロックは画面上部の見出しとメニューボタンの並びを定義し、Figmaの余白・配置に合わせています。 */}
-      {/* デスクトップは左右128pxのガイド余白で揃え、見出しの高さをFigmaに合わせます。 */}
-      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pb-[24px] md:pt-[36px]">
-        <div className="flex items-center gap-3">
-          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.06em]">
-            研究・作品紹介
-          </h1>
+      {/* ヘッダーが固定表示になったため、本文の開始位置をヘッダー高分だけ下げて重なりを防ぎます。 */}
+      {/* 既存の見出し余白は維持し、Figmaの見た目に近づくよう差分のみ補正します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
+        {/* このブロックは画面上部の見出しとメニューボタンの並びを定義し、Figmaの余白・配置に合わせています。 */}
+        {/* デスクトップは左右128pxのガイド余白で揃え、見出しの高さをFigmaに合わせます。 */}
+        <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pb-[24px] md:pt-[36px]">
+          <div className="flex items-center gap-3">
+            <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
+            <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px] md:tracking-[0.06em]">
+              研究・作品紹介
+            </h1>
+          </div>
+          {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
         </div>
-        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
-      </div>
 
-      {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}
-      {/* 切り替えタブはデスクトップで横幅を広げ、中央寄せのピル形状に揃えます。 */}
-      <div className="px-4 pt-6 md:px-[128px] md:pt-0">
-        {/* タブの高さは44px相当、内側余白は上下12pxで、タップしやすさと見た目の均整を両立します。 */}
-        <div className="rounded-full bg-[#EBEEF0] p-1 md:rounded-[9999px] md:px-4 md:py-2">
-          <div className="grid grid-cols-2 gap-0 md:flex md:items-center md:justify-center md:gap-0">
-            <button
-              type="button"
-              className={`min-h-[44px] w-full rounded-full px-4 py-3 text-[13px] font-medium transition md:min-h-[56px] md:flex-1 md:px-1 md:py-3 md:text-[13px] ${
-                activeTab === "research"
-                  ? "border border-[#FB9678] bg-white text-[#2E3437]"
-                  : "text-[#6A7378]"
-              }`}
-              aria-pressed={activeTab === "research"}
-              onClick={() => updateTab("research")}
-            >
-              研究
-            </button>
-            <button
-              type="button"
-              className={`min-h-[44px] w-full rounded-full px-4 py-3 text-[13px] font-medium transition md:min-h-[56px] md:flex-1 md:px-1 md:py-3 md:text-[13px] ${
-                activeTab === "works"
-                  ? "border border-[#FB9678] bg-white text-[#2E3437]"
-                  : "text-[#6A7378]"
-              }`}
-              aria-pressed={activeTab === "works"}
-              onClick={() => updateTab("works")}
-            >
-              作品
-            </button>
+        {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}
+        {/* 切り替えタブはデスクトップで横幅を広げ、中央寄せのピル形状に揃えます。 */}
+        <div className="px-4 pt-6 md:px-[128px] md:pt-0">
+          {/* タブの高さは44px相当、内側余白は上下12pxで、タップしやすさと見た目の均整を両立します。 */}
+          {/* Figmaの切り替えボタンに合わせて、外側は8pxパディング、内側は半透明白のピルにします。 */}
+          <div className="rounded-full bg-[#EBEEF0] p-2 md:rounded-[9999px]">
+            <div className="grid grid-cols-2 gap-0">
+              <button
+                type="button"
+                className={`w-full rounded-full px-1 py-3 text-[13px] font-medium transition ${
+                  activeTab === "research"
+                    ? "border border-[#F9F9F9] bg-white/80 text-[#2E3437]"
+                    : "text-[#6A7378]"
+                }`}
+                aria-pressed={activeTab === "research"}
+                onClick={() => updateTab("research")}
+              >
+                研究
+              </button>
+              <button
+                type="button"
+                className={`w-full rounded-full px-1 py-3 text-[13px] font-medium transition ${
+                  activeTab === "works"
+                    ? "border border-[#F9F9F9] bg-white/80 text-[#2E3437]"
+                    : "text-[#6A7378]"
+                }`}
+                aria-pressed={activeTab === "works"}
+                onClick={() => updateTab("works")}
+              >
+                作品
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {error ? (
-        <div className="px-4 pt-12">
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
-            {error}
+        {error ? (
+          <div className="px-4 pt-12">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
+              {error}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="flex flex-col gap-12 pt-6 md:pt-[48px]">
-          {visibleCourses.map((course) => {
-            const courseMeta = getCourseMeta(course.key)
+        ) : (
+          <div className="flex flex-col gap-12 pt-12 md:pt-12">
+            {visibleCourses.map((course) => {
+              const courseMeta = getCourseMeta(course.key)
 
             if (loading) {
               return (
                 <section
                   key={`loading-${course.key}`}
-                  className="px-4 md:px-[128px] md:py-[96px]"
+                  className="px-4 md:px-[128px] md:pb-[96px]"
                 >
                   <div
                     className="border-b pb-2"
@@ -509,7 +585,8 @@ export default function ResearchWorksClient() {
                           <SkeletonBlock className="aspect-video w-full rounded-[4px]" />
                           <div className="space-y-2">
                             <SkeletonBlock className="h-4 w-11/12 rounded-md" />
-                            <SkeletonBlock className="h-4 w-1/2 rounded-md ml-auto" />
+                            {/* 氏名が左寄せになったので、スケルトンも左寄せで揃えます。 */}
+                            <SkeletonBlock className="h-4 w-1/2 rounded-md" />
                           </div>
                         </div>
                       ))}
@@ -525,7 +602,7 @@ export default function ResearchWorksClient() {
               return (
                 <section
                   key={`research-${course.key}`}
-                  className="px-4 md:px-[128px] md:py-[96px]"
+                  className="px-4 md:px-[128px] md:pb-[96px]"
                 >
                   <div
                     className="border-b pb-2"
@@ -542,6 +619,7 @@ export default function ResearchWorksClient() {
                         lab.official_name ?? lab.name ?? "研究室"
                       const labResearch = researchByLab.get(lab.id) ?? []
                       const isExpanded = !!expandedLabs[lab.id]
+                      const labKeywords = splitKeywords(lab.keywords)
 
                       return (
                         <div key={lab.id} className="py-4 md:py-6">
@@ -567,16 +645,12 @@ export default function ResearchWorksClient() {
                               >
                                 {labName}
                               </p>
-                              <div className="flex flex-wrap gap-2">
-                                {sliceKeywords(lab.keywords).map((keyword) => (
-                                  <span
-                                    key={`${lab.id}-${keyword}`}
-                                    className="rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459] md:text-[12px]"
-                                  >
-                                    {keyword}
-                                  </span>
-                                ))}
-                              </div>
+                              {/* キーワードはモバイルの1行目のみ表示し、折返し分は展開時に表示します。 */}
+                              <LabKeywords
+                                keywords={labKeywords}
+                                isExpanded={isExpanded}
+                                labId={lab.id}
+                              />
                             </div>
                           {/* 開閉アイコンは24px固定枠に収め、縦位置の揺れを抑えます。 */}
                           <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center md:h-7 md:w-7">
@@ -618,7 +692,8 @@ export default function ResearchWorksClient() {
                               <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[16px]">
                                 <p>{lab.description ?? ""}</p>
                                 {lab.instructor ? (
-                                  <p className="pt-2 text-[14px] text-[#4B5459] md:text-[14px]">
+                                  // 指導教員名は右寄せで視線の流れを整えます。
+                                  <p className="pt-2 text-right text-[14px] text-[#4B5459] md:text-[14px]">
                                     指導教員：{lab.instructor}
                                   </p>
                                 ) : null}
@@ -634,8 +709,16 @@ export default function ResearchWorksClient() {
                                     {labResearch.map((item) => (
                                     <Link
                                       key={item.id}
-                                      href={`/research/${item.id}`}
-                                      className="flex flex-col gap-2"
+                                      href={buildDetailHref(
+                                        `/research/${item.id}`,
+                                        {
+                                          returnTab: "research",
+                                          lab: item.labId ?? null,
+                                          focus: `research-${item.id}`,
+                                        },
+                                      )}
+                                      id={`research-${item.id}`}
+                                      className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
                                     >
                                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                                         {item.imageUrl ? (
@@ -662,10 +745,20 @@ export default function ResearchWorksClient() {
                                       </div>
                                       {/* 研究カードは「タイトル」と「氏名」のみ表示し、一覧性を優先します。 */}
                                       <div className="space-y-1 text-[12px] md:text-[16px]">
-                                        <p className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]">
+                                        {/* タイトルが3行以上になる場合は2行で省略します。 */}
+                                        <p
+                                          className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                                          style={{
+                                            display: "-webkit-box",
+                                            WebkitBoxOrient: "vertical",
+                                            WebkitLineClamp: 2,
+                                            overflow: "hidden",
+                                          }}
+                                        >
                                           {item.title}
                                         </p>
-                                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
+                                        {/* 氏名はFigma通り左寄せに統一し、カード内の視線の流れを揃えます。 */}
+                                        <p className="text-left text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
                                           {item.studentName}
                                         </p>
                                       </div>
@@ -690,7 +783,7 @@ export default function ResearchWorksClient() {
             return (
               <section
                 key={`works-${course.key}`}
-                className="px-4 md:px-[128px] md:py-[96px]"
+                className="px-4 md:px-[128px] md:pb-[96px]"
               >
                 <div
                   className="border-b pb-2"
@@ -708,8 +801,15 @@ export default function ResearchWorksClient() {
                     return (
                     <Link
                       key={item.id}
-                      href={`/works/${item.id}`}
-                      className={`flex flex-col gap-2 ${isHiddenOnMobile ? "hidden md:flex" : ""}`}
+                      href={buildDetailHref(`/works/${item.id}`, {
+                        returnTab: "works",
+                        course: item.courseKey,
+                        focus: `works-${item.id}`,
+                      })}
+                      id={`works-${item.id}`}
+                      className={`flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px] ${
+                        isHiddenOnMobile ? "hidden md:flex" : ""
+                      }`}
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                         {item.imageUrl ? (
@@ -734,10 +834,20 @@ export default function ResearchWorksClient() {
                       </div>
                       {/* 作品カードも「タイトル」と「氏名」のみ表示し、情報量を抑えて視認性を上げます。 */}
                       <div className="space-y-1 text-[12px] md:text-[16px]">
-                        <p className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]">
+                        {/* タイトルが3行以上になる場合は2行で省略します。 */}
+                        <p
+                          className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitBoxOrient: "vertical",
+                            WebkitLineClamp: 2,
+                            overflow: "hidden",
+                          }}
+                        >
                           {item.title}
                         </p>
-                        <p className="text-right text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
+                        {/* 氏名はFigma通り左寄せに統一し、カード内の視線の流れを揃えます。 */}
+                        <p className="text-left text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
                           {item.studentName}
                         </p>
                       </div>
@@ -784,6 +894,7 @@ export default function ResearchWorksClient() {
         <div className="mx-auto w-full md:max-w-[1280px]">
           <Footer className="w-full" />
         </div>
+      </div>
       </div>
     </div>
   )

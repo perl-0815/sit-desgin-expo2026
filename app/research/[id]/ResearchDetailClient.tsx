@@ -1,8 +1,7 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import Footer from "../../components/Footer"
 import GlobalHeader from "../../components/GlobalHeader"
@@ -100,6 +99,7 @@ export default function ResearchDetailClient({
   id,
 }: ResearchDetailClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [labs, setLabs] = useState<Lab[]>([])
   const [researchList, setResearchList] = useState<Research[]>([])
   const [loading, setLoading] = useState(true)
@@ -247,6 +247,24 @@ export default function ResearchDetailClient({
   const hasCareerContent =
     careerCompany || careerRole || careerIndustry || careerDescription
 
+  const returnUrl = useMemo(() => {
+    const params = new URLSearchParams()
+    const returnTab = searchParams.get("returnTab")
+    const focus = searchParams.get("focus")
+    const lab = searchParams.get("lab")
+    const course = searchParams.get("course")
+
+    if (returnTab === "works") {
+      params.set("tab", "works")
+    }
+    if (focus) params.set("focus", focus)
+    if (lab) params.set("lab", lab)
+    if (course) params.set("course", course)
+
+    const suffix = params.toString()
+    return suffix ? `/research?${suffix}` : "/research"
+  }, [searchParams])
+
   return (
     // トップページの見た目に揃えるため、詳細ページの背景を白に統一します。
     // フッターが下端に揃うよう、コンテナに最小高さを追加します。
@@ -254,6 +272,8 @@ export default function ResearchDetailClient({
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="research" />
+      {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
 
       {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:hidden">
@@ -273,11 +293,15 @@ export default function ResearchDetailClient({
           type="button"
           // 履歴がない場合に備えて一覧へフォールバックします。
           onClick={() => {
+            if (searchParams.get("focus")) {
+              router.push(returnUrl)
+              return
+            }
             if (window.history.length > 1) {
               router.back()
-            } else {
-              router.push("/research")
+              return
             }
+            router.push("/research")
           }}
           className="flex h-20 items-center gap-2 text-[13px] font-medium text-[#6A7378]"
         >
@@ -351,7 +375,8 @@ export default function ResearchDetailClient({
                       {research?.title ?? "研究タイトル"}
                     </h2>
                     {/* 研究室名 + 氏名の行はFigma準拠の13px/Medium */}
-                    <div className="flex flex-wrap justify-end gap-2 text-[13px] font-medium leading-[1.5] md:text-[15px]">
+                    {/* 研究室名と氏名は詳細ページでも左寄せに揃えます。 */}
+                    <div className="flex flex-wrap justify-start gap-2 text-[13px] font-medium leading-[1.5] md:text-[15px]">
                       <span className="text-[#6A7378]">
                         {lab?.official_name ?? lab?.name ?? "研究室名"}
                       </span>
@@ -482,8 +507,20 @@ export default function ResearchDetailClient({
           ) : null}
 
           <div className="flex justify-center px-4 py-12 md:px-[16px] md:py-[96px]">
-            <Link
-              href="/research"
+            <button
+              type="button"
+              // 一覧へ戻る導線も、直前のページへ戻れる場合は優先します。
+              onClick={() => {
+                if (searchParams.get("focus")) {
+                  router.push(returnUrl)
+                  return
+                }
+                if (window.history.length > 1) {
+                  router.back()
+                  return
+                }
+                router.push("/research")
+              }}
               className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
             >
               一覧へ戻る
@@ -493,13 +530,14 @@ export default function ResearchDetailClient({
                 alt=""
                 className="h-3 w-3"
               />
-            </Link>
+            </button>
           </div>
         </>
       )}
 
       {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
       <Footer className="w-full px-4 md:px-[128px]" />
+      </div>
     </div>
   )
 }

@@ -88,25 +88,31 @@ export default function TopPageClient({
     if (visiblePreviewItems.length <= 1) {
       return
     }
-    // アニメーションの尺(4200ms)と同期させて、切り替えのタイミングを揃えます。
+    // アニメーションの尺(6000ms)と同期させて、切り替えのタイミングを揃えます。
     const intervalId = window.setInterval(() => {
       setMobilePreviewIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % visiblePreviewItems.length
         return nextIndex
       })
       setMobilePreviewKey((prevKey) => prevKey + 1)
-    }, 4200)
+    }, 6000)
     return () => window.clearInterval(intervalId)
   }, [visiblePreviewItems.length])
+  // プレビュー件数が減ったときに範囲外にならないよう、表示時に安全なインデックスへ補正します。
+  // Effect内でsetStateしないことで、不要な再レンダーの連鎖を避けます。
+  const safeMobilePreviewIndex =
+    mobilePreviewIndex >= visiblePreviewItems.length ? 0 : mobilePreviewIndex
   const mobilePreviewItem =
-    visiblePreviewItems[mobilePreviewIndex] ?? visiblePreviewItems[0]
+    visiblePreviewItems[safeMobilePreviewIndex] ?? visiblePreviewItems[0]
   // 左右のカードを表示するため、前後のインデックスもここで算出しておきます。
   const hasMultiplePreviews = visiblePreviewItems.length > 1
+  // 2件以下だと左右カードが同一になりやすいので、3件以上の時だけ左右カードを出します。
+  const hasSidePreviews = visiblePreviewItems.length > 2
   const mobilePrevIndex =
-    (mobilePreviewIndex - 1 + visiblePreviewItems.length) %
+    (safeMobilePreviewIndex - 1 + visiblePreviewItems.length) %
     visiblePreviewItems.length
   const mobileNextIndex =
-    (mobilePreviewIndex + 1) % visiblePreviewItems.length
+    (safeMobilePreviewIndex + 1) % visiblePreviewItems.length
   const mobilePrevItem = visiblePreviewItems[mobilePrevIndex]
   const mobileNextItem = visiblePreviewItems[mobileNextIndex]
   return (
@@ -392,12 +398,17 @@ export default function TopPageClient({
           {/* モバイルは左右にカードを見せつつ、右から左に流れるフェードで切り替えます。 */}
           <div className="mt-6 md:hidden">
             {mobilePreviewItem ? (
-              <div className="relative overflow-hidden">
+              <div className="top-page-mobile-slide-frame relative overflow-hidden">
                 <div className="flex items-start justify-center gap-3">
-                  {hasMultiplePreviews ? (
+                  {hasSidePreviews ? (
                     <Link
+                      key={`prev-${mobilePreviewKey}`}
                       href={mobilePrevItem.href}
-                      className="z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40"
+                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
+                        hasMultiplePreviews
+                          ? "animate-[top-page-side-fade_6000ms_ease]"
+                          : ""
+                      }`}
                     >
                       <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                         <img
@@ -417,7 +428,7 @@ export default function TopPageClient({
                     href={mobilePreviewItem.href}
                     className={`z-10 flex w-[236px] shrink-0 flex-col gap-2 ${
                       hasMultiplePreviews
-                        ? "animate-[top-page-slide-fade_4200ms_ease]"
+                        ? "animate-[top-page-slide-fade_6000ms_ease]"
                         : ""
                     }`}
                   >
@@ -436,10 +447,15 @@ export default function TopPageClient({
                     </p>
                   </Link>
 
-                  {hasMultiplePreviews ? (
+                  {hasSidePreviews ? (
                     <Link
+                      key={`next-${mobilePreviewKey}`}
                       href={mobileNextItem.href}
-                      className="z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40"
+                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
+                        hasMultiplePreviews
+                          ? "animate-[top-page-side-fade_6000ms_ease]"
+                          : ""
+                      }`}
                     >
                       <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                         <img
@@ -490,7 +506,11 @@ export default function TopPageClient({
           </div>
         </div>
         <style jsx global>{`
-          /* モバイルのメインカードは右から左へ流しつつ、最後は中央に戻して位置ズレを防ぎます。 */
+          /* モバイルのスライド枠は高さを固定して、フェード中のレイアウト揺れを防ぎます。 */
+          .top-page-mobile-slide-frame {
+            min-height: 220px;
+          }
+          /* モバイルのメインカードは中央で止め、ゆっくり左に流れていく違和感を避けます。 */
           @keyframes top-page-slide-fade {
             0% {
               opacity: 0;
@@ -502,11 +522,26 @@ export default function TopPageClient({
             }
             80% {
               opacity: 1;
-              transform: translateX(-10px);
+              transform: translateX(0);
             }
             100% {
               opacity: 0;
               transform: translateX(0);
+            }
+          }
+          /* 左右カードも同じタイミングでフェードさせ、中央と揃えます。 */
+          @keyframes top-page-side-fade {
+            0% {
+              opacity: 0;
+            }
+            20% {
+              opacity: 0.4;
+            }
+            80% {
+              opacity: 0.4;
+            }
+            100% {
+              opacity: 0;
             }
           }
         `}</style>

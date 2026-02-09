@@ -35,7 +35,7 @@ export default function NavigationMenu({
         type="button"
         onClick={onClose}
         aria-label="メニューを閉じる"
-        className="absolute right-4 top-6 grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+        className="absolute right-4 top-6 grid h-12 w-12 place-items-center"
       >
         <svg
           aria-hidden="true"

@@ -128,16 +128,16 @@ export default function ExhibitionDetailClient({
         {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
-      {/* 戻るボタンは履歴があるときはブラウザバックを優先し、無いときはイベント一覧へ戻します。 */}
+      {/* 戻るボタンは直前のページへ戻れる場合を優先し、無いときはイベント一覧へ戻します。 */}
       {/* デスクトップで新規タブ遷移した場合でも必ず戻れるようにフォールバックを用意します。 */}
       <button
         type="button"
         onClick={() => {
           if (window.history.length > 1) {
             router.back()
-          } else {
-            router.push("/events")
+            return
           }
+          router.push("/events")
         }}
         className="flex h-20 items-center gap-2 px-4 text-[13px] font-medium text-[#6A7378]"
       >
@@ -229,8 +229,14 @@ export default function ExhibitionDetailClient({
             <div className="flex justify-center pt-4">
               <button
                 type="button"
-                // 一覧へ戻る導線は履歴に依存させず、確実にイベント一覧へ戻します。
-                onClick={() => router.push("/events")}
+                // 一覧へ戻る導線も、直前のページへ戻れる場合は優先します。
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    router.back()
+                    return
+                  }
+                  router.push("/events")
+                }}
                 className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               >
                 一覧へ戻る
