@@ -269,8 +269,10 @@ export default function ExhibitionDetailClient({
             </div>
 
             <div className="flex justify-center pt-4">
-              <Link
-                href="/events"
+              <button
+                type="button"
+                // 一覧へ戻る導線は履歴に依存させず、確実にイベント一覧へ戻します。
+                onClick={() => router.push("/events")}
                 className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
               >
                 一覧へ戻る
@@ -279,7 +281,7 @@ export default function ExhibitionDetailClient({
                   alt=""
                   className="h-3 w-3"
                 />
-              </Link>
+              </button>
             </div>
           </div>
         </section>
