@@ -59,8 +59,8 @@ export default function GlobalHeader({
           className ?? ""
         }`.trim()}
       >
-        {/* モバイルは画面幅いっぱいに広げ、iPad縦画面程度まではモバイル表示に寄せます。 */}
-        <div className="w-full px-4 pt-2 pointer-events-auto lg:max-w-[1280px] lg:px-[128px] lg:pt-[24px]">
+        {/* モバイルは画面幅いっぱいに広げ、デスクトップも同じ横マージンに揃えます。 */}
+        <div className="w-full px-4 pt-2 pointer-events-auto lg:max-w-[1280px] lg:px-4 lg:pt-[24px]">
           <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] lg:px-5 lg:py-3">
             <Link
               href="/"
@@ -103,13 +103,16 @@ export default function GlobalHeader({
                   )
                 })}
               </nav>
-              {/* お問い合わせは独立した丸みのあるボタンとして強調します。 */}
+              {/* 
+                お問い合わせは独立した丸みのあるボタンとして強調し、高さは48pxに固定します。
+                視覚的に中央寄せになるよう、文字位置をわずかに上げています。
+              */}
               {contactItem ? (
                 <Link
                   href={contactItem.href}
-                  className="rounded-full bg-[#4B5459] px-6 py-2 text-[16px] font-medium leading-[1.5] text-[#F9F9F9]"
+                  className="flex h-12 items-center justify-center rounded-full bg-[#4B5459] px-6 text-[16px] font-medium leading-none text-[#F9F9F9]"
                 >
-                  {contactItem.label}
+                  <span className="relative top-[-1px]">{contactItem.label}</span>
                 </Link>
               ) : null}
             </div>
