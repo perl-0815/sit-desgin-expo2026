@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
 import { SkeletonLoader } from "../components/SkeletonLoader"
 
 type CourseMeta = {
@@ -176,8 +176,6 @@ export default function ResearchWorksClient() {
   const [activeTab, setActiveTab] = useState<"research" | "works">("research")
   // トグル更新直後のURL反映待ちで表示が揺れないよう、直近の手動切り替えを記録します。
   const pendingTabRef = useRef<"research" | "works" | null>(null)
-  // 右上メニューの開閉状態を管理します。
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [research, setResearch] = useState<Research[]>([])
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
@@ -392,16 +390,6 @@ export default function ResearchWorksClient() {
     }))
   }
 
-  // メニューに表示する導線を一箇所にまとめ、ページ構成の変更に備えます。
-  const menuItems = [
-    { id: "top", label: "TOP", href: "/" },
-    { id: "research", label: "研究紹介", href: "/research" },
-    { id: "works", label: "作品紹介", href: "/research?tab=works" },
-    { id: "career", label: "卒業生の進路", href: "/career" },
-    { id: "events", label: "イベント", href: "/events" },
-    { id: "contact", label: "お問い合わせ", href: "/contact" },
-  ]
-
   const activeMenuId = activeTab === "works" ? "works" : "research"
 
   const updateTab = (tab: "research" | "works") => {
@@ -419,16 +407,8 @@ export default function ResearchWorksClient() {
     // 余白でフッターが浮かないように、最小高さを確保します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {/* 右上メニューは画面全体に重ねて表示します。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId={activeMenuId}
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId={activeMenuId} />
       {/* このブロックは画面上部の見出しとメニューボタンの並びを定義し、Figmaの余白・配置に合わせています。 */}
       {/* デスクトップは左右128pxのガイド余白で揃え、見出しの高さをFigmaに合わせます。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pb-[24px] md:pt-[36px]">
@@ -438,31 +418,7 @@ export default function ResearchWorksClient() {
             研究・作品紹介
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* 研究/作品の切り替えタブ。丸み・背景色・押下時の枠線はFigmaの配色に合わせています。 */}

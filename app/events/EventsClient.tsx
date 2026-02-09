@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
 
 type EventTab = "roundtable" | "exhibition"
 
@@ -100,7 +100,6 @@ const fallbackExhibitions: ExhibitionCard[] = Array.from({ length: 6 }).map(
 // イベントページのタブ内容をまとめて管理し、Figmaの画面切り替えを再現します。
 export default function EventsClient() {
   const [activeTab, setActiveTab] = useState<EventTab>("roundtable")
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [roundtable, setRoundtable] = useState<RoundtableContent>(
@@ -232,15 +231,6 @@ export default function EventsClient() {
       }))
   }, [expandedDays, roundtable.sessions])
 
-  const menuItems = [
-    { id: "top", label: "TOP", href: "/" },
-    { id: "research", label: "研究紹介", href: "/research" },
-    { id: "works", label: "作品紹介", href: "/research?tab=works" },
-    { id: "career", label: "卒業生の進路", href: "/career" },
-    { id: "events", label: "イベント", href: "/events" },
-    { id: "contact", label: "お問い合わせ", href: "/contact" },
-  ]
-
   const toggleDay = (dayId: string) => {
     setExpandedDays((prev) => ({
       ...prev,
@@ -253,42 +243,8 @@ export default function EventsClient() {
     <div className="min-h-screen bg-[#F9F9F9]">
       <div className="relative mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1200px] lg:max-w-[1280px]">
         {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-        {/* 右上メニューは既存ページと同じUIを使い回し、統一感を保ちます。 */}
-        {isMenuOpen ? (
-          <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-            <NavigationMenu
-              items={menuItems}
-              activeId="events"
-              onClose={() => setIsMenuOpen(false)}
-            />
-          </div>
-        ) : null}
-
-        {/* 右上メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
-            <button
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+        <GlobalHeader activeId="events" />
 
         {/* 見出しはFigmaのグラデーションバーと書体を再現します。 */}
         <section className="px-4 pt-2">

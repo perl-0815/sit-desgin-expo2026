@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 import CareerPieChart from "./components/CareerPieChart"
 import Footer from "./components/Footer"
-import NavigationMenu from "./components/NavigationMenu"
+import GlobalHeader from "./components/GlobalHeader"
 
 // トップページの構成要素をまとめて管理し、Figmaの階層と同じ順番で描画します。
 type CareerStats = {
@@ -35,21 +35,13 @@ const sitMapImageUrl = "/image/sit_map.png"
 // 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
 const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg"
 const exhibitionDecorationRightUrl = "/image/top-decoration2.svg"
-// コンセプト背景はデスクトップ/モバイルでアセットが異なるため分けて管理します。
-const conceptDesktopBackgroundUrl =
-  "https://www.figma.com/api/mcp/asset/032915e2-f3f2-43b2-97ce-6ae6dd659ba8"
-const conceptDesktopOverlayUrl =
-  "https://www.figma.com/api/mcp/asset/fbf9e653-c3fe-4d35-a0a0-140557528eca"
-const conceptMobileBackgroundUrl =
-  "https://www.figma.com/api/mcp/asset/5b74b343-f504-4efa-9983-084b8777426b"
-const conceptMobileOverlayUrl =
-  "https://www.figma.com/api/mcp/asset/94b923bc-a36d-4dcf-aea7-ff6f4d81de3b"
+// コンセプト背景はローカルの単一画像に統一します。
+const conceptBackgroundUrl = "/image/concept.png"
 
 export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total
   const gradPercent =
@@ -70,15 +62,6 @@ export default function TopPageClient({
     Math.ceil((eventStartDate.getTime() - today.getTime()) / msPerDay),
   )
 
-  // 共通メニューは研究ページと同じ導線に揃え、ユーザーの移動体験を統一します。
-  const menuItems = [
-    { id: "top", label: "TOP", href: "/" },
-    { id: "research", label: "研究紹介", href: "/research" },
-    { id: "works", label: "作品紹介", href: "/research?tab=works" },
-    { id: "career", label: "卒業生の進路", href: "/career" },
-    { id: "events", label: "イベント", href: "/events" },
-    { id: "contact", label: "お問い合わせ", href: "/contact" },
-  ]
   // データ未登録時でもレイアウトが崩れないよう、フォールバック用の表示データを準備します。
   const fallbackPreviewItems: PreviewItem[] = Array.from({ length: 3 }).map(
     (_, index) => ({
@@ -128,16 +111,8 @@ export default function TopPageClient({
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {/* 右上メニューは画面全体に重ねて表示し、背景色もFigmaのグレーに合わせます。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="top"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="top" />
 
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
       <section className="relative h-[698px] w-full overflow-hidden md:h-[720px]">
@@ -168,41 +143,18 @@ export default function TopPageClient({
           </p>
         </div>
 
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </section>
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section className="px-4 pb-6 pt-6 md:px-[128px] md:pb-[96px] md:pt-[96px]">
         <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
-          <div className="border-b border-[#FB9678] pb-1">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
-              開催情報
-            </p>
-          </div>
+        {/* デスクトップでは見出しを中央寄せにして視線が散らないようにします。 */}
+        <div className="border-b border-[#FB9678] pb-1 md:text-center">
+          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+            開催情報
+          </p>
+        </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
             <div className="flex flex-col items-center gap-4">
               <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
@@ -328,27 +280,11 @@ export default function TopPageClient({
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
         >
-          {/* デスクトップ背景 */}
+          {/* デスクトップ/モバイル共通で同一の背景画像を使用します。 */}
           <img
             alt=""
-            src={conceptDesktopBackgroundUrl}
-            className="absolute hidden h-full w-full object-cover md:block"
-          />
-          <img
-            alt=""
-            src={conceptDesktopOverlayUrl}
-            className="absolute hidden h-full w-full object-cover md:block"
-          />
-          {/* モバイル背景 */}
-          <img
-            alt=""
-            src={conceptMobileBackgroundUrl}
-            className="absolute h-full w-full object-cover md:hidden"
-          />
-          <img
-            alt=""
-            src={conceptMobileOverlayUrl}
-            className="absolute h-full w-full object-cover md:hidden"
+            src={conceptBackgroundUrl}
+            className="absolute h-full w-full object-cover"
           />
         </div>
         <div className="relative flex flex-col items-center gap-4 md:gap-6">
@@ -525,7 +461,7 @@ export default function TopPageClient({
           </div>
         </div>
         <style jsx global>{`
-          /* モバイルのメインカードは右から左へ流しつつフェードイン/アウトさせます。 */
+          /* モバイルのメインカードは右から左へ流しつつ、最後は中央に戻して位置ズレを防ぎます。 */
           @keyframes top-page-slide-fade {
             0% {
               opacity: 0;
@@ -537,11 +473,11 @@ export default function TopPageClient({
             }
             80% {
               opacity: 1;
-              transform: translateX(-6px);
+              transform: translateX(-10px);
             }
             100% {
               opacity: 0;
-              transform: translateX(-18px);
+              transform: translateX(0);
             }
           }
         `}</style>
@@ -567,8 +503,16 @@ export default function TopPageClient({
             卒業生と直接コミュニケーションをとることができる座談会や、体験展示イベントを予定しています。
           </p>
           <div className="mt-6 hidden gap-6 md:grid md:grid-cols-2">
-            <div className="h-[364px] rounded-[4px] bg-[#D9D9D9]" />
-            <div className="h-[364px] rounded-[4px] bg-[#D9D9D9]" />
+            <div className="flex h-[364px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
+              <p className="text-[12px] font-medium text-[#A3ADB2]">
+                No Image
+              </p>
+            </div>
+            <div className="flex h-[364px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
+              <p className="text-[12px] font-medium text-[#A3ADB2]">
+                No Image
+              </p>
+            </div>
           </div>
           <div className="mt-6 flex justify-center">
             <Link
@@ -736,6 +680,8 @@ export default function TopPageClient({
               </div>
               <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
                 大学への行き方動画はこちらから
+                <br/>
+                (Youtubeに遷移します。)
               </p>
               <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
                 <Link

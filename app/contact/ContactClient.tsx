@@ -3,26 +3,15 @@
 import { useState } from "react"
 
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
 
 const contactEmail = "cy22000@shibaura-it.ac.jp"
 // お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
 const contactFormUrl = "#"
 
 export default function ContactClient() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
   const [isToastVisible, setIsToastVisible] = useState(false)
-
-  // 共通メニューは他ページと同じ順序で統一し、導線の迷いを防ぎます。
-  const menuItems = [
-    { id: "top", label: "TOP", href: "/" },
-    { id: "research", label: "研究紹介", href: "/research" },
-    { id: "works", label: "作品紹介", href: "/research?tab=works" },
-    { id: "career", label: "卒業生の進路", href: "/career" },
-    { id: "events", label: "イベント", href: "/events" },
-    { id: "contact", label: "お問い合わせ", href: "/contact" },
-  ]
 
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -82,15 +71,8 @@ export default function ContactClient() {
     // フッターが下端に揃うように、ページ全体の最小高さを確保します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="contact"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="contact" />
 
       {/* 見出し行は左のグラデーションバーと右上メニューでFigma構成を再現します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px] md:pb-3">
@@ -100,31 +82,7 @@ export default function ContactClient() {
             お問い合せ
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* リード文はFigma通りに左寄せし、行間を広めに設定します。 */}

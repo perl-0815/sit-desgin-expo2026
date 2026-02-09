@@ -4,7 +4,7 @@ import { useMemo, useEffect, useState } from "react"
 
 import CareerPieChart from "../components/CareerPieChart"
 import Footer from "../components/Footer"
-import NavigationMenu from "../components/NavigationMenu"
+import GlobalHeader from "../components/GlobalHeader"
 
 type JobCategory = {
   title: string
@@ -54,15 +54,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const normalizeText = (value?: string | null) => value?.trim() ?? ""
 
 const buildJobLabel = (career: Career) => {
@@ -109,7 +100,6 @@ const buildCourseLabel = (career: Career) => {
 }
 
 export default function CareerClient() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -282,15 +272,8 @@ export default function CareerClient() {
     // 短いページでもフッター下に余白が出ないように、最小高さを設定します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-[#F9F9F9] text-[#2E3437] md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
-          <NavigationMenu
-            items={menuItems}
-            activeId="career"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="career" />
 
       {/* Figmaのヘッダー構成に合わせ、左のグラデーションバーとメニューボタンを配置します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
@@ -300,31 +283,7 @@ export default function CareerClient() {
             卒業生の進路
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* リード文はFigmaの行間と字間を再現して読みやすく整えます。 */}

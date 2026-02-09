@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import Footer from "../../../components/Footer"
-import NavigationMenu from "../../../components/NavigationMenu"
+import GlobalHeader from "../../../components/GlobalHeader"
 import { SkeletonLoader } from "../../../components/SkeletonLoader"
 
 type ExhibitionDetailClientProps = {
@@ -36,15 +36,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 const PLACEHOLDER_BODY =
   "これはダミー文章です。体験展示の狙いや体験内容をここに記載します。"
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const isAbsoluteUrl = (value?: string | null) => {
   return !!value && /^https?:\/\//i.test(value)
 }
@@ -60,7 +51,6 @@ export default function ExhibitionDetailClient({
   id,
 }: ExhibitionDetailClientProps) {
   const router = useRouter()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [exhibition, setExhibition] = useState<Exhibition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -125,16 +115,8 @@ export default function ExhibitionDetailClient({
     // フッター下の余白を防ぎ、短い場合も下端に揃えるため最小高さを付与します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {isMenuOpen ? (
-        // メニュー展開時も白背景で統一し、トーンがぶれないようにします。
-        <div className="fixed inset-0 z-50 flex justify-center bg-white">
-          <NavigationMenu
-            items={menuItems}
-            activeId="events"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="events" />
 
       <div className="flex items-center justify-between px-4 pt-6">
         <div className="flex items-center gap-3">
@@ -143,31 +125,7 @@ export default function ExhibitionDetailClient({
             イベント
           </h1>
         </div>
-        {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-        <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-          <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1200px] lg:max-w-[1280px]">
-            <button
-              className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-              type="button"
-              aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
-            >
-              <svg
-                aria-hidden="true"
-                className="h-8 w-8"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M4 7H20M4 12H20M4 17H20"
-                  stroke="#6A7378"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </div>
 
       {/* 戻るボタンは履歴があるときはブラウザバックを優先し、無いときはイベント一覧へ戻します。 */}

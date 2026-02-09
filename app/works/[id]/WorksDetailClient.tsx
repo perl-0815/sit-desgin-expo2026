@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import Footer from "../../components/Footer"
-import NavigationMenu from "../../components/NavigationMenu"
+import GlobalHeader from "../../components/GlobalHeader"
 import { SkeletonLoader } from "../../components/SkeletonLoader"
 
 type WorksDetailClientProps = {
@@ -74,15 +74,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 const PLACEHOLDER_BODY =
   "これはダミー文章です。作品の狙いや体験価値、制作プロセスなどをここに記載します。"
 
-const menuItems = [
-  { id: "top", label: "TOP", href: "/" },
-  { id: "research", label: "研究紹介", href: "/research" },
-  { id: "works", label: "作品紹介", href: "/research?tab=works" },
-  { id: "career", label: "卒業生の進路", href: "/career" },
-  { id: "events", label: "イベント", href: "/events" },
-  { id: "contact", label: "お問い合わせ", href: "/contact" },
-]
-
 const isAbsoluteUrl = (value?: string | null) => {
   return !!value && /^https?:\/\//i.test(value)
 }
@@ -111,7 +102,6 @@ const parseWorkId = (value?: string | null) => {
 
 export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const router = useRouter()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [labs, setLabs] = useState<Lab[]>([])
   const [portfolios, setPortfolios] = useState<Portfolio[]>([])
   const [loading, setLoading] = useState(true)
@@ -243,17 +233,8 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
     // フッターが下端に張り付くよう、コンテナに最小高さを設定します。
     <div className="mx-auto flex min-h-screen w-full max-w-[393px] flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {/* 右上メニューは画面全体に重ねて表示します。 */}
-      {isMenuOpen ? (
-        // メニュー展開時の背面も白背景にしてトーンを合わせます。
-        <div className="fixed inset-0 z-50 flex justify-center bg-white">
-          <NavigationMenu
-            items={menuItems}
-            activeId="works"
-            onClose={() => setIsMenuOpen(false)}
-          />
-        </div>
-      ) : null}
+      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+      <GlobalHeader activeId="works" />
 
       {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:hidden">
@@ -265,32 +246,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         </div>
       </div>
 
-      {/* メニューボタンはスクロール中も右上に追従させ、コンテンツの右端に揃えます。 */}
-      <div className="fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none">
-        <div className="flex w-full max-w-[393px] justify-end px-4 pt-6 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-          <button
-            // トップページと同様に白背景のアイコンボタンにします。
-            className="grid h-12 w-12 place-items-center rounded-full bg-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-            type="button"
-            aria-label="メニュー"
-            onClick={() => setIsMenuOpen(true)}
-          >
-            <svg
-              aria-hidden="true"
-              className="h-8 w-8"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M4 7H20M4 12H20M4 17H20"
-                stroke="#6A7378"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
+      {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
 
       {/* 戻るボタンは作品一覧へ戻る導線として表示します。 */}
       <div className="px-4 md:px-[128px]">
