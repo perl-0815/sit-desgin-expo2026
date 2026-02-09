@@ -546,7 +546,8 @@ export default function ResearchDetailClient({
       )}
 
         {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
-        <Footer className="w-full px-4 md:px-[128px]" />
+        {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
+        <Footer className="w-full md:px-[128px]" />
         </div>
       </div>
     </>

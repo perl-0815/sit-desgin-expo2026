@@ -125,7 +125,8 @@ export default function ExhibitionDetailClient({
       {/* 固定ヘッダーと内容が重ならないよう、ページ全体の上余白を確保します。 */}
       <div className="pt-[84px] md:pt-[96px]">
 
-      <div className="flex items-center justify-between px-4 pt-6">
+      {/* 他ページの見出しブロックと同じ余白に合わせます。 */}
+      <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
         <div className="flex items-center gap-3">
           <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
           <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
@@ -258,7 +259,8 @@ export default function ExhibitionDetailClient({
         </section>
       )}
 
-      <Footer className="mt-8 w-full px-4" />
+      {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
+      <Footer className="mt-8 w-full md:px-[128px]" />
       </div>
     </div>
   )

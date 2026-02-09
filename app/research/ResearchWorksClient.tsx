@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useEffect, useRef } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 import Footer from "../components/Footer"
@@ -202,6 +202,7 @@ export default function ResearchWorksClient() {
   const router = useRouter()
   const pathname = usePathname()
   const [activeTab, setActiveTab] = useState<"research" | "works">("research")
+  const searchParams = useSearchParams()
   // トグル更新直後のURL反映待ちで表示が揺れないよう、直近の手動切り替えを記録します。
   const pendingTabRef = useRef<"research" | "works" | null>(null)
   const [labs, setLabs] = useState<Lab[]>([])
@@ -271,34 +272,24 @@ export default function ResearchWorksClient() {
     }
   }, [])
 
-  // URLのクエリに応じて初期タブとフォーカス情報を同期します（Suspenseを避けるためwindowから取得）。
+  // URLのクエリに応じてタブとフォーカス情報を同期します。
   useEffect(() => {
-    const syncFromLocation = () => {
-      const params = new URLSearchParams(window.location.search)
-      const tab = params.get("tab")
-      const nextTab = tab === "works" ? "works" : "research"
-      // 直近の手動切り替えと一致するまでは状態を戻さないようにします。
-      if (pendingTabRef.current && pendingTabRef.current !== nextTab) {
-        return
-      }
-      if (pendingTabRef.current === nextTab) {
-        pendingTabRef.current = null
-      }
-      setActiveTab((prev) => (prev === nextTab ? prev : nextTab))
-      searchStateRef.current = {
-        focusId: params.get("focus") ?? undefined,
-        focusLabId: params.get("lab") ?? undefined,
-        focusCourseKey: params.get("course") ?? undefined,
-      }
+    const tab = searchParams.get("tab")
+    const nextTab = tab === "works" ? "works" : "research"
+    // 直近の手動切り替えと一致するまでは状態を戻さないようにします。
+    if (pendingTabRef.current && pendingTabRef.current !== nextTab) {
+      return
     }
-
-    syncFromLocation()
-    window.addEventListener("popstate", syncFromLocation)
-
-    return () => {
-      window.removeEventListener("popstate", syncFromLocation)
+    if (pendingTabRef.current === nextTab) {
+      pendingTabRef.current = null
     }
-  }, [])
+    setActiveTab((prev) => (prev === nextTab ? prev : nextTab))
+    searchStateRef.current = {
+      focusId: searchParams.get("focus") ?? undefined,
+      focusLabId: searchParams.get("lab") ?? undefined,
+      focusCourseKey: searchParams.get("course") ?? undefined,
+    }
+  }, [searchParams])
 
   // 詳細ページから戻ってきた場合、対象コース/研究室を展開し、位置までスクロールします。
   useEffect(() => {
@@ -708,89 +699,98 @@ export default function ResearchWorksClient() {
                           </span>
                           </button>
 
-                          {isExpanded ? (
-                            <div className="mt-4 space-y-4 md:mt-6">
+                          {/* 展開/収納時に上下方向へ引き出す・巻き取る動きを出すため、常にDOMを保持してアニメーションします。 */}
+                          <div
+                            className={`mt-4 grid overflow-hidden transition-[grid-template-rows,opacity,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] md:mt-6 ${
+                              isExpanded
+                                ? "grid-rows-[1fr] opacity-100 translate-y-0"
+                                : "grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                            }`}
+                            aria-hidden={!isExpanded}
+                          >
+                            {/* 高さアニメーションを滑らかにするため、内側にmin-h-0のラッパーを挟みます。 */}
+                            <div className="min-h-0">
                               {/* 研究室の説明文は本文13px・行間1.9で読みやすさを確保し、Figmaのタイポグラフィに合わせています。 */}
                               <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[16px]">
-                                <p>{lab.description ?? ""}</p>
-                                {lab.instructor ? (
-                                  // 指導教員名は右寄せで視線の流れを整えます。
-                                  <p className="pt-2 text-right text-[14px] text-[#4B5459] md:text-[14px]">
-                                    指導教員：{lab.instructor}
-                                  </p>
-                                ) : null}
+                              <p>{lab.description ?? ""}</p>
+                              {lab.instructor ? (
+                                // 指導教員名は右寄せで視線の流れを整えます。
+                                <p className="pt-2 text-right text-[14px] text-[#4B5459] md:text-[14px]">
+                                  指導教員：{lab.instructor}
+                                </p>
+                              ) : null}
                               </div>
 
                               {labResearch.length > 0 ? (
                                 <>
-                                  <p className="text-[12px] font-medium text-[#6A7378] md:text-[15px]">
+                                  <p className="mt-4 text-[12px] font-medium text-[#6A7378] md:text-[15px]">
                                     研究一覧
                                   </p>
                                   {/* 研究一覧はデスクトップで4列・横56pxの間隔に拡張します。 */}
-                                  <div className="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
+                                  <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
                                     {labResearch.map((item) => (
-                                    <Link
-                                      key={item.id}
-                                      href={buildDetailHref(
-                                        `/research/${item.id}`,
-                                        {
-                                          returnTab: "research",
-                                          lab: item.labId ?? null,
-                                          focus: `research-${item.id}`,
-                                        },
-                                      )}
-                                      id={`research-${item.id}`}
-                                      className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
-                                    >
-                                      <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
-                                        {item.imageUrl ? (
-                                          <SkeletonLoader
-                                            src={item.imageUrl}
-                                            alt=""
-                                            onError={handleImageError(
-                                              item.imageOriginalUrl,
-                                            )}
-                                            // 既存のカードサイズに合わせてフルサイズで表示します。
-                                            className="h-full w-full"
-                                            // フォールバックも失敗した場合の表示を統一します。
-                                            fallback={
-                                              <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
-                                                No Image
-                                              </div>
-                                            }
-                                          />
-                                        ) : (
-                                          <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
-                                            No Image
-                                          </div>
+                                      <Link
+                                        key={item.id}
+                                        href={buildDetailHref(
+                                          `/research/${item.id}`,
+                                          {
+                                            returnTab: "research",
+                                            lab: item.labId ?? null,
+                                            focus: `research-${item.id}`,
+                                          },
                                         )}
-                                      </div>
-                                      {/* 研究カードは「タイトル」と「氏名」のみ表示し、一覧性を優先します。 */}
-                                      <div className="space-y-1 text-[12px] md:text-[16px]">
-                                        {/* タイトルが3行以上になる場合は2行で省略します。 */}
-                                        <p
-                                          className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
-                                          style={{
-                                            display: "-webkit-box",
-                                            WebkitBoxOrient: "vertical",
-                                            WebkitLineClamp: 2,
-                                            overflow: "hidden",
-                                          }}
-                                        >
-                                          {item.title}
-                                        </p>
-                                        {/* 氏名はFigma通り左寄せに統一し、カード内の視線の流れを揃えます。 */}
-                                        <p className="text-left text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
-                                          {item.studentName}
-                                        </p>
-                                      </div>
-                                    </Link>
-                                  ))}
-                                </div>
-                              </>
-                            ) : null}
+                                        id={`research-${item.id}`}
+                                        className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                                      >
+                                        <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
+                                          {item.imageUrl ? (
+                                            <SkeletonLoader
+                                              src={item.imageUrl}
+                                              alt=""
+                                              onError={handleImageError(
+                                                item.imageOriginalUrl,
+                                              )}
+                                              // 既存のカードサイズに合わせてフルサイズで表示します。
+                                              className="h-full w-full"
+                                              // フォールバックも失敗した場合の表示を統一します。
+                                              fallback={
+                                                <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                                  No Image
+                                                </div>
+                                              }
+                                            />
+                                          ) : (
+                                            <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                              No Image
+                                            </div>
+                                          )}
+                                        </div>
+                                        {/* 研究カードは「タイトル」と「氏名」のみ表示し、一覧性を優先します。 */}
+                                        <div className="space-y-1 text-[12px] md:text-[16px]">
+                                          {/* タイトルが3行以上になる場合は2行で省略します。 */}
+                                          <p
+                                            className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                                            style={{
+                                              display: "-webkit-box",
+                                              WebkitBoxOrient: "vertical",
+                                              WebkitLineClamp: 2,
+                                              overflow: "hidden",
+                                            }}
+                                          >
+                                            {item.title}
+                                          </p>
+                                          {/* 氏名はFigma通り左寄せに統一し、カード内の視線の流れを揃えます。 */}
+                                          <p className="text-left text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
+                                            {item.studentName}
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </>
+                              ) : null}
                             </div>
-                          ) : null}
+                          </div>
                         </div>
                       )
                     })}

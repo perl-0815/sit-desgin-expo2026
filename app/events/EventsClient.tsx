@@ -21,7 +21,8 @@ export default function EventsClient() {
         <div className="pt-[84px] md:pt-[96px]">
           {/* 見出しはオレンジのバーと明朝系フォントで揃えます。 */}
           {/* デスクトップの左右ガイド余白は研究・作品紹介ページの128pxに揃えます。 */}
-          <section data-reveal className="px-4 pt-2 md:px-[128px]">
+          {/* 他ページの見出しブロックと同じ余白に合わせます。 */}
+          <section data-reveal className="px-4 pt-6 md:px-[128px] md:pt-[36px]">
             <div className="flex items-center gap-3">
               <span className="h-[32px] w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
               <h1 className="text-[24px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">

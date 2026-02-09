@@ -35,6 +35,12 @@ export default function GlobalHeader({
 }: GlobalHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  const contactItem = globalMenuItems.find((item) => item.id === "contact")
+  // デスクトップ版は左のロゴがTOP導線のため、TOPを除外して表示します。
+  const desktopMenuItems = globalMenuItems.filter(
+    (item) => item.id !== "contact" && item.id !== "top"
+  )
+
   return (
     <>
       {isMenuOpen ? (
@@ -55,7 +61,7 @@ export default function GlobalHeader({
       >
         {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
         <div className="w-full px-4 pt-2 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] md:py-2">
+          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] md:px-5 md:py-3">
             <Link
               href="/"
               className="flex h-[48px] items-center md:h-[56px]"
@@ -67,16 +73,52 @@ export default function GlobalHeader({
                 className="h-full w-auto object-contain"
               />
             </Link>
-            {/* 既存のハンバーガーメニューを流用し、見た目と操作感を揃えます。 */}
+            {/* デスクトップ版はFigma通りの横並びメニューを表示し、ハンバーガーはモバイルのみ残します。 */}
+            <div className="hidden items-center gap-6 md:flex">
+              <nav className="flex items-center">
+                {desktopMenuItems.map((item, index) => {
+                  const isActive = item.id === activeId
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className={`flex items-center gap-2 px-3 py-2 text-[16px] font-medium leading-[1.5] ${
+                        index !== desktopMenuItems.length - 1
+                          ? "border-r border-[#EBEEF0] pr-6"
+                          : ""
+                      } ${isActive ? "text-[#2E3437]" : "text-[#6A7378]"}`}
+                    >
+                      <span
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          isActive ? "bg-[#FB9678]" : "bg-[#EBEEF0]"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </nav>
+              {/* お問い合わせは独立した丸みのあるボタンとして強調します。 */}
+              {contactItem ? (
+                <Link
+                  href={contactItem.href}
+                  className="rounded-full bg-[#4B5459] px-6 py-2 text-[16px] font-medium leading-[1.5] text-[#F9F9F9]"
+                >
+                  {contactItem.label}
+                </Link>
+              ) : null}
+            </div>
+            {/* 既存のハンバーガーメニューはモバイル専用として維持します。 */}
             <button
-              className="grid h-10 w-10 place-items-center rounded-full md:h-12 md:w-12"
+              className="grid h-10 w-10 place-items-center rounded-full md:hidden"
               type="button"
               aria-label="メニュー"
               onClick={() => setIsMenuOpen(true)}
             >
               <svg
                 aria-hidden="true"
-                className="h-6 w-6 md:h-8 md:w-8"
+                className="h-6 w-6"
                 viewBox="0 0 24 24"
                 fill="none"
               >
