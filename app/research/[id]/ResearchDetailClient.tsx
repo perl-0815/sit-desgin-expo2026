@@ -266,15 +266,17 @@ export default function ResearchDetailClient({
   }, [searchParams])
 
   return (
-    // トップページの見た目に揃えるため、詳細ページの背景を白に統一します。
-    // フッターが下端に揃うよう、コンテナに最小高さを追加します。
-    {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
-      {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
-      {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
-      <GlobalHeader activeId="research" />
-      {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
-      <div className="pt-[84px] md:pt-[96px]">
+    <>
+      {/* JSXコメントはフラグメント内に配置してパースエラーを防ぎます。 */}
+      {/* トップページの見た目に揃えるため、詳細ページの背景を白に統一します。 */}
+      {/* フッターが下端に揃うよう、コンテナに最小高さを追加します。 */}
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+        {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
+        {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
+        <GlobalHeader activeId="research" />
+        {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
+        <div className="pt-[84px] md:pt-[96px]">
 
       {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:hidden">
@@ -536,9 +538,10 @@ export default function ResearchDetailClient({
         </>
       )}
 
-      {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
-      <Footer className="w-full px-4 md:px-[128px]" />
+        {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
+        <Footer className="w-full px-4 md:px-[128px]" />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
