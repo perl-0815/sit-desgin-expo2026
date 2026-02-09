@@ -97,31 +97,32 @@ export default function TopPageClient({
   const [mobilePreviewIndex, setMobilePreviewIndex] = useState(0)
   // アニメーションを毎回発火させるため、切り替えごとにキーを更新します。
   const [mobilePreviewKey, setMobilePreviewKey] = useState(0)
-  // モバイル表示は一定間隔でランダムにカードを切り替えます。
+  // モバイル表示は一定間隔で順番にカードを切り替えます。
   useEffect(() => {
     if (visiblePreviewItems.length <= 1) {
       return
     }
+    // アニメーションの尺(4200ms)と同期させて、切り替えのタイミングを揃えます。
     const intervalId = window.setInterval(() => {
       setMobilePreviewIndex((prevIndex) => {
-        if (visiblePreviewItems.length <= 1) {
-          return 0
-        }
-        let nextIndex = prevIndex
-        // 直前と同じカードが続かないようにランダム選択します。
-        while (nextIndex === prevIndex) {
-          nextIndex = Math.floor(
-            Math.random() * visiblePreviewItems.length,
-          )
-        }
+        const nextIndex = (prevIndex + 1) % visiblePreviewItems.length
         return nextIndex
       })
       setMobilePreviewKey((prevKey) => prevKey + 1)
-    }, 3800)
+    }, 4200)
     return () => window.clearInterval(intervalId)
   }, [visiblePreviewItems.length])
   const mobilePreviewItem =
     visiblePreviewItems[mobilePreviewIndex] ?? visiblePreviewItems[0]
+  // 左右のカードを表示するため、前後のインデックスもここで算出しておきます。
+  const hasMultiplePreviews = visiblePreviewItems.length > 1
+  const mobilePrevIndex =
+    (mobilePreviewIndex - 1 + visiblePreviewItems.length) %
+    visiblePreviewItems.length
+  const mobileNextIndex =
+    (mobilePreviewIndex + 1) % visiblePreviewItems.length
+  const mobilePrevItem = visiblePreviewItems[mobilePrevIndex]
+  const mobileNextItem = visiblePreviewItems[mobileNextIndex]
 
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
@@ -138,27 +139,20 @@ export default function TopPageClient({
         </div>
       ) : null}
 
-      {/* ヒーロー領域はFigmaの紙吹雪背景を再現するため、複数のグラデーションとノイズを重ねます。 */}
+      {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
       <section className="relative h-[698px] w-full overflow-hidden md:h-[720px]">
-        <div
+        {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
+        <img
           aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            // 背景色とパターンの重ね順を固定し、白地の紙質感を作ります。
-            backgroundImage:
-              "radial-gradient(circle at 18% 18%, rgba(255,255,255,0.9) 0 46px, transparent 48px), radial-gradient(circle at 72% 32%, rgba(255,255,255,0.9) 0 58px, transparent 60px), radial-gradient(circle at 30% 70%, rgba(255,255,255,0.9) 0 42px, transparent 44px), radial-gradient(circle at 78% 78%, rgba(255,255,255,0.9) 0 64px, transparent 66px), linear-gradient(180deg, rgba(251,150,120,0.08) 0%, rgba(229,169,103,0.06) 55%, rgba(249,249,249,0.95) 100%)",
-            backgroundSize: "240px 240px, 260px 260px, 220px 220px, 280px 280px, 100% 100%",
-          }}
+          alt=""
+          src="/image/top_kv-pc.png"
+          className="absolute inset-0 hidden h-full w-full object-cover md:block"
         />
-        <div
+        <img
           aria-hidden="true"
-          className="absolute inset-0 opacity-70 mix-blend-soft-light"
-          style={{
-            // 既存のテクスチャを全面に敷いて、Figmaの粒状感に近づけます。
-            backgroundImage: "url('/texture/texture_noise.png')",
-            backgroundSize: "160px 160px",
-            backgroundRepeat: "repeat",
-          }}
+          alt=""
+          src="/image/top-kv-sp.png"
+          className="absolute inset-0 h-full w-full object-cover md:hidden"
         />
 
         {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
@@ -430,28 +424,72 @@ export default function TopPageClient({
             <br className="hidden md:block" />
             また、大学でどのような作品を作ってきたのかも見ることができます。
           </p>
-          {/* モバイルは1枚ずつフェードで切り替える形式にします。 */}
+          {/* モバイルは左右にカードを見せつつ、右から左に流れるフェードで切り替えます。 */}
           <div className="mt-6 md:hidden">
             {mobilePreviewItem ? (
-              <Link
-                key={mobilePreviewKey}
-                href={mobilePreviewItem.href}
-                className="flex flex-col gap-2 animate-[top-page-fade_800ms_ease]"
-              >
-                <div className="aspect-video w-full overflow-hidden rounded-[4px]">
-                  <img
-                    src={mobilePreviewItem.imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+              <div className="relative overflow-hidden">
+                <div className="flex items-start justify-center gap-3">
+                  {hasMultiplePreviews ? (
+                    <Link
+                      href={mobilePrevItem.href}
+                      className="flex w-[200px] shrink-0 flex-col gap-2 opacity-40 z-0"
+                    >
+                      <div className="aspect-video w-full overflow-hidden rounded-[4px]">
+                        <img
+                          src={mobilePrevItem.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <p className="text-[11px] leading-[1.5] text-[#6A7378]">
+                        {mobilePrevItem.title}
+                      </p>
+                    </Link>
+                  ) : null}
+
+                  <Link
+                    key={mobilePreviewKey}
+                    href={mobilePreviewItem.href}
+                    className={`flex w-[236px] shrink-0 flex-col gap-2 z-10 ${
+                      hasMultiplePreviews
+                        ? "animate-[top-page-slide-fade_4200ms_ease]"
+                        : ""
+                    }`}
+                  >
+                    <div className="aspect-video w-full overflow-hidden rounded-[4px]">
+                      <img
+                        src={mobilePreviewItem.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <p className="text-[12px] font-medium leading-[1.5] text-[#4B5459]">
+                      {mobilePreviewItem.title}
+                    </p>
+                    <p className="text-[12px] text-[#6A7378]">
+                      {mobilePreviewItem.author}
+                    </p>
+                  </Link>
+
+                  {hasMultiplePreviews ? (
+                    <Link
+                      href={mobileNextItem.href}
+                      className="flex w-[200px] shrink-0 flex-col gap-2 opacity-40 z-0"
+                    >
+                      <div className="aspect-video w-full overflow-hidden rounded-[4px]">
+                        <img
+                          src={mobileNextItem.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <p className="text-[11px] leading-[1.5] text-[#6A7378]">
+                        {mobileNextItem.title}
+                      </p>
+                    </Link>
+                  ) : null}
                 </div>
-                <p className="text-[12px] font-medium leading-[1.5] text-[#4B5459]">
-                  {mobilePreviewItem.title}
-                </p>
-                <p className="text-[12px] text-[#6A7378]">
-                  {mobilePreviewItem.author}
-                </p>
-              </Link>
+              </div>
             ) : null}
           </div>
           <div className="mt-8 hidden grid-cols-3 gap-8 md:grid">
@@ -487,13 +525,23 @@ export default function TopPageClient({
           </div>
         </div>
         <style jsx global>{`
-          /* モバイル用の切り替えはフェードアニメーションで表示します。 */
-          @keyframes top-page-fade {
+          /* モバイルのメインカードは右から左へ流しつつフェードイン/アウトさせます。 */
+          @keyframes top-page-slide-fade {
             0% {
               opacity: 0;
+              transform: translateX(18px);
+            }
+            20% {
+              opacity: 1;
+              transform: translateX(0);
+            }
+            80% {
+              opacity: 1;
+              transform: translateX(-6px);
             }
             100% {
-              opacity: 1;
+              opacity: 0;
+              transform: translateX(-18px);
             }
           }
         `}</style>
