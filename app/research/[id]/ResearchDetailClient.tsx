@@ -62,6 +62,11 @@ type SkeletonBlockProps = {
   className?: string
 }
 
+type CourseMeta = {
+  key: string
+  buttonColor: string
+}
+
 const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
   return (
@@ -74,10 +79,19 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 const PLACEHOLDER_BODY =
   "これはダミー文章です。研究内容の背景・狙い・検証結果などをここに記載します。"
 
+const courseOrder: CourseMeta[] = [
+  { key: "社会情報コース", buttonColor: "#0A948A" },
+  { key: "UXコース", buttonColor: "#2C68D3" },
+  { key: "プロダクトコース", buttonColor: "#D1346F" },
+  { key: "その他", buttonColor: "#6A7378" },
+]
+
 const sliceKeywords = (keywords?: string | null) => {
   if (!keywords) return []
+  // CSVの記入ゆれ（#, 空白, スラッシュなど）で区切られている場合も分割できるようにする。
+  // 例: "#サービスデザイン#カスタマージャーニ＃共創デザイン", "情報デザイン  認知特性  多変量解析"
   return keywords
-    .split(/[,、]/)
+    .split(/[,、，#＃/\uFF0F\s\u3000]+/)
     .map((keyword) => keyword.trim())
     .filter(Boolean)
     .slice(0, 3)
@@ -96,6 +110,15 @@ const pickOriginalImage = (original?: string | null, thumb?: string | null) => {
   return original || thumb || null
 }
 
+const getCourseKey = (course?: string | null) => {
+  if (!course) return "その他"
+  return course
+}
+
+const getCourseMeta = (courseKey: string) => {
+  return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
+}
+
 export default function ResearchDetailClient({
   id,
 }: ResearchDetailClientProps) {
@@ -106,10 +129,8 @@ export default function ResearchDetailClient({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [studentCareers, setStudentCareers] = useState<Career[]>([])
-  const [careerLoading, setCareerLoading] = useState(false)
-
-  // 研究詳細ページの各セクションにスライドインを適用します。
-  useSectionReveal()
+  // 進路セクションの見出しを先に出すため、初期値はローディング中にします。
+  const [careerLoading, setCareerLoading] = useState(true)
 
   useEffect(() => {
     let active = true
@@ -170,9 +191,16 @@ export default function ResearchDetailClient({
   }, [researchList, id])
 
   const student = research?.student
+  // 進路情報取得/表示の判定に使うため、学生IDを1箇所で確定させます。
+  // CSV由来のIDに空白が混入するケースがあるため trim して正規化します。
+  // 研究データに student_id があるケースと、student オブジェクトに id があるケースの両方を吸収します。
+  const studentId = normalizeText(research?.student_id ?? student?.id) || null
   const lab = student?.lab_id ? labById.get(student.lab_id) : undefined
   const keywords = sliceKeywords(research?.keywords ?? lab?.keywords)
   const imageUrl = pickOriginalImage(research?.image_url, research?.image_thumb_url)
+  // キーワードの背景色はコースカラーに合わせるため、ここでコース情報を確定します。
+  const courseKey = getCourseKey(lab?.course)
+  const courseMeta = getCourseMeta(courseKey)
 
   const qaItems = useMemo(() => {
     const items: { question: string; answer: string }[] = []
@@ -204,11 +232,17 @@ export default function ResearchDetailClient({
     return items.filter((item) => normalizeText(item.answer))
   }, [research])
 
+  // 研究詳細ページの各セクションにスライドインを適用します。
+  // 進路セクションは研究データ取得後に描画されるため、依存に含めて再観測します。
+  useSectionReveal([studentId, careerLoading])
+
   useEffect(() => {
-    const studentId = research?.student_id ?? student?.id
     if (!studentId) {
+      // 研究データ取得中は studentId が未確定なため、ローディングは維持します。
+      if (loading) return
       // 学生情報が無い場合は進路情報も取得できないためリセットします。
       setStudentCareers([])
+      setCareerLoading(false)
       return
     }
 
@@ -217,13 +251,35 @@ export default function ResearchDetailClient({
     const loadStudent = async () => {
       try {
         setCareerLoading(true)
-        const res = await fetch(`/api/students/${studentId}`)
+        // 進路情報を確実に取得し、公開ページでは非公開データを除外します。
+        const res = await fetch(
+          `/api/students/${encodeURIComponent(
+            studentId,
+          )}?include=careers&visibility=public`,
+        )
         if (!res.ok) {
           throw new Error("Failed to fetch student data.")
         }
         const data = (await res.json()) as StudentDetail
         if (!active) return
-        setStudentCareers(data.careers ?? [])
+        const careers = data.careers ?? []
+        if (careers.length > 0) {
+          setStudentCareers(careers)
+          return
+        }
+        // 進路が空の場合は、student_id との紐付け不整合に備えてフォールバック取得します。
+        // 既存データがある環境でのみ追加取得し、公開フィルタは維持します。
+        const fallbackRes = await fetch("/api/careers?visibility=public")
+        if (!fallbackRes.ok) {
+          setStudentCareers([])
+          return
+        }
+        const fallbackCareers = (await fallbackRes.json()) as Career[]
+        if (!active) return
+        const matchedCareers = fallbackCareers.filter(
+          (career) => normalizeText(career.student_id) === studentId,
+        )
+        setStudentCareers(matchedCareers)
       } catch {
         if (!active) return
         setStudentCareers([])
@@ -237,7 +293,7 @@ export default function ResearchDetailClient({
     return () => {
       active = false
     }
-  }, [research?.student_id, student?.id])
+  }, [studentId, loading])
 
   const primaryCareer = studentCareers[0]
   const careerCompany = normalizeText(primaryCareer?.detail)
@@ -245,11 +301,19 @@ export default function ResearchDetailClient({
   const careerIndustry =
     normalizeText(primaryCareer?.industry) ||
     normalizeText(primaryCareer?.category_type)
+  const careerCategory = normalizeText(primaryCareer?.category)
   const careerDescription =
     normalizeText(primaryCareer?.decision_reason) ||
     normalizeText(primaryCareer?.extra_notes)
+  // 進路の取得中は見出し+スケルトンを表示し、取得後に進路が無ければセクションを消します。
+  const shouldShowCareerSection = careerLoading || studentCareers.length > 0
+  // 表示に使える値があるかどうかで内容の有無を判断します。
   const hasCareerContent =
-    careerCompany || careerRole || careerIndustry || careerDescription
+    careerCompany ||
+    careerRole ||
+    careerIndustry ||
+    careerCategory ||
+    careerDescription
 
   const returnUrl = useMemo(() => {
     const params = new URLSearchParams()
@@ -282,8 +346,8 @@ export default function ResearchDetailClient({
         {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
         <div className="pt-[84px] md:pt-[96px]">
 
-      {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
-      <div className="flex items-center justify-between px-4 pt-6 md:hidden">
+      {/* モバイル版は見出しを非表示にし、デスクトップのみ表示します（依頼対応）。 */}
+      <div className="hidden items-center justify-between px-4 pt-6 md:flex">
         <div className="flex items-center gap-3">
           <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
           <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
@@ -360,7 +424,9 @@ export default function ResearchDetailClient({
                   {keywords.map((keyword) => (
                     <span
                       key={keyword}
-                      className="rounded-full bg-[#0A948A] px-3 py-1 text-[12px] tracking-[0.02em] text-white"
+                      // コース別カラーを反映して、研究一覧と同じ見た目に揃えます。
+                      style={{ backgroundColor: courseMeta.buttonColor }}
+                      className="rounded-full px-3 py-1 text-[12px] tracking-[0.02em] text-white"
                     >
                       {keyword}
                     </span>
@@ -411,16 +477,17 @@ export default function ResearchDetailClient({
                 </p>
               )}
 
-              {/* 研究画像は16:9の高さ204px想定 */}
-              <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0] md:h-auto md:aspect-[16/9]">
+              {/* 研究画像は画像の縦幅に合わせて表示します。 */}
+              <div className="relative min-h-[160px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                 {loading ? (
                   <SkeletonBlock className="absolute inset-0" />
                 ) : imageUrl ? (
                   <SkeletonLoader
                     src={imageUrl}
                     alt=""
-                    // 詳細ページの画像サイズに合わせてフルサイズで表示します。
-                    className="h-full w-full"
+                    // 画像の縦幅に合わせて表示し、トリミングを避けます。
+                    className="w-full"
+                    imgClassName="h-auto w-full object-contain"
                     // 読み込み失敗時はプレースホルダーを表示します。
                     fallback={
                       <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
@@ -437,7 +504,7 @@ export default function ResearchDetailClient({
             </div>
           </section>
 
-          {careerLoading || hasCareerContent ? (
+          {shouldShowCareerSection ? (
             <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
                 <div className="border-b border-[#14BDB1] pb-2">
@@ -448,9 +515,12 @@ export default function ResearchDetailClient({
                 <div className="py-6">
                   {careerLoading ? (
                     <div className="space-y-3">
+                      {/* Q&A セクションのローディング様式に揃えます。 */}
                       <SkeletonBlock className="h-5 w-3/4 rounded-md" />
-                      <SkeletonBlock className="h-4 w-1/2 rounded-md" />
-                      <SkeletonBlock className="h-4 w-full rounded-md" />
+                      <div className="mt-3 space-y-2">
+                        <SkeletonBlock className="h-4 w-full rounded-md" />
+                        <SkeletonBlock className="h-4 w-11/12 rounded-md" />
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -468,9 +538,19 @@ export default function ResearchDetailClient({
                           {careerIndustry}
                         </p>
                       ) : null}
+                      {careerCategory ? (
+                        <p className="mt-1 text-[13px] font-medium text-[#6A7378] md:text-[15px]">
+                          {careerCategory}
+                        </p>
+                      ) : null}
                       {careerDescription ? (
                         <p className="mt-4 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                           {careerDescription}
+                        </p>
+                      ) : null}
+                      {!hasCareerContent ? (
+                        <p className="mt-4 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[15px]">
+                          進路情報は準備中です。
                         </p>
                       ) : null}
                     </>

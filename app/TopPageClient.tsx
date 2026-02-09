@@ -146,7 +146,7 @@ export default function TopPageClient({
         />
 
         {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-[128px]">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-8 lg:px-[128px]">
           <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)] md:text-[14px] md:tracking-[0.35em]">
             SIT DESIGN EXPO 2026
           </p>
@@ -164,7 +164,7 @@ export default function TopPageClient({
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
         data-reveal
-        className="px-4 pb-6 pt-6 md:px-[128px] md:pb-[96px] md:pt-[96px]"
+        className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[96px] md:pt-[96px]"
       >
         <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
         {/* デスクトップでは見出しを中央寄せにして視線が散らないようにします。 */}
@@ -222,7 +222,7 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]"
+        className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
@@ -300,7 +300,7 @@ export default function TopPageClient({
       {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}
       <section
         data-reveal
-        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-[128px] md:py-[96px]"
+        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div
           aria-hidden="true"
@@ -377,7 +377,7 @@ export default function TopPageClient({
       {/* モバイルの下余白のみ増やして、セクション終端の詰まり感を解消します。 */}
       <section
         data-reveal
-        className="relative bg-[#F9F9F9] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]"
+        className="relative bg-[#F9F9F9] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景装飾はFigma指定のtop-decoration3/4を使用します。 */}
         <div className="pointer-events-none absolute right-0 top-0 hidden md:block">
@@ -570,7 +570,7 @@ export default function TopPageClient({
       {/* イベント背景はFigmaの淡いグレーをベースにし、背景画像で質感を足します。 */}
       <section
         data-reveal
-        className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]"
+        className="bg-[#EBEEF0] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
         style={{
           backgroundImage: "url('/image/event_background.png')",
           backgroundSize: "cover",
@@ -614,7 +614,7 @@ export default function TopPageClient({
       {/* 進路情報はイベントの後に配置し、Figmaの2カラム構成を再現します。 */}
       <section
         data-reveal
-        className="relative bg-[#F9F9F9] px-4 py-12 md:px-[128px] md:py-[96px]"
+        className="relative bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景装飾は指定のdotgrid.svgを使用します。 */}
         <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
@@ -667,7 +667,7 @@ export default function TopPageClient({
       {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
       <section
         data-reveal
-        className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]"
+        className="bg-[#EBEEF0] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
           {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
@@ -731,7 +731,7 @@ export default function TopPageClient({
       {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
       <section
         data-reveal
-        className="px-4 pt-12 md:px-[128px] md:py-[96px]"
+        className="px-4 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto md:max-w-[1024px]">
           {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}

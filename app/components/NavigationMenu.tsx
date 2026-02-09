@@ -30,16 +30,16 @@ export default function NavigationMenu({
         "relative flex h-[852px] w-[393px] flex-col items-start bg-[#F9F9F9] pt-[62px]"
       }
     >
-      {/* 研究ページのメニューボタンと同じ位置（右16px・上24px）に固定します。 */}
+      {/* メニュー本体のレイアウトに影響されないよう、閉じるボタンは画面固定で配置します。 */}
       <button
         type="button"
         onClick={onClose}
         aria-label="メニューを閉じる"
-        className="absolute right-4 top-6 grid h-12 w-12 place-items-center"
+        className="fixed right-6 top-4 z-10 grid h-10 w-10 place-items-center"
       >
         <svg
           aria-hidden="true"
-          className="h-8 w-8"
+          className="h-6 w-6"
           viewBox="0 0 24 24"
           fill="none"
         >
