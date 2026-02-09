@@ -445,7 +445,7 @@ export default function TopPageClient({
                   <Link
                     key={mobilePreviewKey}
                     href={mobilePreviewItem.href}
-                    className={`z-10 flex w-[236px] shrink-0 flex-col gap-2 ${
+                    className={`z-10 flex w-[236px] shrink-0 flex-col gap-2 text-center ${
                       hasMultiplePreviews
                         ? "animate-[top-page-slide-fade_6000ms_ease]"
                         : ""
@@ -470,7 +470,7 @@ export default function TopPageClient({
                     <Link
                       key={`next-${mobilePreviewKey}`}
                       href={mobileNextItem.href}
-                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
+                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 text-center opacity-40 ${
                         hasMultiplePreviews
                           ? "animate-[top-page-side-fade_6000ms_ease]"
                           : ""
@@ -498,7 +498,7 @@ export default function TopPageClient({
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex flex-col gap-2 text-center"
+                className="flex flex-col gap-2 text-left"
               >
                 <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                   <img
@@ -587,6 +587,18 @@ export default function TopPageClient({
             卒業生と直接コミュニケーションをとることができる座談会や、体験展示イベントを予定しています。
           </p>
           {/* イベント詳細が準備中のため、トップページの画像枠も「Coming Soon」に統一します。 */}
+          <div className="mt-6 flex flex-col gap-4 md:hidden">
+            <div className="flex h-[240px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
+              <p className="text-[14px] font-semibold tracking-[0.06em] text-[#6A7378]">
+                Coming Soon...
+              </p>
+            </div>
+            <div className="flex h-[240px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
+              <p className="text-[14px] font-semibold tracking-[0.06em] text-[#6A7378]">
+                Coming Soon...
+              </p>
+            </div>
+          </div>
           <div className="mt-6 hidden gap-6 md:grid md:grid-cols-2">
             <div className="flex h-[364px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
               <p className="text-[14px] font-semibold tracking-[0.06em] text-[#6A7378]">
@@ -599,7 +611,8 @@ export default function TopPageClient({
               </p>
             </div>
           </div>
-          <div className="mt-6 flex justify-center">
+          {/* モバイルはボタン下の余白を少し足します。 */}
+          <div className="mt-6 flex justify-center pb-4 md:pb-0">
             <Link
               href="/events"
               className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[20px]"
@@ -620,20 +633,28 @@ export default function TopPageClient({
         <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
           <img src="/image/dotgrid.svg" alt="" className="h-[144px] w-[192px]" />
         </div>
+        {/* PC表示のみ、薄い円の装飾を追加してFigmaの雰囲気に寄せます。 */}
+        <div className="pointer-events-none absolute left-70 top-110 hidden -translate-x-1/3 -translate-y-1/2 md:block">
+          <img src="/image/circle.svg" alt="" className="h-[320px] w-[320px]" />
+        </div>
 
         <div className="mx-auto md:max-w-[1024px]">
           <div className="mt-4 flex flex-col gap-8 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
-            <div className="flex flex-col justify-between md:min-h-[463px]">
-              {/* 見出し下の線は左カラム幅に合わせ、右側にグラフが来る構成にします。 */}
-              <div className="border-b-2 border-[#FB9678] pb-1">
-                <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  卒業生の進路
+            <div className="flex flex-col md:min-h-[463px]">
+              {/* タイトル直下の本文は上詰めに固定し、下段の余白は別コンテナで扱います。 */}
+              <div>
+                {/* 見出し下の線は左カラム幅に合わせ、右側にグラフが来る構成にします。 */}
+                <div className="border-b-2 border-[#FB9678] pb-1">
+                  <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                    卒業生の進路
+                  </p>
+                </div>
+                <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
+                  卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
                 </p>
               </div>
-              <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
-                卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
-              </p>
-              <div className="mt-6 hidden justify-center md:flex md:justify-start">
+              {/* PCのみ、残り高さの中央にボタンを配置してFigmaのバランスに合わせます。 */}
+              <div className="mt-6 hidden md:flex md:flex-1 md:items-center md:justify-center">
                 <Link
                   href="/career"
                   className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
@@ -672,7 +693,8 @@ export default function TopPageClient({
         <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
           {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
           <div className="w-full border-b-2 border-[#FB9678] py-1">
-            <p className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+            {/* デスクトップのみ、開催場所の見出しテキストを中央揃えにします。 */}
+            <p className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center">
               開催場所
             </p>
           </div>
@@ -756,7 +778,7 @@ export default function TopPageClient({
                 </p>
               </div>
             </div>
-            <div className="overflow-hidden rounded-2xl md:mt-0">
+            <div className="overflow-hidden md:mt-0">
               {/* 指定されたGoogle Mapsの埋め込みコードをそのまま使用し、表示領域をレスポンシブに調整します。 */}
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3241.6646539508483!2d139.79262397577705!3d35.6606329725939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x601889a0774db467%3A0x341667956857f1f8!2z44CSMTM1LTg1NDgg5p2x5Lqs6YO95rGf5p2x5Yy66LGK5rSy77yT5LiB55uu77yX4oiS77yVIOiKnea1puW3pealreWkp-WtpiDosYrmtLLjgq3jg6Pjg7Pjg5Hjgrk!5e0!3m2!1sja!2sjp!4v1770220456567!5m2!1sja!2sjp"

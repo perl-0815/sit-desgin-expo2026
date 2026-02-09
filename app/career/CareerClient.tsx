@@ -329,7 +329,8 @@ export default function CareerClient() {
             <div className="relative">
               {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
               {loading ? (
-                <SkeletonBlock className="h-40 w-40 rounded-full md:h-[320px] md:w-[320px]" />
+                // 円グラフの実寸と同じサイズでスケルトンを出し、ロード直後の拡大ズレを防ぎます。
+                <SkeletonBlock className="h-[320px] w-[320px] rounded-full md:h-[463px] md:w-[463px]" />
               ) : (
                 <CareerPieChart
                   gradPercent={careerStats.gradPercent}
@@ -531,7 +532,7 @@ export default function CareerClient() {
               className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
                 showAllJobReasons
                   ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
-                  : "border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
               }`}
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
@@ -646,7 +647,7 @@ export default function CareerClient() {
               className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
                 showAllGradReasons
                   ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
-                  : "border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
               }`}
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >

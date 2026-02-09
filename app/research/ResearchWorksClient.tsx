@@ -797,7 +797,16 @@ export default function ResearchWorksClient() {
                                     ))}
                                   </div>
                                 </>
-                              ) : null}
+                              ) : (
+                                <>
+                                  {/* 研究がない研究室には、Figma指定の告知ボックスを表示します。 */}
+                                  <div className="mt-4 rounded-[4px] bg-[#EBEEF0] py-4 md:py-6">
+                                    <p className="text-center text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[16px]">
+                                      出展している研究はありません
+                                    </p>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>

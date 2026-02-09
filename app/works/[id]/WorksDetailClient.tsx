@@ -294,15 +294,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
       {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
       <div className="pt-[84px] md:pt-[96px]">
 
-      {/* モバイル版は見出しを非表示にし、デスクトップのみ表示します（依頼対応）。 */}
-      <div className="hidden items-center justify-between px-4 pt-6 md:flex">
-        <div className="flex items-center gap-3">
-          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            研究・作品紹介
-          </h1>
-        </div>
-      </div>
+      {/* 見出しはスマホ/デスクトップとも不要のため削除します。 */}
 
       {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
 
@@ -477,7 +469,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
           {careerLoading || hasCareerContent ? (
             <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
-                <div className="border-b border-[#14BDB1] pb-2">
+                {/* 進路見出し下線はコース色に合わせます。 */}
+                <div
+                  className="border-b pb-2"
+                  style={{ borderColor: courseMeta.buttonColor }}
+                >
                   <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                     進路
                   </h3>
