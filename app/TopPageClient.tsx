@@ -566,15 +566,16 @@ export default function TopPageClient({
           <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-center md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
             卒業生と直接コミュニケーションをとることができる座談会や、体験展示イベントを予定しています。
           </p>
+          {/* イベント詳細が準備中のため、トップページの画像枠も「Coming Soon」に統一します。 */}
           <div className="mt-6 hidden gap-6 md:grid md:grid-cols-2">
             <div className="flex h-[364px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
-              <p className="text-[12px] font-medium text-[#A3ADB2]">
-                No Image
+              <p className="text-[14px] font-semibold tracking-[0.06em] text-[#6A7378]">
+                Coming Soon...
               </p>
             </div>
             <div className="flex h-[364px] items-center justify-center rounded-[4px] bg-[#D9D9D9]">
-              <p className="text-[12px] font-medium text-[#A3ADB2]">
-                No Image
+              <p className="text-[14px] font-semibold tracking-[0.06em] text-[#6A7378]">
+                Coming Soon...
               </p>
             </div>
           </div>

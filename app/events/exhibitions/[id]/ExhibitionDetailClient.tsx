@@ -117,6 +117,8 @@ export default function ExhibitionDetailClient({
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="events" />
+      {/* 固定ヘッダーと内容が重ならないよう、ページ全体の上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
 
       <div className="flex items-center justify-between px-4 pt-6">
         <div className="flex items-center gap-3">
@@ -252,6 +254,7 @@ export default function ExhibitionDetailClient({
       )}
 
       <Footer className="mt-8 w-full px-4" />
+      </div>
     </div>
   )
 }

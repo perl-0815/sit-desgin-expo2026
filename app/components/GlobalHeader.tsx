@@ -53,11 +53,12 @@ export default function GlobalHeader({
           className ?? ""
         }`.trim()}
       >
-        <div className="w-full max-w-[393px] px-4 pt-3 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
-          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-2 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px]">
+        {/* モバイル版のヘッダー高さを少し詰め、全ページで縦幅を抑えます。 */}
+        <div className="w-full max-w-[393px] px-4 pt-2 pointer-events-auto md:max-w-[1280px] md:px-[128px] md:pt-[24px]">
+          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] md:py-2">
             <Link
               href="/"
-              className="flex h-[56px] items-center"
+              className="flex h-[48px] items-center md:h-[56px]"
               aria-label="トップページへ"
             >
               <img
@@ -68,14 +69,14 @@ export default function GlobalHeader({
             </Link>
             {/* 既存のハンバーガーメニューを流用し、見た目と操作感を揃えます。 */}
             <button
-              className="grid h-12 w-12 place-items-center rounded-full"
+              className="grid h-10 w-10 place-items-center rounded-full md:h-12 md:w-12"
               type="button"
               aria-label="メニュー"
               onClick={() => setIsMenuOpen(true)}
             >
               <svg
                 aria-hidden="true"
-                className="h-8 w-8"
+                className="h-6 w-6 md:h-8 md:w-8"
                 viewBox="0 0 24 24"
                 fill="none"
               >

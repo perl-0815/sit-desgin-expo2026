@@ -184,12 +184,15 @@ export default function CareerClient() {
       const studentNo = normalizeText(career.student?.student_no)
       return !studentNo.startsWith("cy20")
     })
-    const total = jobCareers.length
+    let total = 0
     const grouped = new Map<string, { count: number; items: string[] }>()
 
     jobCareers.forEach((career) => {
       const label = resolveJobCategory(career)
       const item = buildJobLabel(career)
+      // 「その他」は企業名がある就職者のみを集計対象にし、未記入は割合から除外します。
+      if (label === "その他" && !item) return
+      total += 1
       if (!grouped.has(label)) {
         grouped.set(label, { count: 0, items: [] })
       }
@@ -274,6 +277,8 @@ export default function CareerClient() {
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="career" />
+      {/* 固定ヘッダーと内容が重ならないよう、ページ全体の上余白を確保します。 */}
+      <div className="pt-[84px] md:pt-[96px]">
 
       {/* Figmaのヘッダー構成に合わせ、左のグラデーションバーとメニューボタンを配置します。 */}
       <div className="flex items-center justify-between px-4 pt-6 md:px-[128px] md:pt-[36px]">
@@ -477,7 +482,8 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
               {showAllJobReasons ? "閉じる" : "もっと見る"}
@@ -539,7 +545,8 @@ export default function CareerClient() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-full border border-[#14BDB1] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
+              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >
               {showAllGradReasons ? "閉じる" : "もっと見る"}
@@ -551,7 +558,13 @@ export default function CareerClient() {
         ) : null}
       </section>
 
-      <Footer className="w-full px-4 md:px-[128px]" />
+      {/* フッターはトップページ・研究ページと同じ横幅(1280px)で中央揃えにします。 */}
+      <div className="mt-16 px-4 md:mt-[48px] md:px-0">
+        <div className="mx-auto w-full md:max-w-[1280px]">
+          <Footer className="w-full" />
+        </div>
+      </div>
+      </div>
     </div>
   )
 }
