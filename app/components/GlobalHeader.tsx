@@ -88,12 +88,13 @@ export default function GlobalHeader({
                           : ""
                       } ${isActive ? "text-[#2E3437]" : "text-[#6A7378]"}`}
                     >
-                      <span
-                        className={`h-2.5 w-2.5 rounded-full ${
-                          isActive ? "bg-[#FB9678]" : "bg-[#EBEEF0]"
-                        }`}
-                        aria-hidden="true"
-                      />
+                      {/* アクティブ時のみ丸印を表示し、非アクティブ時は非表示にします。 */}
+                      {isActive ? (
+                        <span
+                          className="h-2.5 w-2.5 rounded-full bg-[#FB9678]"
+                          aria-hidden="true"
+                        />
+                      ) : null}
                       {item.label}
                     </Link>
                   )
