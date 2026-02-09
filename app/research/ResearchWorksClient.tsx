@@ -1,12 +1,13 @@
 "use client"
 
 import { useMemo, useState, useEffect, useRef } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
 import { SkeletonLoader } from "../components/SkeletonLoader"
+import useSectionReveal from "../components/useSectionReveal"
 
 type CourseMeta = {
   key: string
@@ -200,7 +201,6 @@ export default function ResearchWorksClient() {
   // URLのタブ指定（?tab=works）に対応するため、ルーター情報を取得します。
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const [activeTab, setActiveTab] = useState<"research" | "works">("research")
   // トグル更新直後のURL反映待ちで表示が揺れないよう、直近の手動切り替えを記録します。
   const pendingTabRef = useRef<"research" | "works" | null>(null)
@@ -214,6 +214,14 @@ export default function ResearchWorksClient() {
   )
   const [expandedLabs, setExpandedLabs] = useState<Record<string, boolean>>({})
   const restoredFocusRef = useRef(false)
+  const searchStateRef = useRef<{
+    focusId?: string
+    focusLabId?: string
+    focusCourseKey?: string
+  }>({})
+
+  // 読み込み完了やタブ切り替えでDOMが差し替わるため、その都度セクションの表示状態を更新します。
+  useSectionReveal([loading, activeTab])
 
   useEffect(() => {
     let active = true
@@ -263,29 +271,40 @@ export default function ResearchWorksClient() {
     }
   }, [])
 
-  // URLのクエリに応じて初期タブを切り替えます。
+  // URLのクエリに応じて初期タブとフォーカス情報を同期します（Suspenseを避けるためwindowから取得）。
   useEffect(() => {
-    const tab = searchParams.get("tab")
-    const nextTab = tab === "works" ? "works" : "research"
-    // 直近の手動切り替えと一致するまでは状態を戻さないようにします。
-    if (pendingTabRef.current && pendingTabRef.current !== nextTab) {
-      return
+    const syncFromLocation = () => {
+      const params = new URLSearchParams(window.location.search)
+      const tab = params.get("tab")
+      const nextTab = tab === "works" ? "works" : "research"
+      // 直近の手動切り替えと一致するまでは状態を戻さないようにします。
+      if (pendingTabRef.current && pendingTabRef.current !== nextTab) {
+        return
+      }
+      if (pendingTabRef.current === nextTab) {
+        pendingTabRef.current = null
+      }
+      setActiveTab((prev) => (prev === nextTab ? prev : nextTab))
+      searchStateRef.current = {
+        focusId: params.get("focus") ?? undefined,
+        focusLabId: params.get("lab") ?? undefined,
+        focusCourseKey: params.get("course") ?? undefined,
+      }
     }
-    if (pendingTabRef.current === nextTab) {
-      pendingTabRef.current = null
+
+    syncFromLocation()
+    window.addEventListener("popstate", syncFromLocation)
+
+    return () => {
+      window.removeEventListener("popstate", syncFromLocation)
     }
-    if (nextTab !== activeTab) {
-      setActiveTab(nextTab)
-    }
-  }, [searchParams, activeTab])
+  }, [])
 
   // 詳細ページから戻ってきた場合、対象コース/研究室を展開し、位置までスクロールします。
   useEffect(() => {
     if (loading || restoredFocusRef.current) return
 
-    const focusId = searchParams.get("focus")
-    const focusLabId = searchParams.get("lab")
-    const focusCourseKey = searchParams.get("course")
+    const { focusId, focusLabId, focusCourseKey } = searchStateRef.current
 
     if (!focusId) return
 
@@ -307,7 +326,7 @@ export default function ResearchWorksClient() {
         }
       })
     })
-  }, [activeTab, loading, searchParams])
+  }, [activeTab, loading, setExpandedCourses, setExpandedLabs])
 
   const labById = useMemo(() => {
     return new Map(labs.map((lab) => [lab.id, lab]))
@@ -547,6 +566,7 @@ export default function ResearchWorksClient() {
               return (
                 <section
                   key={`loading-${course.key}`}
+                  data-reveal
                   className="px-4 md:px-[128px] md:pb-[96px]"
                 >
                   <div
@@ -603,6 +623,7 @@ export default function ResearchWorksClient() {
               return (
                 <section
                   key={`research-${course.key}`}
+                  data-reveal
                   className="px-4 md:px-[128px] md:pb-[96px]"
                 >
                   <div
@@ -784,6 +805,7 @@ export default function ResearchWorksClient() {
             return (
               <section
                 key={`works-${course.key}`}
+                data-reveal
                 className="px-4 md:px-[128px] md:pb-[96px]"
               >
                 <div

@@ -5,6 +5,7 @@ import { useMemo, useEffect, useState } from "react"
 import CareerPieChart from "../components/CareerPieChart"
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
+import useSectionReveal from "../components/useSectionReveal"
 
 type JobCategory = {
   title: string
@@ -108,6 +109,9 @@ export default function CareerClient() {
   // 「もっと見る」制御: 就職先の決め手/大学院進学の理由で5件超えた場合に展開します。
   const [showAllJobReasons, setShowAllJobReasons] = useState(false)
   const [showAllGradReasons, setShowAllGradReasons] = useState(false)
+
+  // 進路ページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -305,7 +309,10 @@ export default function CareerClient() {
       </div>
 
       {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
-      <section className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="md:flex md:items-start md:gap-[64px]">
           <div className="md:w-[480px]">
             <div className="border-b border-[#FB9678] pb-1 md:pb-2">
@@ -341,7 +348,10 @@ export default function CareerClient() {
       </section>
 
       {/* 就職先一覧はカテゴリごとにまとめ、Figmaのカード構成に合わせます。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="flex items-center justify-between border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             主な就職先
@@ -428,7 +438,10 @@ export default function CareerClient() {
       </section>
 
       {/* 就職先の決め手はカード形式で複数項目を並べ、読みやすさを優先します。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             就職先の決めて
@@ -497,7 +510,10 @@ export default function CareerClient() {
       </section>
 
       {/* 大学院進学の理由は別セクションとしてまとめ、同じカードUIを使い回します。 */}
-      <section className="px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
             本学大学院進学の理由

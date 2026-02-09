@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Footer from "../../components/Footer"
 import GlobalHeader from "../../components/GlobalHeader"
 import { SkeletonLoader } from "../../components/SkeletonLoader"
+import useSectionReveal from "../../components/useSectionReveal"
 
 type WorksDetailClientProps = {
   id: string
@@ -109,6 +110,9 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const [error, setError] = useState<string | null>(null)
   const [studentCareers, setStudentCareers] = useState<Career[]>([])
   const [careerLoading, setCareerLoading] = useState(false)
+
+  // 作品詳細ページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -320,7 +324,10 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         </div>
       ) : (
         <>
-          <section className="px-4 pb-12 md:px-[128px] md:pb-[96px]">
+          <section
+            data-reveal
+            className="px-4 pb-12 md:px-[128px] md:pb-[96px]"
+          >
             <div className="flex flex-col gap-4 md:gap-5">
               <div className="space-y-1">
                 {/* Figmaのタイトルタイポ（24px・字間0.02em）に合わせる */}
@@ -434,7 +441,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
           </section>
 
           {careerLoading || hasCareerContent ? (
-            <section className="px-4 md:px-[128px]">
+            <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
                 <div className="border-b border-[#14BDB1] pb-2">
                   <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">

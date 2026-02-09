@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 import CareerPieChart from "./components/CareerPieChart"
 import Footer from "./components/Footer"
 import GlobalHeader from "./components/GlobalHeader"
+import useSectionReveal from "./components/useSectionReveal"
 
 // トップページの構成要素をまとめて管理し、Figmaの階層と同じ順番で描画します。
 type CareerStats = {
@@ -98,6 +99,8 @@ export default function TopPageClient({
     }, 6000)
     return () => window.clearInterval(intervalId)
   }, [visiblePreviewItems.length])
+  // トップページの各セクションにスクロール時のスライドインを付与します。
+  useSectionReveal()
   // プレビュー件数が減ったときに範囲外にならないよう、表示時に安全なインデックスへ補正します。
   // Effect内でsetStateしないことで、不要な再レンダーの連鎖を避けます。
   const safeMobilePreviewIndex =
@@ -124,7 +127,10 @@ export default function TopPageClient({
       <GlobalHeader activeId="top" />
 
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
-      <section className="relative h-[698px] w-full overflow-hidden md:h-[720px]">
+      <section
+        data-reveal
+        className="relative h-[698px] w-full overflow-hidden md:h-[720px]"
+      >
         {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
         <img
           aria-hidden="true"
@@ -156,7 +162,10 @@ export default function TopPageClient({
       </section>
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
-      <section className="px-4 pb-6 pt-6 md:px-[128px] md:pb-[96px] md:pt-[96px]">
+      <section
+        data-reveal
+        className="px-4 pb-6 pt-6 md:px-[128px] md:pb-[96px] md:pt-[96px]"
+      >
         <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
         {/* デスクトップでは見出しを中央寄せにして視線が散らないようにします。 */}
         <div className="border-b border-[#FB9678] pb-1 md:text-center">
@@ -211,7 +220,10 @@ export default function TopPageClient({
 
       {/* 卒業・修了研究展セクションはFigmaの装飾と本文の改行を忠実に再現します。 */}
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
-      <section className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]"
+      >
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
           <img
@@ -286,7 +298,10 @@ export default function TopPageClient({
 
       {/* コンセプトは背景のレイヤーと改行位置をFigma通りに合わせます。 */}
       {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}
-      <section className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-[128px] md:py-[96px]"
+      >
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -360,7 +375,10 @@ export default function TopPageClient({
 
       {/* 学生の成果セクションは背景色を白に揃えて落ち着いた印象にします。 */}
       {/* モバイルの下余白のみ増やして、セクション終端の詰まり感を解消します。 */}
-      <section className="relative bg-[#F9F9F9] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="relative bg-[#F9F9F9] px-4 pb-20 pt-12 md:px-[128px] md:py-[96px]"
+      >
         {/* 背景装飾はFigma指定のtop-decoration3/4を使用します。 */}
         <div className="pointer-events-none absolute right-0 top-0 hidden md:block">
           <img
@@ -551,6 +569,7 @@ export default function TopPageClient({
       {/* イベント紹介は上下余白を設け、指定画像を背景に使い雰囲気を合わせます。 */}
       {/* イベント背景はFigmaの淡いグレーをベースにし、背景画像で質感を足します。 */}
       <section
+        data-reveal
         className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]"
         style={{
           backgroundImage: "url('/image/event_background.png')",
@@ -593,7 +612,10 @@ export default function TopPageClient({
       </section>
 
       {/* 進路情報はイベントの後に配置し、Figmaの2カラム構成を再現します。 */}
-      <section className="relative bg-[#F9F9F9] px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="relative bg-[#F9F9F9] px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         {/* 背景装飾は指定のdotgrid.svgを使用します。 */}
         <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
           <img src="/image/dotgrid.svg" alt="" className="h-[144px] w-[192px]" />
@@ -643,7 +665,10 @@ export default function TopPageClient({
       </section>
 
       {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
-      <section className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="bg-[#EBEEF0] px-4 py-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
           {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
           <div className="w-full border-b-2 border-[#FB9678] py-1">
@@ -704,7 +729,10 @@ export default function TopPageClient({
       </section>
 
       {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
-      <section className="px-4 pt-12 md:px-[128px] md:py-[96px]">
+      <section
+        data-reveal
+        className="px-4 pt-12 md:px-[128px] md:py-[96px]"
+      >
         <div className="mx-auto md:max-w-[1024px]">
           {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}
           <div className="mt-4 flex flex-col gap-6 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">

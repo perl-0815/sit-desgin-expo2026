@@ -2,10 +2,13 @@
 
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
+import useSectionReveal from "../components/useSectionReveal"
 
 // イベントページはスクリーンショットに合わせて簡潔な「準備中」レイアウトに置き換えます。
 // 旧実装は下部にコメントアウトで残し、再利用できるように保持しています。
 export default function EventsClient() {
+  // イベントページの各セクションにスライドインを適用します。
+  useSectionReveal()
   return (
     // ページ全体は淡いグレーを敷き、白背景のギャップを目立たせないようにします。
     <div className="min-h-screen bg-[#F9F9F9]">
@@ -18,7 +21,7 @@ export default function EventsClient() {
         <div className="pt-[84px] md:pt-[96px]">
           {/* 見出しはオレンジのバーと明朝系フォントで揃えます。 */}
           {/* デスクトップの左右ガイド余白は研究・作品紹介ページの128pxに揃えます。 */}
-          <section className="px-4 pt-2 md:px-[128px]">
+          <section data-reveal className="px-4 pt-2 md:px-[128px]">
             <div className="flex items-center gap-3">
               <span className="h-[32px] w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
               <h1 className="text-[24px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
@@ -33,7 +36,7 @@ export default function EventsClient() {
 
           {/* 「Coming Soon」エリアは角丸の大きなカードで、PC/モバイル共通の雰囲気を保ちます。 */}
           {/* コンテンツカードも同じガイド幅で揃えて全体の統一感を出します。 */}
-          <section className="mt-8 px-4 pb-16 md:px-[128px]">
+          <section data-reveal className="mt-8 px-4 pb-16 md:px-[128px]">
             <div className="flex h-[240px] items-center justify-center rounded-[24px] border border-[#E6E9EC] bg-[#ECEFF1] px-6 text-center shadow-[0_8px_24px_rgba(46,52,55,0.08)] md:h-[420px]">
               <div className="space-y-3">
                 <p className="text-[22px] font-semibold tracking-[0.06em] text-[#6A7378] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px]">

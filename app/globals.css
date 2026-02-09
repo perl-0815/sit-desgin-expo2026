@@ -27,6 +27,25 @@ body {
     "Yu Gothic", "Meiryo", sans-serif;
 }
 
+/* ページ内セクションのスライドイン(左→右) + フェードインを共通化します。 */
+body.page-reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 700ms ease, transform 700ms ease;
+  will-change: opacity, transform;
+}
+
+body.page-reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.page-reveal-ready [data-reveal] {
+    transition: none;
+  }
+}
+
 /* 画像読み込み用のスケルトンシマーを共通で使えるようにします。 */
 @keyframes skeleton-shimmer {
   0% {

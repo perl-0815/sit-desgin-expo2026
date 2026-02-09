@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import Footer from "../../../components/Footer"
 import GlobalHeader from "../../../components/GlobalHeader"
 import { SkeletonLoader } from "../../../components/SkeletonLoader"
+import useSectionReveal from "../../../components/useSectionReveal"
 
 type ExhibitionDetailClientProps = {
   id?: string
@@ -54,6 +55,9 @@ export default function ExhibitionDetailClient({
   const [exhibition, setExhibition] = useState<Exhibition | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // 体験展示の詳細ページにスライドインを適用します。
+  useSectionReveal()
 
   useEffect(() => {
     let active = true
@@ -174,7 +178,7 @@ export default function ExhibitionDetailClient({
           </div>
         </div>
       ) : (
-        <section className="px-4 pb-12">
+        <section data-reveal className="px-4 pb-12">
           <div className="flex flex-col gap-4">
             <div className="space-y-1">
               {loading ? (

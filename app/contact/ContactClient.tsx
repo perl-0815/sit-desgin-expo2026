@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
+import useSectionReveal from "../components/useSectionReveal"
 
 const contactEmail = "cy22000@shibaura-it.ac.jp"
 // お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
@@ -12,6 +13,9 @@ const contactFormUrl = "#"
 export default function ContactClient() {
   const [toastMessage, setToastMessage] = useState("")
   const [isToastVisible, setIsToastVisible] = useState(false)
+
+  // お問い合わせページの各セクションにスライドインを適用します。
+  useSectionReveal()
 
   const showToast = (message: string) => {
     setToastMessage(message)
@@ -99,7 +103,10 @@ export default function ContactClient() {
       {/* デスクトップは左右2カラムで配置し、各カラムの情報密度を揃えます。 */}
       <div className="flex flex-col md:flex-row md:gap-[64px]">
         {/* メールお問い合わせブロック */}
-        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0">
+        <section
+          data-reveal
+          className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0"
+        >
           {/* 見出し下のラインカラーはFigma指定のソーシャルカラーに合わせます。 */}
           <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
             <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
@@ -139,7 +146,10 @@ export default function ContactClient() {
         </section>
 
         {/* その他方法のお問い合わせブロック */}
-        <section className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]">
+        <section
+          data-reveal
+          className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]"
+        >
           <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
             <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
               その他方法のお問い合せ
