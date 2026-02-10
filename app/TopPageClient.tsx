@@ -167,8 +167,8 @@ export default function TopPageClient({
         className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[96px] md:pt-[96px]"
       >
         <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
-        {/* デスクトップでは見出しを中央寄せにして視線が散らないようにします。 */}
-        <div className="border-b border-[#FB9678] pb-1 md:text-center">
+        {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
+        <div className="border-b border-[#FB9678] pb-1 text-center">
           <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
             開催情報
           </p>
@@ -262,9 +262,9 @@ export default function TopPageClient({
           <div className="hidden px-4 pt-4 md:flex md:justify-center">
             <div className="max-w-[768px] text-center text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
               <p className="mb-0">
-                芝浦工業大学デザイン工学部の学生・大学院生による、
+                芝浦工業大学デザイン工学部の学生による、
               </p>
-              <p className="mb-0">それぞれの研究を公に展示する場です。</p>
+              <p className="mb-0">それぞれの研究を展示する場です。</p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p className="mb-0">
                 ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
@@ -282,14 +282,14 @@ export default function TopPageClient({
               <p className="mb-0">
                 芝浦工業大学デザイン工学部の学生による、
               </p>
-              <p className="mb-0">それぞれの研究を公に発表する場です。</p>
+              <p className="mb-0">それぞれの研究を展示する場です。</p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p className="mb-0">
-                ここには、プロダクト、システム、UX、感性、理論の探求など、デザイン工学という広い領域における多様な研究が集まります。
+                ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。
               </p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p>
-                具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに提示する空間です。
+                具体的な物として展示されるものもあれば、形のないシステムやアプリの提案、あるいは思考や概念などさまざまな研究があります。学生一人ひとりが積み上げてきた探求の軌跡を、ありのままに展示する空間です。
               </p>
             </div>
           </div>
@@ -458,10 +458,10 @@ export default function TopPageClient({
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <p className="text-[12px] font-medium leading-[1.5] text-[#4B5459]">
+                    <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459]">
                       {mobilePreviewItem.title}
                     </p>
-                    <p className="text-[12px] text-[#6A7378]">
+                    <p className="text-left text-[12px] text-[#6A7378]">
                       {mobilePreviewItem.author}
                     </p>
                   </Link>
