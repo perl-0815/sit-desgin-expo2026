@@ -409,10 +409,9 @@ export default function TopPageClient({
               研究・作品紹介
             </p>
           </div>
-          <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-center md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
-            研究の概要をまとめて閲覧することができます。
-            <br className="hidden md:block" />
-            また、大学でどのような作品を作ってきたのかも見ることができます。
+          {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
+          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
+            研究や作品をコース・研究室ごとに閲覧できます。
           </p>
           {/* モバイルは左右にカードを見せつつ、右から左に流れるフェードで切り替えます。 */}
           <div className="mt-6 md:hidden">
@@ -583,7 +582,8 @@ export default function TopPageClient({
               土日限定のイベント
             </p>
           </div>
-          <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-center md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
+          {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
+          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
             卒業生と直接コミュニケーションをとることができる座談会や、体験展示イベントを予定しています。
           </p>
           {/* イベント詳細が準備中のため、トップページの画像枠も「Coming Soon」に統一します。 */}
@@ -649,7 +649,8 @@ export default function TopPageClient({
                     卒業生の進路
                   </p>
                 </div>
-                <p className="mt-4 text-[13px] leading-[1.9] text-[#4B5459] md:text-[15px] md:leading-[2.2] md:tracking-[0.04em]">
+                {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
+                <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
                   卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
                 </p>
               </div>
@@ -760,8 +761,8 @@ export default function TopPageClient({
           {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}
           <div className="mt-4 flex flex-col gap-6 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
             <div>
-              {/* 見出し下の線はFigmaに合わせて361pxで止めます。 */}
-              <div className="border-b-2 border-[#FB9678] pb-1 md:w-[361px]">
+              {/* 見出し下の線は下のテキストボックス幅に揃えるため、固定幅ではなく左カラム全幅に合わせます。 */}
+              <div className="w-full border-b-2 border-[#FB9678] pb-1">
                 <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
                   アクセス
                 </p>
@@ -812,15 +813,19 @@ export default function TopPageClient({
               <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
                 <Link
                   href="/about"
-                  className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   豊洲駅から
+                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
+                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/about"
-                  className="flex flex-1 items-center justify-center rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   越中島駅から
+                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
+                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
                 </Link>
               </div>
             </div>

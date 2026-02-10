@@ -589,7 +589,8 @@ export default function ResearchDetailClient({
                         >
                           {item.question}
                         </p>
-                        <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                        {/* Q&A本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
+                        <p className="mt-2 text-[15px] leading-[2.2] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
                           {item.answer}
                         </p>
                       </div>

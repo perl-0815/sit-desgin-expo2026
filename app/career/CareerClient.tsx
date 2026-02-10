@@ -81,15 +81,17 @@ const toUniqueList = (items: string[], limit = 5) => {
 }
 
 const buildJobLabels = (career: Career) => {
-  // ラベルは「職種」「業界」の具体値を表示します。
+  // ラベルは職種を基本表示し、未入力の場合のみ業種（またはカテゴリ分類）で代替します。
   const jobType = normalizeText(career.job_type)
-  // 業界ラベルは業種を優先し、未入力時のみカテゴリ分類にフォールバックします。
   const industry =
     normalizeText(career.industry) || normalizeText(career.category_type)
-  return [
-    jobType ? `${jobType}` : "",
-    industry ? ` ${industry}` : "",
-  ].filter(Boolean)
+  if (jobType) {
+    return [jobType]
+  }
+  if (industry) {
+    return [industry]
+  }
+  return []
 }
 
 const buildCourseLabel = (career: Career) => {
