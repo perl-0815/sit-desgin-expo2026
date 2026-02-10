@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-
+import CircularLensEffect from "./CircularLensEffect"
 const SCROLL_PAGES = 2.0
 
 export default function KeyVisual() {
@@ -57,17 +57,19 @@ export default function KeyVisual() {
   const colorRevealed = progress > 0.05
 
   const horizontalLayers = [
-    { src: "/key-visual/horizontal/hoka.svg", w: 1280, h: 720, x: 640, y: 360, scale: 1, rotate: 0, z: -30, opacity: 1, animate: false },
-    { src: "/key-visual/horizontal/setu.svg", w: 509, h: 519, x: -49, y: 158.971, scale: 1, rotate: 0, z: -20, opacity: 1, animate: false },
-    { src: "/key-visual/horizontal/setu-color.svg", w: 509, h: 519, x: -49, y: 159.071, scale: 1, rotate: 0, z: -21, opacity: colorRevealed ? 1 : 0, animate: true },
-    { src: "/key-visual/horizontal/ten.svg", w: 521, h: 549, x: 535, y: 360, scale: 1, rotate: 0, z: -9, opacity: 1, animate: false },
-    { src: "/key-visual/horizontal/ten-color.svg", w: 521, h: 549, x: 535, y: 368, scale: 1.03, rotate: 0, z: -10, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/horizontal/hoka.svg", w: 1280, h: 720, x: 618, y: 360, scale: 1, rotate: 0, z: -30, opacity: 1, animate: false },
+    { src: "/key-visual/horizontal/setu.svg", w: 509, h: 519, x: -71, y: 158.971, scale: 1, rotate: 0, z: -20, opacity: 1, animate: false },
+    { src: "/key-visual/horizontal/setu-color.svg", w: 509, h: 519, x: -71, y: 159.071, scale: 1, rotate: 0, z: -21, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/center-text.svg", w: 179, h: 179, x: 89.5, y: 89.5, scale: 1, rotate: 0, z: -5, opacity: 1, animate: false },
+    { src: "/key-visual/horizontal/ten.svg", w: 521, h: 549, x: 513, y: 360, scale: 1, rotate: 0, z: -9, opacity: 1, animate: false },
+    { src: "/key-visual/horizontal/ten-color.svg", w: 521, h: 549, x: 513, y: 368, scale: 1.03, rotate: 0, z: -10, opacity: colorRevealed ? 1 : 0, animate: true },
   ]
 
   const verticalLayers = [
     { src: "/key-visual/vertical/hoka.svg", w: 1080, h: 1920, x: 540, y: 960, scale: 1, rotate: 0, z: -30, opacity: 1, animate: false },
     { src: "/key-visual/vertical/setu.svg", w: 649, h: 648, x: 203, y: -119, scale: 0.98, rotate: 0, z: -20, opacity: 1, animate: false },
     { src: "/key-visual/vertical/setu-color.svg", w: 649, h: 648, x: 203, y: -126, scale: 1, rotate: 0, z: -21, opacity: colorRevealed ? 1 : 0, animate: true },
+    { src: "/key-visual/center-text.svg", w: 179, h: 179, x: 89.5, y: 89.5, scale: 1.69, rotate: 0, z: -5, opacity: 1, animate: false },
     { src: "/key-visual/vertical/ten.svg", w: 600, h: 651, x: 439, y: 775, scale: 1, rotate: 0, z: -9, opacity: 1, animate: false },
     { src: "/key-visual/vertical/ten-color.svg", w: 600, h: 651, x: 439, y: 794, scale: 1, rotate: 0, z: -10, opacity: colorRevealed ? 1 : 0, animate: true },
   ]
@@ -75,7 +77,6 @@ export default function KeyVisual() {
   const layers = layout === "vertical" ? verticalLayers : horizontalLayers
   const base = layout === "vertical" ? verticalBase : horizontalBase
   const backgroundSrc = layout === "vertical" ? "/key-visual/back-vertical.png" : "/key-visual/back-horizontal.png"
-
   return (
     <div ref={containerRef} style={{ height: `${SCROLL_PAGES * 100}vh` }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
@@ -100,12 +101,43 @@ export default function KeyVisual() {
           />
           {layers.map((l) => {
             const isColor = l.src.includes("-color")
+            const isCenterText = l.src === "/key-visual/center-text.svg"
             const common = {
               transform: `translate(-50%, -50%) translate(${l.x}px, ${l.y}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
               zIndex: l.z,
               opacity: l.opacity,
               transition: l.animate ? "opacity 0.8s ease-in" : undefined,
             } as const
+
+            if (isCenterText) {
+              return (
+                <div
+                  key={l.src}
+                  aria-hidden="true"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
+                  style={{ ...common, width: l.w, height: l.h }}
+                >
+                  <CircularLensEffect
+                    width={l.w}
+                    height={l.h}
+                    textureSrc={l.src}
+                    lens={{
+                      x: l.w / 2,
+                      y: l.h / 2,
+                      radius: Math.min(l.w, l.h) * 0.48,
+                      strength: 3.2,
+                      edgeSoftness: 3.5,
+                      contourWidth: 11,
+                      contourStrength: 10,
+                      chromaticAberration: 1.8,
+                      reflectionStrength: 0.24,
+                      dispersionStrength: 0.23,
+                    }}
+                    className="absolute inset-0"
+                  />
+                </div>
+              )
+            }
 
             if (isColor) {
               return (
