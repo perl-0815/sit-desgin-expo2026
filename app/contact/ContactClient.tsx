@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
@@ -11,18 +11,27 @@ const contactEmail = "cy22000@shibaura-it.ac.jp"
 const contactFormUrl = "#"
 
 export default function ContactClient() {
-  const [toastMessage, setToastMessage] = useState("")
-  const [isToastVisible, setIsToastVisible] = useState(false)
+  const [copyStatus, setCopyStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  )
+  const copyTimeoutRef = useRef<number | null>(null)
 
   // お問い合わせページの各セクションにスライドインを適用します。
   useSectionReveal()
 
-  const showToast = (message: string) => {
-    setToastMessage(message)
-    setIsToastVisible(true)
-    window.setTimeout(() => {
-      setIsToastVisible(false)
-    }, 2400)
+  const resetCopyStatus = () => {
+    setCopyStatus("idle")
+  }
+
+  const showInlineMessage = (status: "success" | "error") => {
+    setCopyStatus(status)
+    if (copyTimeoutRef.current) {
+      window.clearTimeout(copyTimeoutRef.current)
+    }
+    copyTimeoutRef.current = window.setTimeout(() => {
+      resetCopyStatus()
+      copyTimeoutRef.current = null
+    }, 3000)
   }
 
   const handleCopyEmail = async () => {
@@ -56,7 +65,7 @@ export default function ContactClient() {
 
     try {
       if (window.isSecureContext && (await tryClipboardApi())) {
-        showToast("メールアドレスをコピーしました")
+        showInlineMessage("success")
         return
       }
     } catch {
@@ -65,9 +74,9 @@ export default function ContactClient() {
 
     const succeeded = fallbackCopy()
     if (succeeded) {
-      showToast("メールアドレスをコピーしました")
+      showInlineMessage("success")
     } else {
-      showToast("コピーに失敗しました。もう一度お試しください")
+      showInlineMessage("error")
     }
   }
 
@@ -122,25 +131,37 @@ export default function ContactClient() {
               type="button"
               onClick={handleCopyEmail}
               className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#EBEEF0] px-3 py-2 md:mx-auto md:min-h-[56px] md:max-w-[361px] md:px-5 md:py-3"
+              aria-live="polite"
               aria-label={`${contactEmail} をコピー`}
             >
-              <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                {contactEmail}
-              </span>
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4 text-[#6A7378]"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M16 4H8C6.89543 4 6 4.89543 6 6V16M8 8H16C17.1046 8 18 8.89543 18 10V18C18 19.1046 17.1046 20 16 20H8C6.89543 20 6 19.1046 6 18V10C6 8.89543 6.89543 8 8 8Z"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              {copyStatus === "idle" ? (
+                <>
+                  <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                    {contactEmail}
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 text-[#6A7378]"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <path
+                      d="M16 4H8C6.89543 4 6 4.89543 6 6V16M8 8H16C17.1046 8 18 8.89543 18 10V18C18 19.1046 17.1046 20 16 20H8C6.89543 20 6 19.1046 6 18V10C6 8.89543 6.89543 8 8 8Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </>
+              ) : (
+                // コピー結果の文言はメール欄内に表示し、3秒後に戻します。
+                <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                  {copyStatus === "success"
+                    ? "コピーしました！"
+                    : "コピーに失敗しました。"}
+                </span>
+              )}
             </button>
           </div>
         </section>
@@ -198,19 +219,6 @@ export default function ContactClient() {
           </div>
         </section>
       </div>
-      </div>
-
-      {/* トーストはページ全体で使えるよう最下部に固定します。 */}
-      <div
-        className={`fixed inset-x-0 bottom-6 z-50 flex justify-center transition duration-300 ${
-          isToastVisible ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <div className="max-w-[90%] rounded-full bg-[#2E3437] px-5 py-3 text-[13px] tracking-[0.02em] text-white shadow-[0_8px_24px_rgba(46,52,55,0.2)] md:text-[14px]">
-          {toastMessage}
-        </div>
       </div>
 
       <Footer />
