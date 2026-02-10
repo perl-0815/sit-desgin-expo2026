@@ -639,8 +639,8 @@ export default function TopPageClient({
         </div>
 
         <div className="mx-auto md:max-w-[1024px]">
-          <div className="mt-4 flex flex-col gap-8 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
-            <div className="flex flex-col md:min-h-[463px]">
+          <div className="mt-4 flex flex-col gap-8 md:mt-0 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start md:gap-[64px] lg:grid-cols-[480px_480px]">
+            <div className="flex w-full flex-col md:min-h-[463px]">
               {/* タイトル直下の本文は上詰めに固定し、下段の余白は別コンテナで扱います。 */}
               <div>
                 {/* 見出し下の線は左カラム幅に合わせ、右側にグラフが来る構成にします。 */}
@@ -664,7 +664,8 @@ export default function TopPageClient({
                 </Link>
               </div>
             </div>
-            <div className="flex justify-center md:justify-end">
+            {/* 中間幅のデスクトップでは右カラムが縮むため、要素がはみ出さないよう幅を可変にします。 */}
+            <div className="flex w-full justify-center md:justify-end">
               <CareerPieChart
                 gradPercent={gradPercent}
                 jobPercent={jobPercent}

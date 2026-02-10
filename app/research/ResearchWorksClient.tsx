@@ -139,7 +139,9 @@ const LabKeywords = ({ keywords, isExpanded, labId }: LabKeywordsProps) => {
         <span
           key={`${labId}-${keyword}`}
           className={`rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459] md:text-[12px] ${
-            !isExpanded && index >= 3 ? "md:hidden" : ""
+            // モバイル/デスクトップともに未展開時は3件まで表示します。
+            // これに加えてコンテナ側の高さ制限で改行分は見切れるようにします。
+            !isExpanded && index >= 3 ? "hidden" : ""
           }`}
         >
           {keyword}
