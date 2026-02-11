@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     // トップページの紹介文（卒業・修了研究展とは）に合わせ、SNS上でも意図した説明が表示されるように更新します。
     "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
   // 本番ドメインを指定し、OG/Twitter の絶対URL解決に使います。
-  metadataBase: new URL("https://sit-shibaura-design2026.jp"),
+  metadataBase: new URL("https://www.sit-shibaura-design2026.jp"),
   // public/icon/favicon.jpg から生成したファビコン/タッチアイコンを参照します。
   // favicon.ico は public 配下に置き、App Router の画像処理を避けます。
   icons: {
