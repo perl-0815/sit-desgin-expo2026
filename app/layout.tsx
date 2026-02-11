@@ -4,6 +4,17 @@ import localFont from "next/font/local"
 
 import "./globals.css"
 
+// SNS クローラが参照する絶対URLの基準を実行環境ごとに切り替えます。
+// 1) NEXT_PUBLIC_SITE_URL が設定されている場合はそれを最優先（本番の正規URLを明示する用途）。
+// 2) 未設定時は Vercel が自動注入する VERCEL_URL を使ってプレビューURLを組み立てる。
+// 3) どちらも無いローカル実行時は本番公開ドメインをフォールバックにする。
+// これにより、共有先が本番/プレビューどちらでも OG/Twitter 画像URLが実在ドメインに揃います。
+const resolvedSiteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://www.sit-design-expo2026.jp")
+
 // 日本語本文はNoto Sans JPを標準にし、Figma指定の字形に近づけます。
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -58,8 +69,8 @@ export const metadata: Metadata = {
   description:
     // トップページの紹介文（卒業・修了研究展とは）に合わせ、SNS上でも意図した説明が表示されるように更新します。
     "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
-  // 本番ドメインを指定し、OG/Twitter の絶対URL解決に使います。
-  metadataBase: new URL("https://www.sit-shibaura-design2026.jp"),
+  // 実行環境に応じた公開URLを指定し、OG/Twitter の絶対URL解決に使います。
+  metadataBase: new URL(resolvedSiteUrl),
   // public/icon/favicon.jpg から生成したファビコン/タッチアイコンを参照します。
   // favicon.ico は public 配下に置き、App Router の画像処理を避けます。
   icons: {
