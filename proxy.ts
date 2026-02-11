@@ -6,6 +6,30 @@ import {
   sanitizeFromPath,
 } from "./lib/dev-auth";
 
+// SNS のリンクプレビュー生成で使われる主要クローラの User-Agent 断片。
+// 認証を強制すると OG/Twitter メタタグを読めず、共有カード画像が表示されなくなるため、
+// プレビュー生成に必要なリクエストだけを最小限で通過させる。
+const SOCIAL_PREVIEW_BOT_UA_PATTERNS = [
+  "twitterbot",
+  "facebookexternalhit",
+  "facebot",
+  "linkedinbot",
+  "slackbot-linkexpanding",
+  "discordbot",
+  "whatsapp",
+  "line",
+];
+
+// User-Agent が SNS プレビュー用クローラかどうかを判定する。
+// 大文字小文字の揺れに対応するため lower-case 化して部分一致で評価する。
+const isSocialPreviewBot = (userAgent: string | null): boolean => {
+  if (!userAgent) return false;
+  const normalizedUserAgent = userAgent.toLowerCase();
+  return SOCIAL_PREVIEW_BOT_UA_PATTERNS.some((pattern) =>
+    normalizedUserAgent.includes(pattern)
+  );
+};
+
 // 開発用の簡易認証。
 // `develop=true`（または `DEVELOP=true`）のときだけ有効化し、
 // 認証済みクッキーが無い場合はパスコード画面へリダイレクトする。
@@ -17,6 +41,13 @@ export const proxy = (req: NextRequest) => {
 
   // 認証ページと認証APIは除外（無限ループ回避のため）。
   if (pathname === "/dev-auth" || pathname === "/api/dev-auth") {
+    return NextResponse.next();
+  }
+
+  // SNS クローラには認証を課さず、リンクプレビュー生成に必要なメタ情報を取得可能にする。
+  // これにより DEVELOP=true の運用時でも共有カード画像が表示される。
+  const userAgent = req.headers.get("user-agent");
+  if (isSocialPreviewBot(userAgent)) {
     return NextResponse.next();
   }
 
