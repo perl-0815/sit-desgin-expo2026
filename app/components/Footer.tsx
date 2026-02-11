@@ -39,7 +39,13 @@ export default function Footer({ className }: FooterProps) {
           </p>
           <div className="space-y-1 text-[12px] tracking-normal">
             <p>shibadesign2026sotsuten@gmail.com</p>
-            <p className="underline">お問い合せフォームはこちらから</p>
+            {/* お問い合わせフォームへのリンクは最新のフォームURLに差し替えます。 */}
+            <a
+              href="https://forms.gle/9pBuxBWgC9YuFo8j8"
+              className="underline"
+            >
+              お問い合せフォームはこちらから
+            </a>
           </div>
         </div>
 
