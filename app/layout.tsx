@@ -15,6 +15,11 @@ const resolvedSiteUrl =
     ? `https://${process.env.VERCEL_URL}`
     : "https://www.sit-design-expo2026.jp")
 
+// SNS 共有画像は各プラットフォームで URL 単位に強くキャッシュされるため、
+// 画像内容やOG設定を更新しても即時反映されないことがある。
+// クエリ付きの固定URLを使って再クロールを確実に発生させる。
+const socialPreviewImageUrl = "/image/preview.png?v=20260212a"
+
 // 日本語本文はNoto Sans JPを標準にし、Figma指定の字形に近づけます。
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
@@ -86,14 +91,16 @@ export const metadata: Metadata = {
     title: "芝浦工業大学デザイン工学部卒業展示2026",
     description:
       "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
-    url: "/",
+    // 共有対象ページの正規URLを絶対URLで明示し、クローラの解釈差分を減らす。
+    url: resolvedSiteUrl,
     type: "website",
     siteName: "SIT DESIGN EXPO 2026",
     images: [
       {
-        url: "/image/preview.png",
+        url: socialPreviewImageUrl,
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: "芝浦工業大学デザイン工学部卒業展示2026 キービジュアル",
       },
     ],
@@ -106,7 +113,7 @@ export const metadata: Metadata = {
       "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
     images: [
       {
-        url: "/image/preview.png",
+        url: socialPreviewImageUrl,
         alt: "芝浦工業大学デザイン工学部卒業展示2026 キービジュアル",
       },
     ],
