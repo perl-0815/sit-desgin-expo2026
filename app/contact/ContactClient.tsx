@@ -6,9 +6,9 @@ import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
 import useSectionReveal from "../components/useSectionReveal"
 
-const contactEmail = "cy22000@shibaura-it.ac.jp"
+const contactEmail = "shibadesign2026sotsuten@gmail.com"
 // お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
-const contactFormUrl = "#"
+const contactFormUrl = "https://forms.gle/9pBuxBWgC9YuFo8j8"
 
 export default function ContactClient() {
   const [copyStatus, setCopyStatus] = useState<"idle" | "success" | "error">(

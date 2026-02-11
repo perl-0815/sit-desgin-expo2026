@@ -38,7 +38,7 @@ export default function Footer({ className }: FooterProps) {
             CONTACT
           </p>
           <div className="space-y-1 text-[12px] tracking-normal">
-            <p>cy22000@shibaura-it.ac.jp</p>
+            <p>shibadesign2026sotsuten@gmail.com</p>
             <p className="underline">お問い合せフォームはこちらから</p>
           </div>
         </div>
