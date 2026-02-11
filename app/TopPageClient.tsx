@@ -46,6 +46,8 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
+  // 駅から大学までの動画は未公開のため、トップページで準備中モーダルの開閉状態を管理します。
+  const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total
   const gradPercent =
@@ -118,6 +120,17 @@ export default function TopPageClient({
     (safeMobilePreviewIndex + 1) % visiblePreviewItems.length
   const mobilePrevItem = visiblePreviewItems[mobilePrevIndex]
   const mobileNextItem = visiblePreviewItems[mobileNextIndex]
+
+  // 駅導線ボタンを押したときは外部遷移せず、準備中案内をモーダルで表示します。
+  const handleGuideVideoClick = () => {
+    setIsGuideVideoModalOpen(true)
+  }
+
+  // モーダルを閉じる処理を共通化し、背景クリック・閉じるボタンの両方で再利用します。
+  const handleCloseGuideVideoModal = () => {
+    setIsGuideVideoModalOpen(false)
+  }
+
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
@@ -811,22 +824,24 @@ export default function TopPageClient({
                 (Youtubeに遷移します。)
               </p>
               <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
-                <Link
-                  href="/about"
+                <button
+                  type="button"
+                  onClick={handleGuideVideoClick}
                   className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   豊洲駅から
                   {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
                   <img src="/icon/link.svg" alt="" className="h-4 w-4" />
-                </Link>
-                <Link
-                  href="/about"
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGuideVideoClick}
                   className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   越中島駅から
                   {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
                   <img src="/icon/link.svg" alt="" className="h-4 w-4" />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -839,6 +854,55 @@ export default function TopPageClient({
           <Footer className="w-full" />
         </div>
       </div>
+
+      {/* 駅ガイド動画が未完成のため、クリック時はページ遷移ではなく準備中モーダルを表示します。 */}
+      {isGuideVideoModalOpen ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2E3437]/55 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="guide-video-modal-title"
+          onClick={handleCloseGuideVideoModal}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-2xl bg-[#F9F9F9] p-6 text-center shadow-[0_0_16px_rgba(46,52,55,0.2)] md:p-8"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p
+              id="guide-video-modal-title"
+              className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]"
+            >
+              現在準備中
+            </p>
+            <p className="mt-3 text-[14px] leading-[1.9] text-[#4B5459] md:text-[15px]">
+              駅から大学までの行き方動画は現在準備中です。
+              <br />
+              公開まで今しばらくお待ちください。
+            </p>
+            <button
+              type="button"
+              onClick={handleCloseGuideVideoModal}
+              // 作品ページの「閉じる」ボタン表現（淡いグレーの丸ピル＋マイナス）に揃えてUIの一貫性を保ちます。
+              className="mt-6 inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:text-[15px]"
+            >
+              閉じる
+              <svg
+                aria-hidden="true"
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <path
+                  d="M6 12H18"
+                  stroke="#4B5459"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
