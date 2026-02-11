@@ -10,14 +10,27 @@ import {
 // 認証を強制すると OG/Twitter メタタグを読めず、共有カード画像が表示されなくなるため、
 // プレビュー生成に必要なリクエストだけを最小限で通過させる。
 const SOCIAL_PREVIEW_BOT_UA_PATTERNS = [
+  // 主要SNSクローラ
   "twitterbot",
   "facebookexternalhit",
   "facebot",
   "linkedinbot",
   "slackbot-linkexpanding",
   "discordbot",
+  "discord",
   "whatsapp",
   "line",
+  // 画像カード生成時に使われることがある周辺UA
+  "telegrambot",
+  "skypeuripreview",
+  "meta-externalagent",
+  "meta-externalfetcher",
+  // 汎用クローラ語彙（サービス固有UAが変わっても拾えるようにする）
+  "bot",
+  "crawler",
+  "spider",
+  "slurp",
+  "preview",
 ];
 
 // User-Agent が SNS プレビュー用クローラかどうかを判定する。
