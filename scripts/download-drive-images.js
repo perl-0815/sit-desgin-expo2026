@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports */
+// このスクリプトは Node.js 単体実行の CommonJS で運用しているため、require を維持する。
+// 既存の実行方法や依存解決を変えずに lint エラーのみ解消する目的で、このファイルに限定して許可する。
 // Google Drive の画像URLをローカルにダウンロードし、CSVの画像URLをローカルパスに整形する。
 // 変更理由: 手動ダウンロードを自動化し、既存のアップロードスクリプトの前提（ローカルに画像がある）を満たすため。
 
