@@ -4,21 +4,19 @@ import localFont from "next/font/local"
 
 import "./globals.css"
 
-// SNS クローラが参照する絶対URLの基準を実行環境ごとに切り替えます。
-// 1) NEXT_PUBLIC_SITE_URL が設定されている場合はそれを最優先（本番の正規URLを明示する用途）。
-// 2) 未設定時は Vercel が自動注入する VERCEL_URL を使ってプレビューURLを組み立てる。
-// 3) どちらも無いローカル実行時は本番公開ドメインをフォールバックにする。
-// これにより、共有先が本番/プレビューどちらでも OG/Twitter 画像URLが実在ドメインに揃います。
+// SNS 共有の正規URLは常に本番ドメインを基準にします。
+// 以前は VERCEL_URL を優先していたため、カスタムドメインでアクセスしても
+// og:url / og:image が *.vercel.app になるケースがあり、媒体によって
+// プレビュー画像が出ない要因になっていました。
+// NEXT_PUBLIC_SITE_URL を最優先し、未設定時は本番公開ドメインへ固定します。
 const resolvedSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://www.sit-design-expo2026.jp")
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sit-design-expo2026.jp"
 
 // SNS 共有画像は各プラットフォームで URL 単位に強くキャッシュされるため、
 // 画像内容やOG設定を更新しても即時反映されないことがある。
+// 共有媒体によっては相対URL解釈で取りこぼす場合があるため、絶対URLで明示します。
 // クエリ付きの固定URLを使って再クロールを確実に発生させる。
-const socialPreviewImageUrl = "/image/preview.png?v=20260212a"
+const socialPreviewImageUrl = `${resolvedSiteUrl}/image/preview.png?v=20260212a`
 
 // 日本語本文はNoto Sans JPを標準にし、Figma指定の字形に近づけます。
 const notoSansJP = Noto_Sans_JP({
