@@ -263,14 +263,12 @@ export default function KeyVisual() {
                     lens={{
                       x: l.w / 2,
                       y: l.h / 2,
-                      radius: Math.min(l.w, l.h) * 0.48,
-                      strength: 3.2,
-                      edgeSoftness: 3.5,
-                      contourWidth: 11,
-                      contourStrength: 10,
-                      chromaticAberration: 1.8,
-                      reflectionStrength: 0.24,
-                      dispersionStrength: 0.23,
+                      radius: Math.min(l.w / 2, l.h / 2) * 0.905,
+                      refraction: 1,
+                      depth: 30,
+                      dispersion: 0.6,
+                      frost: 1,
+                      spread: 4,
                     }}
                     className="absolute inset-0"
                   />

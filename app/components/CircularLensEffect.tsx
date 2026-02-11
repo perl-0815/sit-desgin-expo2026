@@ -6,13 +6,11 @@ type LensConfig = {
   x: number
   y: number
   radius: number
-  strength?: number
-  edgeSoftness?: number
-  contourWidth?: number
-  contourStrength?: number
-  chromaticAberration?: number
-  reflectionStrength?: number
-  dispersionStrength?: number
+  refraction?: number
+  depth?: number
+  dispersion?: number
+  frost?: number
+  spread?: number
 }
 
 type CircularLensEffectProps = {
@@ -41,13 +39,11 @@ uniform sampler2D u_texture;
 uniform vec2 u_resolution;
 uniform vec2 u_centerPx;
 uniform float u_radiusPx;
-uniform float u_strength;
-uniform float u_edgeSoftnessPx;
-uniform float u_contourWidthPx;
-uniform float u_contourStrength;
-uniform float u_chromaticAberrationPx;
-uniform float u_reflectionStrength;
-uniform float u_dispersionStrength;
+uniform float u_refraction;
+uniform float u_depth;
+uniform float u_dispersion;
+uniform float u_frost;
+uniform float u_spreadPx;
 uniform float u_opacity;
 
 varying vec2 v_uv;
@@ -57,31 +53,47 @@ void main() {
   vec2 delta = fragPx - u_centerPx;
   float distPx = length(delta);
   vec2 dir = distPx > 0.0 ? normalize(delta) : vec2(0.0);
-
-  float ringDist = abs(distPx - u_radiusPx);
-  float contour = 1.0 - smoothstep(max(u_contourWidthPx - u_edgeSoftnessPx, 0.0), u_contourWidthPx + u_edgeSoftnessPx, ringDist);
-  float contourCore = 1.0 - clamp(ringDist / max(u_contourWidthPx, 0.0001), 0.0, 1.0);
-
-  float warpPx = contour * (u_contourStrength + contourCore * contourCore * u_strength);
-  vec2 samplePx = fragPx - dir * warpPx;
-  vec2 sampleUv = samplePx / u_resolution;
   vec4 baseColor = texture2D(u_texture, v_uv);
+  float rNorm = distPx / max(u_radiusPx, 0.0001);
+  float spreadNorm = u_spreadPx / max(u_radiusPx, 0.0001);
+  float coreMask = 1.0 - smoothstep(0.0, 0.86, rNorm);
+  float transitionMask = smoothstep(0.58, 1.02, rNorm);
+  float outerMask = 1.0 - smoothstep(1.04 + spreadNorm, 1.30 + spreadNorm, rNorm);
+  float edgeMask = transitionMask * outerMask;
+  float rimMask = 1.0 - smoothstep(0.0, 0.2 + spreadNorm * 0.38, abs(rNorm - 1.0));
+  float glassMask = clamp(coreMask * 0.2 + edgeMask * 0.82 + rimMask * 0.28, 0.0, 1.0);
 
-  vec2 ab = dir * (u_chromaticAberrationPx * contour);
-  vec3 distortedColor = vec3(
-    texture2D(u_texture, sampleUv + ab / u_resolution).r,
-    texture2D(u_texture, sampleUv).g,
-    texture2D(u_texture, sampleUv - ab / u_resolution).b
+  vec2 coreSampleUv = fragPx / u_resolution;
+  vec2 coreBlurOffset = vec2(max(0.4, u_frost * 0.65)) / u_resolution;
+  vec3 coreBlur =
+    texture2D(u_texture, coreSampleUv).rgb * 0.42 +
+    texture2D(u_texture, coreSampleUv + vec2(coreBlurOffset.x, 0.0)).rgb * 0.145 +
+    texture2D(u_texture, coreSampleUv - vec2(coreBlurOffset.x, 0.0)).rgb * 0.145 +
+    texture2D(u_texture, coreSampleUv + vec2(0.0, coreBlurOffset.y)).rgb * 0.145 +
+    texture2D(u_texture, coreSampleUv - vec2(0.0, coreBlurOffset.y)).rgb * 0.145;
+  float coreHaze = clamp((u_frost / 42.0) * coreMask, 0.0, 0.18);
+  vec3 colorAfterCore = mix(baseColor.rgb, mix(coreBlur, vec3(0.94, 0.96, 0.99), 0.24), coreHaze);
+
+  float edgeWarpFactor = edgeMask * (0.08 + 0.62 * edgeMask);
+  float edgeWarpPx = edgeWarpFactor * (u_refraction * 1.55 + u_depth * 0.44);
+  vec2 edgeSamplePx = fragPx - dir * edgeWarpPx;
+  vec2 edgeSampleUv = edgeSamplePx / u_resolution;
+  vec2 dispersionOffset = dir * (u_dispersion * (0.14 + edgeMask * 0.9 + rimMask * 0.45)) / u_resolution;
+  vec3 refractedColor = vec3(
+    texture2D(u_texture, edgeSampleUv + dispersionOffset).r,
+    texture2D(u_texture, edgeSampleUv).g,
+    texture2D(u_texture, edgeSampleUv - dispersionOffset).b
   );
 
-  float angle = atan(dir.y, dir.x);
-  float angleNorm = angle / 6.28318530718 + 0.5;
-  vec3 spectral = 0.5 + 0.5 * cos(6.28318530718 * (vec3(0.0, 0.33, 0.67) + angleNorm + contourCore * 0.12));
-  vec2 lightDir = normalize(vec2(-0.7, -0.6));
-  float highlight = pow(max(dot(dir, lightDir), 0.0), 14.0) * contour;
+  vec2 lightDir = normalize(vec2(-0.64, -0.77));
+  float rimHighlight = pow(max(dot(dir, lightDir), 0.0), 9.0) * rimMask;
+  float topHighlight = smoothstep(0.25, 1.0, v_uv.y) * edgeMask;
+  float highlight = (rimHighlight * 0.92 + topHighlight * 0.36) * clamp(u_depth / 18.0, 0.0, 1.0);
+  float shadow = smoothstep(-0.18, 1.0, dot(dir, normalize(vec2(0.74, 0.45)))) * edgeMask * clamp(u_depth / 20.0, 0.0, 0.32);
+  vec3 edgeColor = refractedColor + vec3(highlight) - vec3(shadow * 0.12);
+  float edgeMix = clamp(edgeMask * 0.64 + rimMask * 0.16, 0.0, 1.0);
 
-  vec3 ringOptics = spectral * (u_dispersionStrength * contour) + vec3(highlight * u_reflectionStrength);
-  vec3 mixed = mix(baseColor.rgb, distortedColor + ringOptics, contour);
+  vec3 mixed = mix(colorAfterCore, edgeColor, edgeMix);
 
   gl_FragColor = vec4(mixed, baseColor.a * u_opacity);
 }
@@ -166,13 +178,11 @@ export default function CircularLensEffect({
     const resolutionLocation = gl.getUniformLocation(program, "u_resolution")
     const centerLocation = gl.getUniformLocation(program, "u_centerPx")
     const radiusLocation = gl.getUniformLocation(program, "u_radiusPx")
-    const strengthLocation = gl.getUniformLocation(program, "u_strength")
-    const edgeSoftnessLocation = gl.getUniformLocation(program, "u_edgeSoftnessPx")
-    const contourWidthLocation = gl.getUniformLocation(program, "u_contourWidthPx")
-    const contourStrengthLocation = gl.getUniformLocation(program, "u_contourStrength")
-    const chromaticAberrationLocation = gl.getUniformLocation(program, "u_chromaticAberrationPx")
-    const reflectionStrengthLocation = gl.getUniformLocation(program, "u_reflectionStrength")
-    const dispersionStrengthLocation = gl.getUniformLocation(program, "u_dispersionStrength")
+    const refractionLocation = gl.getUniformLocation(program, "u_refraction")
+    const depthLocation = gl.getUniformLocation(program, "u_depth")
+    const dispersionLocation = gl.getUniformLocation(program, "u_dispersion")
+    const frostLocation = gl.getUniformLocation(program, "u_frost")
+    const spreadLocation = gl.getUniformLocation(program, "u_spreadPx")
     const opacityLocation = gl.getUniformLocation(program, "u_opacity")
     const textureLocation = gl.getUniformLocation(program, "u_texture")
 
@@ -202,16 +212,38 @@ export default function CircularLensEffect({
 
     let isDisposed = false
 
-    image.onload = () => {
-      if (isDisposed) {
+    const render = () => {
+      if (isDisposed || !image.complete) {
         return
       }
 
-      canvas.width = width
-      canvas.height = height
-      gl.viewport(0, 0, width, height)
+      const dpr = window.devicePixelRatio || 1
+      const rect = canvas.getBoundingClientRect()
+      const cssWidth = rect.width > 0 ? rect.width : width
+      const cssHeight = rect.height > 0 ? rect.height : height
+      const renderWidth = Math.max(1, Math.round(cssWidth * dpr))
+      const renderHeight = Math.max(1, Math.round(cssHeight * dpr))
+      const scaleX = renderWidth / width
+      const scaleY = renderHeight / height
+      const scale = (scaleX + scaleY) / 2
+
+      if (canvas.width !== renderWidth || canvas.height !== renderHeight) {
+        canvas.width = renderWidth
+        canvas.height = renderHeight
+      }
+
+      gl.viewport(0, 0, renderWidth, renderHeight)
       gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)
+
+      const sourceCanvas = document.createElement("canvas")
+      sourceCanvas.width = renderWidth
+      sourceCanvas.height = renderHeight
+      const sourceCtx = sourceCanvas.getContext("2d")
+      if (!sourceCtx) {
+        return
+      }
+      sourceCtx.drawImage(image, 0, 0, renderWidth, renderHeight)
 
       gl.bindTexture(gl.TEXTURE_2D, texture)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
@@ -219,23 +251,21 @@ export default function CircularLensEffect({
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas)
 
       gl.useProgram(program)
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
       gl.enableVertexAttribArray(positionLocation)
       gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
 
-      gl.uniform2f(resolutionLocation, width, height)
-      gl.uniform2f(centerLocation, lens.x, lens.y)
-      gl.uniform1f(radiusLocation, lens.radius)
-      gl.uniform1f(strengthLocation, lens.strength ?? 24)
-      gl.uniform1f(edgeSoftnessLocation, lens.edgeSoftness ?? 8)
-      gl.uniform1f(contourWidthLocation, lens.contourWidth ?? 10)
-      gl.uniform1f(contourStrengthLocation, lens.contourStrength ?? 8)
-      gl.uniform1f(chromaticAberrationLocation, lens.chromaticAberration ?? 1.2)
-      gl.uniform1f(reflectionStrengthLocation, lens.reflectionStrength ?? 0.18)
-      gl.uniform1f(dispersionStrengthLocation, lens.dispersionStrength ?? 0.16)
+      gl.uniform2f(resolutionLocation, renderWidth, renderHeight)
+      gl.uniform2f(centerLocation, lens.x * scaleX, lens.y * scaleY)
+      gl.uniform1f(radiusLocation, lens.radius * scale)
+      gl.uniform1f(refractionLocation, (lens.refraction ?? 5.6) * scale)
+      gl.uniform1f(depthLocation, (lens.depth ?? 6.2) * scale)
+      gl.uniform1f(dispersionLocation, (lens.dispersion ?? 1.4) * scale)
+      gl.uniform1f(frostLocation, (lens.frost ?? 4.0) * scale)
+      gl.uniform1f(spreadLocation, (lens.spread ?? 18.0) * scale)
       gl.uniform1f(opacityLocation, opacity)
       gl.uniform1i(textureLocation, 0)
 
@@ -244,8 +274,15 @@ export default function CircularLensEffect({
       gl.drawArrays(gl.TRIANGLES, 0, 6)
     }
 
+    image.onload = render
+    if (image.complete) {
+      render()
+    }
+    window.addEventListener("resize", render)
+
     return () => {
       isDisposed = true
+      window.removeEventListener("resize", render)
       gl.deleteTexture(texture)
       gl.deleteBuffer(positionBuffer)
       gl.deleteProgram(program)
@@ -257,13 +294,11 @@ export default function CircularLensEffect({
     lens.x,
     lens.y,
     lens.radius,
-    lens.strength,
-    lens.edgeSoftness,
-    lens.contourWidth,
-    lens.contourStrength,
-    lens.chromaticAberration,
-    lens.reflectionStrength,
-    lens.dispersionStrength,
+    lens.refraction,
+    lens.depth,
+    lens.dispersion,
+    lens.frost,
+    lens.spread,
     opacity,
   ])
 
