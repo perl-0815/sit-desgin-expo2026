@@ -2,22 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
-const SCROLL_PAGES = 2.0;
+const SCROLL_PAGES = 5.0;
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
+const COLOR_FADE_DURATION_MS = 800;
+const TE_FADE_DURATION_MS = 700;
+const FINAL_TO_ZOOM_THRESHOLD = 0.2;
+
 
 export default function KeyVisual() {
   const [scale, setScale] = useState(1);
   const [layout, setLayout] = useState<"horizontal" | "vertical">("horizontal");
   const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [colorShownProgress, setColorShownProgress] = useState<number | null>(null);
+  const [colorFadeCompleted, setColorFadeCompleted] = useState(false);
+  const [teShownProgress, setTeShownProgress] = useState<number | null>(null);
+  const [teFadeCompleted, setTeFadeCompleted] = useState(false);
+  const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const updateScale = () => {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const isVertical = vw / vh <= 3 / 4;
+      const isVertical = vw / vh <= 4 / 3;
       const base = isVertical ? verticalBase : horizontalBase;
       setLayout(isVertical ? "vertical" : "horizontal");
       setScale(
@@ -58,7 +67,76 @@ export default function KeyVisual() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const colorRevealed = progress > 0.05;
+  const colorRevealThreshold = 0.15;
+  const teRevealThreshold = 0.15;
+  const finalRevealThreshold = 0.15;
+  const colorRevealed = progress > colorRevealThreshold;
+  const teReadyByScroll =
+    colorShownProgress !== null && progress > colorShownProgress + teRevealThreshold;
+  const teRevealed = colorFadeCompleted && teReadyByScroll;
+  const finalReadyByScroll =
+    teShownProgress !== null && progress > teShownProgress + finalRevealThreshold;
+  const finalRevealed = teFadeCompleted && finalReadyByScroll;
+  const zoomReadyByScroll =
+    finalShownProgress !== null &&
+    progress > finalShownProgress + FINAL_TO_ZOOM_THRESHOLD;
+  const zoomStartProgress =
+    finalShownProgress !== null
+      ? finalShownProgress + FINAL_TO_ZOOM_THRESHOLD
+      : 1;
+  const zoomProgress =
+    finalRevealed && zoomReadyByScroll
+      ? Math.min(
+          Math.max((progress - zoomStartProgress) / (1 - zoomStartProgress), 0),
+          1,
+        )
+      : 0;
+
+  useEffect(() => {
+    if (progress <= colorRevealThreshold && colorShownProgress !== null) {
+      setColorShownProgress(null);
+      return;
+    }
+    if (colorShownProgress === null && colorRevealed) {
+      setColorShownProgress(progress);
+    }
+  }, [progress, colorRevealed, colorShownProgress]);
+
+  useEffect(() => {
+    if (!colorRevealed) {
+      setColorFadeCompleted(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setColorFadeCompleted(true);
+    }, COLOR_FADE_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [colorRevealed]);
+
+  useEffect(() => {
+    if (!teRevealed) {
+      setTeShownProgress(null);
+      setTeFadeCompleted(false);
+      return;
+    }
+    if (teShownProgress === null) {
+      setTeShownProgress(progress);
+    }
+    const timer = window.setTimeout(() => {
+      setTeFadeCompleted(true);
+    }, TE_FADE_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [teRevealed, teShownProgress, progress]);
+
+  useEffect(() => {
+    if (!finalRevealed) {
+      setFinalShownProgress(null);
+      return;
+    }
+    if (finalShownProgress === null) {
+      setFinalShownProgress(progress);
+    }
+  }, [finalRevealed, finalShownProgress, progress]);
 
   const horizontalLayers = [
     {
@@ -110,6 +188,18 @@ export default function KeyVisual() {
       animate: false,
     },
     {
+      src: "/key-visual/center-circle.svg",
+      w: 179,
+      h: 179,
+      x: 89.5,
+      y: 89.5,
+      scale: 1,
+      rotate: 0,
+      z: -5,
+      opacity: 1,
+      animate: false,
+    },
+    {
       src: "/key-visual/horizontal/ten.svg",
       w: 521,
       h: 549,
@@ -131,6 +221,18 @@ export default function KeyVisual() {
       rotate: 0,
       z: -10,
       opacity: colorRevealed ? 1 : 0,
+      animate: true,
+    },
+    {
+      src: "/key-visual/te.png",
+      w: 942,
+      h: 964,
+      x: 550,
+      y: 721,
+      scale: 0.25,
+      rotate: 0,
+      z: 20,
+      opacity: teRevealed ? 1 : 0,
       animate: true,
     },
   ];
@@ -185,6 +287,18 @@ export default function KeyVisual() {
       animate: false,
     },
     {
+      src: "/key-visual/center-circle.svg",
+      w: 179,
+      h: 179,
+      x: 89.5,
+      y: 89.5,
+      scale: 1.69,
+      rotate: 0,
+      z: -5,
+      opacity: 1,
+      animate: false,
+    },
+    {
       src: "/key-visual/vertical/ten.svg",
       w: 600,
       h: 651,
@@ -208,9 +322,24 @@ export default function KeyVisual() {
       opacity: colorRevealed ? 1 : 0,
       animate: true,
     },
+    {
+      src: "/key-visual/te.png",
+      w: 942,
+      h: 964,
+      x: 700,
+      y: 1090,
+      scale: 0.75,
+      rotate: 0,
+      z: 20,
+      opacity: teRevealed ? 1 : 0,
+      animate: true,
+    },
   ];
 
   const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
+  const sceneZoomTarget = layout === "vertical" ? 2.1 : 3.2;
+  const sceneZoom = 1 + (sceneZoomTarget - 1) * zoomProgress;
+  const whiteFadeOpacity = Math.min(zoomProgress * 1.2, 1);
   const base = layout === "vertical" ? verticalBase : horizontalBase;
   const backgroundSrc =
     layout === "vertical"
@@ -224,7 +353,7 @@ export default function KeyVisual() {
             isVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
-            transform: `translate(-50%, -50%) scale(${scale})`,
+            transform: `translate(-50%, -50%) scale(${scale * sceneZoom})`,
             width: base.w,
             height: base.h,
           }}
@@ -241,8 +370,11 @@ export default function KeyVisual() {
           {layers.map((l) => {
             const isColor = l.src.includes("-color");
             const isCenterText = l.src === "/key-visual/center-text.svg";
+            const isTe = l.src === "/key-visual/te.png";
+            const teFollowStrength = layout === "vertical" ? 0.42 : 0.5;
+            const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * zoomProgress), l.y - 100), l.y + 100) : l.y;
             const common = {
-              transform: `translate(-50%, -50%) translate(${l.x}px, ${l.y}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
+              transform: `translate(-50%, -50%) translate(${l.x}px, ${layerY}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
               zIndex: l.z,
               opacity: l.opacity,
               transition: l.animate ? "opacity 0.8s ease-in" : undefined,
@@ -263,12 +395,12 @@ export default function KeyVisual() {
                     lens={{
                       x: l.w / 2,
                       y: l.h / 2,
-                      radius: Math.min(l.w / 2, l.h / 2) * 0.905,
-                      refraction: 1,
-                      depth: 30,
-                      dispersion: 0.6,
-                      frost: 1,
-                      spread: 4,
+                      radius: Math.min(l.w / 2, l.h / 2) * 1.085,
+                      refraction: 0.3,
+                      depth: 1.8,
+                      dispersion: 0.35,
+                      frost: 40,
+                      spread: 10,
                     }}
                     className="absolute inset-0"
                   />
@@ -341,6 +473,46 @@ export default function KeyVisual() {
               />
             );
           })}
+        </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            zIndex: 40,
+            opacity: finalRevealed ? 0.8 * (1 - whiteFadeOpacity) : 0,
+            transition: "opacity 0.8s ease-in",
+            background:
+              "radial-gradient(circle at center, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.80) 100%)",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-white"
+          style={{
+            zIndex: 41,
+            opacity: whiteFadeOpacity,
+            transition: "opacity 0.2s linear",
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[48px] left-[40px] inline-flex flex-col items-start gap-2"
+          style={{
+            zIndex: 42,
+            opacity: finalRevealed ? 1 - whiteFadeOpacity : 0,
+            transition: "opacity 0.8s ease-in",
+            color: "#3C3C3C",
+          }}
+        >
+          <div className="flex gap-2 flex-col flex-start">
+            <p className="text-[17px] font-bold leading-none">令和7年</p>
+            <div className="flex flex-col gap-1 flex-start self-stretch">
+              <p className="text-[36px] font-bold leading-none">芝浦工業大学</p>
+              <p className="text-[36px] font-bold leading-none">卒業・修了研究展</p>
+            </div>
+            <p className="text-[17px] font-bold leading-none">デザイン工学部 / 大学院理工学研究科</p>
+          </div>
+          <p className="text-[16px] font-bold leading-none">2026年3月7日（土）~ 3月17日（火）</p>
         </div>
       </section>
     </div>

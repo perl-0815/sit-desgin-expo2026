@@ -48,6 +48,18 @@ uniform float u_opacity;
 
 varying vec2 v_uv;
 
+vec2 sampleUvFromIor(vec2 fragPx, vec2 delta, float radiusPx, float ior, float depthScale) {
+  vec2 nxy = delta / max(radiusPx, 0.0001);
+  float r2 = min(dot(nxy, nxy), 0.9999);
+  float nz = sqrt(1.0 - r2);
+  vec3 normal = normalize(vec3(nxy, nz));
+  vec3 ray = refract(vec3(0.0, 0.0, -1.0), normal, 1.0 / max(ior, 1.0001));
+  float edge = 1.0 - nz;
+  float travel = (0.4 + edge * 1.95) * depthScale;
+  vec2 offsetPx = ray.xy * radiusPx * travel;
+  return (fragPx + offsetPx) / u_resolution;
+}
+
 void main() {
   vec2 fragPx = v_uv * u_resolution;
   vec2 delta = fragPx - u_centerPx;
@@ -56,45 +68,47 @@ void main() {
   vec4 baseColor = texture2D(u_texture, v_uv);
   float rNorm = distPx / max(u_radiusPx, 0.0001);
   float spreadNorm = u_spreadPx / max(u_radiusPx, 0.0001);
-  float coreMask = 1.0 - smoothstep(0.0, 0.86, rNorm);
-  float transitionMask = smoothstep(0.58, 1.02, rNorm);
-  float outerMask = 1.0 - smoothstep(1.04 + spreadNorm, 1.30 + spreadNorm, rNorm);
-  float edgeMask = transitionMask * outerMask;
+  float insideMask = 1.0 - smoothstep(1.0, 1.05 + spreadNorm * 0.35, rNorm);
+  float coreMask = 1.0 - smoothstep(0.0, 0.8, rNorm);
   float rimMask = 1.0 - smoothstep(0.0, 0.2 + spreadNorm * 0.38, abs(rNorm - 1.0));
-  float glassMask = clamp(coreMask * 0.2 + edgeMask * 0.82 + rimMask * 0.28, 0.0, 1.0);
 
-  vec2 coreSampleUv = fragPx / u_resolution;
-  vec2 coreBlurOffset = vec2(max(0.4, u_frost * 0.65)) / u_resolution;
-  vec3 coreBlur =
-    texture2D(u_texture, coreSampleUv).rgb * 0.42 +
-    texture2D(u_texture, coreSampleUv + vec2(coreBlurOffset.x, 0.0)).rgb * 0.145 +
-    texture2D(u_texture, coreSampleUv - vec2(coreBlurOffset.x, 0.0)).rgb * 0.145 +
-    texture2D(u_texture, coreSampleUv + vec2(0.0, coreBlurOffset.y)).rgb * 0.145 +
-    texture2D(u_texture, coreSampleUv - vec2(0.0, coreBlurOffset.y)).rgb * 0.145;
-  float coreHaze = clamp((u_frost / 42.0) * coreMask, 0.0, 0.18);
-  vec3 colorAfterCore = mix(baseColor.rgb, mix(coreBlur, vec3(0.94, 0.96, 0.99), 0.24), coreHaze);
-
-  float edgeWarpFactor = edgeMask * (0.08 + 0.62 * edgeMask);
-  float edgeWarpPx = edgeWarpFactor * (u_refraction * 1.55 + u_depth * 0.44);
-  vec2 edgeSamplePx = fragPx - dir * edgeWarpPx;
-  vec2 edgeSampleUv = edgeSamplePx / u_resolution;
-  vec2 dispersionOffset = dir * (u_dispersion * (0.14 + edgeMask * 0.9 + rimMask * 0.45)) / u_resolution;
+  float iorBase = 1.1 + clamp(u_refraction, 0.0, 8.0) * 0.065;
+  float depthScale = 0.65 + clamp(u_depth / 16.0, 0.0, 2.6);
+  float dispersionScale = clamp(u_dispersion, 0.0, 8.0) * 0.012;
+  vec2 uvR = sampleUvFromIor(fragPx, delta, u_radiusPx, iorBase - dispersionScale, depthScale);
+  vec2 uvG = sampleUvFromIor(fragPx, delta, u_radiusPx, iorBase, depthScale);
+  vec2 uvB = sampleUvFromIor(fragPx, delta, u_radiusPx, iorBase + dispersionScale, depthScale);
   vec3 refractedColor = vec3(
-    texture2D(u_texture, edgeSampleUv + dispersionOffset).r,
-    texture2D(u_texture, edgeSampleUv).g,
-    texture2D(u_texture, edgeSampleUv - dispersionOffset).b
+    texture2D(u_texture, uvR).r,
+    texture2D(u_texture, uvG).g,
+    texture2D(u_texture, uvB).b
   );
 
-  vec2 lightDir = normalize(vec2(-0.64, -0.77));
-  float rimHighlight = pow(max(dot(dir, lightDir), 0.0), 9.0) * rimMask;
-  float topHighlight = smoothstep(0.25, 1.0, v_uv.y) * edgeMask;
-  float highlight = (rimHighlight * 0.92 + topHighlight * 0.36) * clamp(u_depth / 18.0, 0.0, 1.0);
-  float shadow = smoothstep(-0.18, 1.0, dot(dir, normalize(vec2(0.74, 0.45)))) * edgeMask * clamp(u_depth / 20.0, 0.0, 0.32);
-  vec3 edgeColor = refractedColor + vec3(highlight) - vec3(shadow * 0.12);
-  float edgeMix = clamp(edgeMask * 0.64 + rimMask * 0.16, 0.0, 1.0);
+  vec2 normalXY = delta / max(u_radiusPx, 0.0001);
+  float nLen2 = min(dot(normalXY, normalXY), 1.0);
+  float normalZ = sqrt(max(0.0, 1.0 - nLen2));
+  float f0 = pow((iorBase - 1.0) / (iorBase + 1.0), 2.0);
+  float fresnel = f0 + (1.0 - f0) * pow(1.0 - normalZ, 5.0);
+  vec2 reflectUv = v_uv + normalXY * (0.02 + (1.0 - normalZ) * 0.05);
+  vec3 reflection = mix(texture2D(u_texture, reflectUv).rgb, vec3(0.96, 0.98, 1.0), 0.52) * fresnel;
 
-  vec3 mixed = mix(colorAfterCore, edgeColor, edgeMix);
+  float frost = clamp(u_frost / 26.0, 0.0, 0.42);
+  vec2 blurOffset = vec2(max(0.35, u_frost * 0.35)) / u_resolution;
+  vec3 frostBlur =
+    texture2D(u_texture, uvG).rgb * 0.46 +
+    texture2D(u_texture, uvG + vec2(blurOffset.x, 0.0)).rgb * 0.135 +
+    texture2D(u_texture, uvG - vec2(blurOffset.x, 0.0)).rgb * 0.135 +
+    texture2D(u_texture, uvG + vec2(0.0, blurOffset.y)).rgb * 0.135 +
+    texture2D(u_texture, uvG - vec2(0.0, blurOffset.y)).rgb * 0.135;
+  vec3 refractedWithFrost = mix(refractedColor, frostBlur, frost * (0.5 + coreMask * 0.5));
 
+  vec2 lightDir = normalize(vec2(-0.58, -0.82));
+  float rimSpec = pow(max(dot(dir, lightDir), 0.0), 18.0) * rimMask;
+  float rimGlow = rimSpec * (0.1 + clamp(u_depth / 30.0, 0.0, 0.22));
+
+  vec3 lensColor = refractedWithFrost + reflection * insideMask + vec3(rimGlow);
+  float lensMix = clamp(insideMask * 0.94 + rimMask * 0.32, 0.0, 1.0);
+  vec3 mixed = mix(baseColor.rgb, lensColor, lensMix);
   gl_FragColor = vec4(mixed, baseColor.a * u_opacity);
 }
 `
@@ -206,14 +220,57 @@ export default function CircularLensEffect({
       return
     }
 
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
+    gl.activeTexture(gl.TEXTURE0)
+
+    gl.useProgram(program)
+    gl.uniform1i(textureLocation, 0)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
     const image = new Image()
     image.decoding = "async"
     image.src = textureSrc
 
-    let isDisposed = false
+    const sourceCanvas = document.createElement("canvas")
+    const sourceCtx = sourceCanvas.getContext("2d")
+    if (!sourceCtx) {
+      gl.deleteTexture(texture)
+      gl.deleteBuffer(positionBuffer)
+      gl.deleteProgram(program)
+      return
+    }
+
+    let isDisposed : boolean = false
+    let uploadedWidth : number = 0
+    let uploadedHeight : number = 0
+
+    const uploadTexture = (targetWidth: number, targetHeight: number) => {
+      if (isDisposed || !image.complete) {
+        return
+      }
+      if (uploadedWidth === targetWidth && uploadedHeight === targetHeight) {
+        return
+      }
+      if (sourceCanvas.width !== targetWidth || sourceCanvas.height !== targetHeight) {
+        sourceCanvas.width = targetWidth
+        sourceCanvas.height = targetHeight
+      }
+      sourceCtx.clearRect(0, 0, targetWidth, targetHeight)
+      sourceCtx.drawImage(image, 0, 0, targetWidth, targetHeight)
+      gl.bindTexture(gl.TEXTURE_2D, texture)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas)
+      uploadedWidth = targetWidth
+      uploadedHeight = targetHeight
+    }
 
     const render = () => {
-      if (isDisposed || !image.complete) {
+      if (isDisposed) {
         return
       }
 
@@ -223,6 +280,8 @@ export default function CircularLensEffect({
       const cssHeight = rect.height > 0 ? rect.height : height
       const renderWidth = Math.max(1, Math.round(cssWidth * dpr))
       const renderHeight = Math.max(1, Math.round(cssHeight * dpr))
+      uploadTexture(renderWidth, renderHeight)
+      if (uploadedWidth !== renderWidth || uploadedHeight !== renderHeight) return
       const scaleX = renderWidth / width
       const scaleY = renderHeight / height
       const scale = (scaleX + scaleY) / 2
@@ -235,23 +294,6 @@ export default function CircularLensEffect({
       gl.viewport(0, 0, renderWidth, renderHeight)
       gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)
-
-      const sourceCanvas = document.createElement("canvas")
-      sourceCanvas.width = renderWidth
-      sourceCanvas.height = renderHeight
-      const sourceCtx = sourceCanvas.getContext("2d")
-      if (!sourceCtx) {
-        return
-      }
-      sourceCtx.drawImage(image, 0, 0, renderWidth, renderHeight)
-
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas)
 
       gl.useProgram(program)
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
@@ -267,14 +309,12 @@ export default function CircularLensEffect({
       gl.uniform1f(frostLocation, (lens.frost ?? 4.0) * scale)
       gl.uniform1f(spreadLocation, (lens.spread ?? 18.0) * scale)
       gl.uniform1f(opacityLocation, opacity)
-      gl.uniform1i(textureLocation, 0)
-
-      gl.enable(gl.BLEND)
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
     }
 
-    image.onload = render
+    image.onload = () => {
+      render()
+    }
     if (image.complete) {
       render()
     }
