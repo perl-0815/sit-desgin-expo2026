@@ -34,9 +34,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const PLACEHOLDER_BODY =
-  "これはダミー文章です。体験展示の狙いや体験内容をここに記載します。"
-
 const isAbsoluteUrl = (value?: string | null) => {
   return !!value && /^https?:\/\//i.test(value)
 }
@@ -113,6 +110,8 @@ export default function ExhibitionDetailClient({
     exhibition?.image_url,
     exhibition?.image_thumb_url,
   )
+  // 作品説明は未入力のケースがあるため、空白のみも除外して表示有無を厳密に判定します。
+  const descriptionText = exhibition?.description?.trim() ?? ""
 
   return (
     // 詳細ページの背景は作品・研究と揃えて白に統一します。
@@ -207,11 +206,11 @@ export default function ExhibitionDetailClient({
                 <SkeletonBlock className="h-4 w-11/12 rounded-md" />
                 <SkeletonBlock className="h-4 w-10/12 rounded-md" />
               </div>
-            ) : (
+            ) : descriptionText ? (
               <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                {exhibition?.description ?? PLACEHOLDER_BODY}
+                {descriptionText}
               </p>
-            )}
+            ) : null}
 
             <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
               {loading ? (

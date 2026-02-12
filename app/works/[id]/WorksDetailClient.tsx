@@ -78,9 +78,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const PLACEHOLDER_BODY =
-  "これはダミー文章です。作品の狙いや体験価値、制作プロセスなどをここに記載します。"
-
 const courseOrder: CourseMeta[] = [
   { key: "社会情報コース", buttonColor: "#0A948A" },
   { key: "UXコース", buttonColor: "#2C68D3" },
@@ -210,7 +207,10 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   const lab = student?.lab_id ? labById.get(student.lab_id) : undefined
 
   const workTitle = index === 2 ? portfolio?.title2 : portfolio?.title1
-  const workSummary = index === 2 ? portfolio?.summary2 : portfolio?.summary1
+  // 作品概要は未入力のケースがあるため、空白のみを除去して表示有無を判定します。
+  const workSummary = normalizeText(
+    index === 2 ? portfolio?.summary2 : portfolio?.summary1,
+  )
   const workImage = index === 2
     ? pickOriginalImage(portfolio?.image2_url, portfolio?.image2_thumb_url)
     : pickOriginalImage(portfolio?.image1_url, portfolio?.image1_thumb_url)
@@ -389,11 +389,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                   <SkeletonBlock className="h-4 w-11/12 rounded-md" />
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
-              ) : (
+              ) : workSummary ? (
                 <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
-                  {workSummary ?? PLACEHOLDER_BODY}
+                  {workSummary}
                 </p>
-              )}
+              ) : null}
 
               {/* 作品画像は画像の縦幅に合わせて表示します。 */}
               <div className="relative min-h-[160px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
