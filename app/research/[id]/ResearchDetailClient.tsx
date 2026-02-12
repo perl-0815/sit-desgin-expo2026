@@ -116,6 +116,45 @@ const getCourseMeta = (courseKey: string) => {
   return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
 }
 
+const labLogoMap: Record<string, string> = {
+  // 研究室ロゴは `public/icon/lab` 配下の実ファイル名に合わせて明示的にマッピングします。
+  // 研究室名の表記ゆれ（末尾の「研究室」有無）を吸収するため、キーは「研究室」を除いた名称で揃えます。
+  "エモーショナルデザイン": "/icon/lab/エモーショナルデザイン.png",
+  "感性インタラクションデザイン": "/icon/lab/感性インタラクションデザイン.png",
+  "ユーザーエクスペリエンスデザイン":
+    "/icon/lab/ユーザーエクスペリエンスデザイン.png",
+  "コンピューティングデザイン": "/icon/lab/コンピューティングデザイン.png",
+  "メディア体験デザイン": "/icon/lab/メディア体験デザイン.png",
+  "身体知デザイン": "/icon/lab/身体知デザイン.png",
+  "プロダクト・エルゴノミクス・デザイン":
+    "/icon/lab/プロダクト・エルゴノミクス・デザイン.png",
+  "動態デザイン": "/icon/lab/動態デザイン.png",
+  "ヘルスケアデザイン": "/icon/lab/ヘルスケアデザイン.png",
+  "感性価値デザイン": "/icon/lab/感性価値デザイン.png",
+  "インサイトデザイン": "/icon/lab/インサイトデザイン.png",
+  "デザインプロセス": "/icon/lab/デザインプロセス.png",
+  "リサイクルデザイン": "/icon/lab/リサイクルデザイン.png",
+  "認知デザイン": "/icon/lab/認知デザイン.png",
+  "デライトデザイン": "/icon/lab/デライトデザイン.png",
+}
+
+const normalizeLabKey = (value?: string | null) => {
+  // 表示名の末尾に「研究室」が付く/付かない両方を同じキーとして扱えるように正規化します。
+  return normalizeText(value).replace(/研究室$/u, "")
+}
+
+const resolveLabLogoPath = (lab?: Lab) => {
+  if (!lab) return null
+  const candidates = [lab.official_name, lab.name]
+  for (const candidate of candidates) {
+    const key = normalizeLabKey(candidate)
+    if (!key) continue
+    const path = labLogoMap[key]
+    if (path) return path
+  }
+  return null
+}
+
 export default function ResearchDetailClient({
   id,
 }: ResearchDetailClientProps) {
@@ -200,6 +239,9 @@ export default function ResearchDetailClient({
   const courseMeta = getCourseMeta(courseKey)
   // 研究概要は未入力のケースがあるため、空白のみを除去して表示有無を判定します。
   const researchSummary = normalizeText(research?.summary)
+  // 研究室の下部表示は、表示名とロゴパスを先に解決して JSX 側を簡潔に保ちます。
+  const labDisplayName = normalizeText(lab?.official_name ?? lab?.name)
+  const labLogoPath = resolveLabLogoPath(lab)
 
   const qaItems = useMemo(() => {
     const items: { question: string; answer: string }[] = []
@@ -596,6 +638,31 @@ export default function ResearchDetailClient({
                     ))
                   )}
                 </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading || labDisplayName ? (
+            <section data-reveal className="px-4 md:px-[128px]">
+              {/* Figmaに合わせ、モバイルは縦積み・デスクトップは横並びでロゴと研究室名を中央配置します。 */}
+              <div className="flex flex-col items-center justify-center gap-3 md:flex-row md:gap-5">
+                {loading ? (
+                  <SkeletonBlock className="h-[72px] w-[140px] rounded-md md:h-[88px] md:w-[170px]" />
+                ) : labLogoPath ? (
+                  <img
+                    src={labLogoPath}
+                    alt={`${labDisplayName || "研究室"} ロゴ`}
+                    className="h-[72px] w-auto object-contain md:h-[88px]"
+                  />
+                ) : null}
+                {loading ? (
+                  <SkeletonBlock className="h-6 w-40 rounded-md md:w-[280px]" />
+                ) : (
+                  <p className="text-center text-[16px] font-bold leading-[1.5] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:min-w-[280px] md:max-w-[320px] md:text-left md:text-[20px]">
+                    {/* PC版で研究室名が3行以上に分割されにくいよう、表示幅を拡張します。 */}
+                    {labDisplayName}
+                  </p>
+                )}
               </div>
             </section>
           ) : null}
