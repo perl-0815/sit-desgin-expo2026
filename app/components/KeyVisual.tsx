@@ -505,14 +505,14 @@ export default function KeyVisual() {
           }}
         >
           <div className="flex gap-2 flex-col flex-start">
-            <p className="text-[17px] font-bold leading-none">令和7年</p>
+            <p className="text-[17px] font-bold leading-none [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">令和7年</p>
             <div className="flex flex-col gap-1 flex-start self-stretch">
-              <p className="text-[36px] font-bold leading-none">芝浦工業大学</p>
-              <p className="text-[36px] font-bold leading-none">卒業・修了研究展</p>
+              <p className="text-[36px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-none">芝浦工業大学</p>
+              <p className="text-[36px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-none">卒業・修了研究展</p>
             </div>
-            <p className="text-[17px] font-bold leading-none">デザイン工学部 / 大学院理工学研究科</p>
+            <p className="text-[17px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-none">デザイン工学部 / 大学院理工学研究科</p>
           </div>
-          <p className="text-[16px] font-bold leading-none">2026年3月7日（土）~ 3月17日（火）</p>
+          <p className="text-[16px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-none">2026年3月7日（土）~ 3月17日（火）</p>
         </div>
       </section>
     </div>
