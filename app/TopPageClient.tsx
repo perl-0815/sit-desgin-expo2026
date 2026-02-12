@@ -46,7 +46,14 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
-  const [isKeyVisualCompleted, setIsKeyVisualCompleted] = useState(false)
+  // 初回描画時点で完了フラグが立っている場合は、Effect内で同期的にsetStateせず初期値で反映します。
+  // これにより react-hooks/set-state-in-effect の警告を回避しつつ、既存の表示タイミングを維持します。
+  const [isKeyVisualCompleted, setIsKeyVisualCompleted] = useState(() => {
+    if (typeof document === "undefined") {
+      return false
+    }
+    return document.body.dataset.keyvisualComplete === "1"
+  })
   // 駅から大学までの動画は未公開のため、トップページで準備中モーダルの開閉状態を管理します。
   const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
@@ -103,11 +110,6 @@ export default function TopPageClient({
     return () => window.clearInterval(intervalId)
   }, [visiblePreviewItems.length])
   useEffect(() => {
-    if (document.body.dataset.keyvisualComplete === "1") {
-      setIsKeyVisualCompleted(true)
-      return
-    }
-
     const onKeyVisualComplete = () => {
       setIsKeyVisualCompleted(true)
     }
