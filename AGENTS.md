@@ -45,3 +45,10 @@ npm run lint
 
 - Googleフォームのヘッダー名が変わる場合は `app/api/roundtables/route.ts` の `HEADER_*` を更新。
 - Apps Script の設定値は `scripts/update-form-choices.gs` のコメントに従う。
+
+## Git接続先（remote）
+
+- 現在の接続先は3つ: `origin` / `test` / `development`
+- `origin`: `https://github.com/syogakusya/sit-desgin-expo2026.git`
+- `test`: `https://github.com/perl-0815/sit-design-expo2026-test.git`
+- `development`: `https://github.com/perl-0815/sit-design-expo2026-Development.git`

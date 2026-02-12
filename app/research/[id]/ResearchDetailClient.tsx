@@ -76,9 +76,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const PLACEHOLDER_BODY =
-  "これはダミー文章です。研究内容の背景・狙い・検証結果などをここに記載します。"
-
 const courseOrder: CourseMeta[] = [
   { key: "社会情報コース", buttonColor: "#0A948A" },
   { key: "UXコース", buttonColor: "#2C68D3" },
@@ -201,6 +198,8 @@ export default function ResearchDetailClient({
   // キーワードの背景色はコースカラーに合わせるため、ここでコース情報を確定します。
   const courseKey = getCourseKey(lab?.course)
   const courseMeta = getCourseMeta(courseKey)
+  // 研究概要は未入力のケースがあるため、空白のみを除去して表示有無を判定します。
+  const researchSummary = normalizeText(research?.summary)
 
   const qaItems = useMemo(() => {
     const items: { question: string; answer: string }[] = []
@@ -463,11 +462,11 @@ export default function ResearchDetailClient({
                   <SkeletonBlock className="h-4 w-11/12 rounded-md" />
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
-              ) : (
+              ) : researchSummary ? (
                 <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
-                  {research?.summary ?? PLACEHOLDER_BODY}
+                  {researchSummary}
                 </p>
-              )}
+              ) : null}
 
               {/* 研究画像は画像の縦幅に合わせて表示します。 */}
               <div className="relative min-h-[160px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">

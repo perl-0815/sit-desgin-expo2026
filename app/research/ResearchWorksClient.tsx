@@ -151,9 +151,6 @@ const LabKeywords = ({ keywords, isExpanded, labId }: LabKeywordsProps) => {
   )
 }
 
-const PLACEHOLDER_SUMMARY =
-  "研究または作品の概要が入ります。詳細は個別ページでご紹介します。"
-
 const getCourseKey = (course?: string | null) => {
   if (!course) return "その他"
   return course
@@ -180,6 +177,10 @@ const normalizeImageUrl = (value?: string | null) => {
   if (!value) return null
   const trimmed = String(value).trim()
   return trimmed === "" ? null : trimmed
+}
+
+const normalizeText = (value?: string | null) => {
+  return value?.trim() ?? ""
 }
 
 const pickThumbnailImage = (thumb?: string | null, original?: string | null) => {
@@ -346,7 +347,8 @@ export default function ResearchWorksClient() {
       return {
         id: item.id,
         title: item.title ?? "研究タイトル",
-        summary: item.summary ?? PLACEHOLDER_SUMMARY,
+        // 概要未入力時にダミー文を混ぜないため、一覧データ側でも空文字へ正規化します。
+        summary: normalizeText(item.summary),
         studentName: student?.name ?? "苗字 名前",
         courseKey,
         labId,
@@ -372,7 +374,8 @@ export default function ResearchWorksClient() {
         items.push({
           id: `${portfolio.id}-1`,
           title: portfolio.title1,
-          summary: portfolio.summary1 ?? PLACEHOLDER_SUMMARY,
+          // 概要未入力時にダミー文を混ぜないため、一覧データ側でも空文字へ正規化します。
+          summary: normalizeText(portfolio.summary1),
           studentName,
           courseKey,
           imageUrl: pickThumbnailImage(
@@ -387,7 +390,8 @@ export default function ResearchWorksClient() {
         items.push({
           id: `${portfolio.id}-2`,
           title: portfolio.title2,
-          summary: portfolio.summary2 ?? PLACEHOLDER_SUMMARY,
+          // 概要未入力時にダミー文を混ぜないため、一覧データ側でも空文字へ正規化します。
+          summary: normalizeText(portfolio.summary2),
           studentName,
           courseKey,
           imageUrl: pickThumbnailImage(

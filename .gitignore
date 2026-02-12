@@ -48,3 +48,6 @@ next-env.d.ts
 
 #Python　venv
 .venv
+
+#AGENTS.md
+AGENTS.md
