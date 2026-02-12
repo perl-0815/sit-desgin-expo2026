@@ -46,6 +46,7 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
+  const [isKeyVisualCompleted, setIsKeyVisualCompleted] = useState(false)
   // 駅から大学までの動画は未公開のため、トップページで準備中モーダルの開閉状態を管理します。
   const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
@@ -101,6 +102,20 @@ export default function TopPageClient({
     }, 6000)
     return () => window.clearInterval(intervalId)
   }, [visiblePreviewItems.length])
+  useEffect(() => {
+    if (document.body.dataset.keyvisualComplete === "1") {
+      setIsKeyVisualCompleted(true)
+      return
+    }
+
+    const onKeyVisualComplete = () => {
+      setIsKeyVisualCompleted(true)
+    }
+
+    window.addEventListener("keyvisual:complete", onKeyVisualComplete)
+    return () =>
+      window.removeEventListener("keyvisual:complete", onKeyVisualComplete)
+  }, [])
   // トップページの各セクションにスクロール時のスライドインを付与します。
   useSectionReveal()
   // プレビュー件数が減ったときに範囲外にならないよう、表示時に安全なインデックスへ補正します。
@@ -137,7 +152,7 @@ export default function TopPageClient({
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
-      <GlobalHeader activeId="top" />
+      {isKeyVisualCompleted ? <GlobalHeader activeId="top" /> : null}
 
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
 

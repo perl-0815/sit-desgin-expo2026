@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
-const SCROLL_PAGES = 5.0;
+const SCROLL_PAGES = 6.0;
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
 const COLOR_FADE_DURATION_MS = 800;
 const TE_FADE_DURATION_MS = 700;
-const FINAL_TO_ZOOM_THRESHOLD = 0.2;
+const FINAL_TO_ZOOM_THRESHOLD = 0.15;
 
 
 export default function KeyVisual() {
@@ -21,6 +21,7 @@ export default function KeyVisual() {
   const [teFadeCompleted, setTeFadeCompleted] = useState(false);
   const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasDispatchedCompleteRef = useRef(false);
 
   useEffect(() => {
     const updateScale = () => {
@@ -337,7 +338,7 @@ export default function KeyVisual() {
   ];
 
   const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
-  const sceneZoomTarget = layout === "vertical" ? 2.1 : 3.2;
+  const sceneZoomTarget = layout === "vertical" ? 4.1 : 3.2;
   const sceneZoom = 1 + (sceneZoomTarget - 1) * zoomProgress;
   const whiteFadeOpacity = Math.min(zoomProgress * 1.2, 1);
   const base = layout === "vertical" ? verticalBase : horizontalBase;
@@ -345,6 +346,15 @@ export default function KeyVisual() {
     layout === "vertical"
       ? "/key-visual/back-vertical.png"
       : "/key-visual/back-horizontal.png";
+
+  useEffect(() => {
+    if (hasDispatchedCompleteRef.current) return;
+    if (!finalRevealed || whiteFadeOpacity < 1) return;
+    hasDispatchedCompleteRef.current = true;
+    document.body.dataset.keyvisualComplete = "1";
+    window.dispatchEvent(new Event("keyvisual:complete"));
+  }, [finalRevealed, whiteFadeOpacity]);
+
   return (
     <div ref={containerRef} style={{ height: `${SCROLL_PAGES * 100}vh` }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
