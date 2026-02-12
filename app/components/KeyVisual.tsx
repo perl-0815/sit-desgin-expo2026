@@ -502,6 +502,7 @@ export default function KeyVisual() {
             opacity: finalRevealed ? 1 - whiteFadeOpacity : 0,
             transition: "opacity 0.8s ease-in",
             color: "#3C3C3C",
+            textShadow: "0 2px 20px rgba(0,0,0,0.25)",
           }}
         >
           <div className="flex gap-2 flex-col flex-start">
