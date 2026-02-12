@@ -140,39 +140,6 @@ export default function TopPageClient({
       <GlobalHeader activeId="top" />
 
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
-      <section
-        data-reveal
-        className="relative h-[698px] w-full overflow-hidden md:h-[720px]"
-      >
-        {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
-        <img
-          aria-hidden="true"
-          alt=""
-          src="/image/top_kv-pc.png"
-          className="absolute inset-0 hidden h-full w-full object-cover md:block"
-        />
-        <img
-          aria-hidden="true"
-          alt=""
-          src="/image/top-kv-sp.png"
-          className="absolute inset-0 h-full w-full object-cover md:hidden"
-        />
-
-        {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-8 lg:px-[128px]">
-          <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)] md:text-[14px] md:tracking-[0.35em]">
-            SIT DESIGN EXPO 2026
-          </p>
-          <h1 className="mt-4 text-[32px] font-extrabold tracking-[0.08em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:mt-6 md:text-[40px] md:tracking-[0.1em]">
-            卒業・修了研究展
-          </h1>
-          <p className="mt-3 text-[13px] text-[#6A7378] md:text-[15px]">
-            芝浦工業大学 デザイン工学部
-          </p>
-        </div>
-
-        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
-      </section>
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
