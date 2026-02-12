@@ -125,68 +125,68 @@ const labLogoMap: Record<string, LabLogoPaths> = {
   // 研究室ロゴ（テキスト込み）は `public/icon/lab/pc` と `public/icon/lab/sp` に分離して管理します。
   // 研究室名の表記ゆれ（末尾の「研究室」有無）を吸収するため、キーは「研究室」を除いた名称で揃えます。
   "エモーショナルデザイン": {
-    pc: "/icon/lab/pc/エモーショナルデザイン.svg",
-    sp: "/icon/lab/sp/エモーショナルデザイン.svg",
+    pc: "/icon/lab/pc/emotional-design.svg",
+    sp: "/icon/lab/sp/emotional-design.svg",
   },
   "感性インタラクションデザイン": {
-    pc: "/icon/lab/pc/感性インタラクションデザイン.svg",
-    sp: "/icon/lab/sp/感性インタラクションデザイン.svg",
+    pc: "/icon/lab/pc/kansei-interaction-design.svg",
+    sp: "/icon/lab/sp/kansei-interaction-design.svg",
   },
   "ユーザーエクスペリエンスデザイン": {
-    pc: "/icon/lab/pc/ユーザーエクスペリエンスデザイン.svg",
-    sp: "/icon/lab/sp/ユーザーエクスペリエンスデザイン.svg",
+    pc: "/icon/lab/pc/user-experience-design.svg",
+    sp: "/icon/lab/sp/user-experience-design.svg",
   },
   "コンテクスチュアルデザイン": {
-    pc: "/icon/lab/pc/コンテクスチュアルデザイン.svg",
-    sp: "/icon/lab/sp/コンテクスチュアルデザイン.svg",
+    pc: "/icon/lab/pc/contextual-design.svg",
+    sp: "/icon/lab/sp/contextual-design.svg",
   },
   "コンピューティングデザイン": {
-    pc: "/icon/lab/pc/コンピューティングデザイン.svg",
-    sp: "/icon/lab/sp/コンピューティングデザイン.svg",
+    pc: "/icon/lab/pc/computing-design.svg",
+    sp: "/icon/lab/sp/computing-design.svg",
   },
   "メディア体験デザイン": {
-    pc: "/icon/lab/pc/メディア体験デザイン.svg",
-    sp: "/icon/lab/sp/メディア体験デザイン.svg",
+    pc: "/icon/lab/pc/media-experience-design.svg",
+    sp: "/icon/lab/sp/media-experience-design.svg",
   },
   "身体知デザイン": {
-    pc: "/icon/lab/pc/身体知デザイン.svg",
-    sp: "/icon/lab/sp/身体知デザイン.svg",
+    pc: "/icon/lab/pc/embodied-knowledge-design.svg",
+    sp: "/icon/lab/sp/embodied-knowledge-design.svg",
   },
   "プロダクト・エルゴノミクス・デザイン": {
-    pc: "/icon/lab/pc/プロダクト・エルゴノミクス・デザイン.svg",
-    sp: "/icon/lab/sp/プロダクト・エルゴノミクス・デザイン.svg",
+    pc: "/icon/lab/pc/product-ergonomics-design.svg",
+    sp: "/icon/lab/sp/product-ergonomics-design.svg",
   },
   "動態デザイン": {
-    pc: "/icon/lab/pc/動態デザイン.svg",
-    sp: "/icon/lab/sp/動態デザイン.svg",
+    pc: "/icon/lab/pc/dynamic-design.svg",
+    sp: "/icon/lab/sp/dynamic-design.svg",
   },
   "ヘルスケアデザイン": {
-    pc: "/icon/lab/pc/ヘルスケアデザイン.svg",
-    sp: "/icon/lab/sp/ヘルスケアデザイン.svg",
+    pc: "/icon/lab/pc/healthcare-design.svg",
+    sp: "/icon/lab/sp/healthcare-design.svg",
   },
   "感性価値デザイン": {
-    pc: "/icon/lab/pc/感性価値デザイン.svg",
-    sp: "/icon/lab/sp/感性価値デザイン.svg",
+    pc: "/icon/lab/pc/kansei-value-design.svg",
+    sp: "/icon/lab/sp/kansei-value-design.svg",
   },
   "インサイトデザイン": {
-    pc: "/icon/lab/pc/インサイトデザイン.svg",
-    sp: "/icon/lab/sp/インサイトデザイン.svg",
+    pc: "/icon/lab/pc/insight-design.svg",
+    sp: "/icon/lab/sp/insight-design.svg",
   },
   "デザインプロセス": {
-    pc: "/icon/lab/pc/デザインプロセス.svg",
-    sp: "/icon/lab/sp/デザインプロセス.svg",
+    pc: "/icon/lab/pc/design-process.svg",
+    sp: "/icon/lab/sp/design-process.svg",
   },
   "リサイクルデザイン": {
-    pc: "/icon/lab/pc/リサイクルデザイン.svg",
-    sp: "/icon/lab/sp/リサイクルデザイン.svg",
+    pc: "/icon/lab/pc/recycle-design.svg",
+    sp: "/icon/lab/sp/recycle-design.svg",
   },
   "認知デザイン": {
-    pc: "/icon/lab/pc/認知デザイン.svg",
-    sp: "/icon/lab/sp/認知デザイン.svg",
+    pc: "/icon/lab/pc/cognitive-design.svg",
+    sp: "/icon/lab/sp/cognitive-design.svg",
   },
   "デライトデザイン": {
-    pc: "/icon/lab/pc/デライトデザイン.svg",
-    sp: "/icon/lab/sp/デライトデザイン.svg",
+    pc: "/icon/lab/pc/delight-design.svg",
+    sp: "/icon/lab/sp/delight-design.svg",
   },
 }
 
