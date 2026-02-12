@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports */
+// このスクリプトは Node.js 単体実行の CommonJS で運用しているため、require を維持する。
+// 既存の実行方法や依存解決を変えずに lint エラーのみ解消する目的で、このファイルに限定して許可する。
 // Seed local Postgres from googleform CSVs (upsert by id).
 
 const fs = require("fs")
@@ -38,13 +40,42 @@ const readCsv = (filename) => {
   return parse(text, { columns: true, skip_empty_lines: true })
 }
 
+// イベント系CSVは存在しないこともあるため、任意読み込みを許可します。
+const readCsvIfExists = (filename) => {
+  const filePath = path.join(CSV_DIR, filename)
+  if (!fs.existsSync(filePath)) return []
+  const text = fs.readFileSync(filePath, "utf8")
+  return parse(text, { columns: true, skip_empty_lines: true })
+}
+
 const normalize = (value) => {
   if (value === undefined || value === null) return null
   const trimmed = String(value).trim()
   return trimmed === "" ? null : trimmed
 }
 
+// CSV内の数値・真偽値を型変換します（空欄はnull）。
+const normalizeNumber = (value) => {
+  const normalized = normalize(value)
+  if (normalized === null) return null
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const normalizeBoolean = (value) => {
+  const normalized = normalize(value)
+  if (normalized === null) return null
+  return ["true", "1", "yes", "y"].includes(normalized.toLowerCase())
+}
+
 const upsertAll = async (records, modelName, mapper) => {
+  // Prisma Clientが古い場合はモデルが存在しないため、明示的にエラーを出します。
+  if (!prisma[modelName] || typeof prisma[modelName].upsert !== "function") {
+    throw new Error(
+      `Prisma Clientにモデル(${modelName})が存在しません。` +
+        " schema.prismaの更新後に `npx prisma generate` を実行してください。",
+    )
+  }
   let count = 0
   for (const row of records) {
     const data = mapper(row)
@@ -65,6 +96,13 @@ const main = async () => {
   const careers = readCsv("careers.csv")
   const portfolios = readCsv("portfolios.csv")
   const research = readCsv("research.csv")
+  const eventRoundtables = readCsvIfExists(path.join("event", "roundtables.csv"))
+  const eventSessions = readCsvIfExists(
+    path.join("event", "roundtable_sessions.csv"),
+  )
+  const eventExhibitions = readCsvIfExists(
+    path.join("event", "events.csv"),
+  )
 
   const labCount = await upsertAll(labs, "lab", (row) => ({
     id: normalize(row.id),
@@ -92,6 +130,8 @@ const main = async () => {
     category_type: normalize(row.category_type),
     detail: normalize(row.detail),
     job_type: normalize(row.job_type),
+    // 業種はフォームの「就職先の業種」由来の値なので、category_type(分類)とは別フィールドで保持します。
+    industry: normalize(row.industry),
     decision_reason: normalize(row.decision_reason),
     extra_notes: normalize(row.extra_notes),
     visibility: normalize(row.visibility),
@@ -132,11 +172,55 @@ const main = async () => {
     want_to_continue: normalize(row.want_to_continue),
   }))
 
+  const eventRoundtableCount = await upsertAll(
+    eventRoundtables,
+    "eventRoundtable",
+    (row) => ({
+      id: normalize(row.id),
+      title: normalize(row.title),
+      description: normalize(row.description),
+      location: normalize(row.location),
+      schedule_note: normalize(row.schedule_note),
+    }),
+  )
+
+  const eventSessionCount = await upsertAll(
+    eventSessions,
+    "eventRoundtableSession",
+    (row) => ({
+      id: normalize(row.id),
+      roundtable_id: normalize(row.roundtable_id),
+      start_at: normalize(row.start_at),
+      end_at: normalize(row.end_at),
+      capacity: normalizeNumber(row.capacity),
+      remaining: normalizeNumber(row.remaining),
+      is_full: normalizeBoolean(row.is_full) ?? false,
+      sort_order: normalizeNumber(row.sort_order),
+    }),
+  )
+
+  const eventExhibitionCount = await upsertAll(
+    eventExhibitions,
+    "eventExhibition",
+    (row) => ({
+      id: normalize(row.id),
+      title: normalize(row.title),
+      description: normalize(row.description),
+      author: normalize(row.author),
+      image_url: normalize(row.image_url),
+      image_thumb_url: normalize(row.image_thumb_url),
+      sort_order: normalizeNumber(row.sort_order),
+    }),
+  )
+
   console.log(`Labs: ${labCount}`)
   console.log(`Students: ${studentCount}`)
   console.log(`Careers: ${careerCount}`)
   console.log(`Portfolios: ${portfolioCount}`)
   console.log(`Research: ${researchCount}`)
+  console.log(`EventRoundtables: ${eventRoundtableCount}`)
+  console.log(`EventRoundtableSessions: ${eventSessionCount}`)
+  console.log(`EventExhibitions: ${eventExhibitionCount}`)
 }
 
 main()

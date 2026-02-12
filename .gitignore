@@ -45,3 +45,6 @@ next-env.d.ts
 
 # google sheets api 秘密鍵が入っているディレクトリ
 /keys
+
+#Python　venv
+.venv

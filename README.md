@@ -87,19 +87,6 @@ DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schem
 - `R2_ENDPOINT`  
   R2 の S3 互換エンドポイント。
 
-### 開発用 簡易認証
-
-デザイナー確認用の簡易認証です。`develop=true` または `DEVELOP=true` の場合のみ有効になります。
-
-- `DEVELOP` / `develop`  
-  `true` のとき開発用認証を有効化。
-- `DEVELOP_AUTH_PASSCODE`  
-  認証に使うパスコード。
-
-動作概要:
-- 未認証の場合は `/dev-auth` にリダイレクトされます。
-- 正しいパスコード入力後、開発用の認証クッキーが付与されます。
-
 マイグレーション実行:
 
 これは開発サーバ用
@@ -154,7 +141,7 @@ node scripts/upload-research-images.js
 アップロード後、`image1_*` / `image2_*` の URL を更新します。
 
 ```bash
-node scripts/upload-portfolio-images.js
+node scripts/upload-portfolio-images.mjs
 ```
 
 前提:

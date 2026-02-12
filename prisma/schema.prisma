@@ -39,6 +39,8 @@ model Career {
   category_type   String?
   detail          String? @db.Text
   job_type        String?
+  // 就職先の業種を保持します。フォームから取得する値で、職種やカテゴリ分類と混同しないために分離しています。
+  industry        String?
   decision_reason String? @db.Text
   extra_notes     String? @db.Text
   visibility      String?
@@ -83,4 +85,40 @@ model Research {
   want_to_continue  String? @db.Text
 
   student           Student @relation(fields: [student_id], references: [id])
+}
+
+// イベントページ向け: 座談会の概要とセッション情報を保持します。
+model EventRoundtable {
+  id            String  @id
+  title         String? @db.Text
+  description   String? @db.Text
+  location      String?
+  schedule_note String? @db.Text
+
+  sessions      EventRoundtableSession[]
+}
+
+// 座談会の個別セッション（日時/残席など）を管理します。
+model EventRoundtableSession {
+  id            String   @id
+  roundtable_id String
+  start_at      DateTime
+  end_at        DateTime
+  capacity      Int?
+  remaining     Int?
+  is_full       Boolean  @default(false)
+  sort_order    Int?
+
+  roundtable    EventRoundtable @relation(fields: [roundtable_id], references: [id], onDelete: Cascade)
+}
+
+// 体験展示のカード情報を保持します（R2の画像URL/サムネイルURLを含む）。
+model EventExhibition {
+  id              String  @id
+  title           String? @db.Text
+  description     String? @db.Text
+  author          String?
+  image_url       String?
+  image_thumb_url String?
+  sort_order      Int?
 }

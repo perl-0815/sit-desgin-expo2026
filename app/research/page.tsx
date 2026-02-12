@@ -1,19 +1,15 @@
-import Link from "next/link"
+import { Suspense } from "react"
 
 import ResearchWorksClient from "./ResearchWorksClient"
 
 export default function ResearchPage() {
   return (
-    <main className="min-h-screen bg-white px-5 py-12 text-zinc-900 sm:px-8 sm:py-16">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <Link className="text-sm text-zinc-500 hover:text-zinc-900" href="/">
-          ← トップへ戻る
-        </Link>
-        <p className="text-sm uppercase tracking-[0.2em] text-zinc-400">
-          SIT Design Expo 2026
-        </p>
+    <main className="min-h-screen bg-[#F9F9F9] text-[#2E3437]">
+      {/* useSearchParams を含むクライアントコンポーネントを安全にプリレンダーするため、Suspense で明示的に境界を作ります */}
+      {/* 一瞬表示される "Loading..." テキストがチラつかないよう、空のプレースホルダーに差し替えます */}
+      <Suspense fallback={<div className="px-6 py-10" aria-hidden />}>
         <ResearchWorksClient />
-      </div>
+      </Suspense>
     </main>
   )
 }
