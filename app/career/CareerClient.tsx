@@ -81,15 +81,17 @@ const toUniqueList = (items: string[], limit = 5) => {
 }
 
 const buildJobLabels = (career: Career) => {
-  // ラベルは「職種」「業界」の具体値を表示します。
+  // ラベルは職種を基本表示し、未入力の場合のみ業種（またはカテゴリ分類）で代替します。
   const jobType = normalizeText(career.job_type)
-  // 業界ラベルは業種を優先し、未入力時のみカテゴリ分類にフォールバックします。
   const industry =
     normalizeText(career.industry) || normalizeText(career.category_type)
-  return [
-    jobType ? `${jobType}` : "",
-    industry ? ` ${industry}` : "",
-  ].filter(Boolean)
+  if (jobType) {
+    return [jobType]
+  }
+  if (industry) {
+    return [industry]
+  }
+  return []
 }
 
 const buildCourseLabel = (career: Career) => {
@@ -329,7 +331,8 @@ export default function CareerClient() {
             <div className="relative">
               {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
               {loading ? (
-                <SkeletonBlock className="h-40 w-40 rounded-full md:h-[320px] md:w-[320px]" />
+                // 円グラフの実寸と同じサイズでスケルトンを出し、ロード直後の拡大ズレを防ぎます。
+                <SkeletonBlock className="h-[320px] w-[320px] rounded-full md:h-[463px] md:w-[463px]" />
               ) : (
                 <CareerPieChart
                   gradPercent={careerStats.gradPercent}
@@ -465,11 +468,9 @@ export default function CareerClient() {
               </div>
             ))
           ) : jobDecisionReasons.length > 0 ? (
-            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
-            (showAllJobReasons
-              ? jobDecisionReasons
-              : jobDecisionReasons.slice(0, 5)
-            ).map((reason) => (
+            <>
+              {/* 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。 */}
+              {jobDecisionReasons.slice(0, 5).map((reason) => (
               <div
                 key={reason.text}
                 className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
@@ -483,7 +484,39 @@ export default function CareerClient() {
                   </div>
                 ) : null}
               </div>
-            ))
+              ))}
+              {/* 追加分は研究室の開閉と同じロールアニメーションで表示します。 */}
+              {jobDecisionReasons.length > 5 ? (
+                <div
+                  className={`grid overflow-hidden transition-[grid-template-rows,opacity,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                    showAllJobReasons
+                      ? "grid-rows-[1fr] opacity-100 translate-y-0"
+                      : "grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                  }`}
+                  aria-hidden={!showAllJobReasons}
+                >
+                  <div className="min-h-0">
+                    <div className="mt-4 space-y-4">
+                      {jobDecisionReasons.slice(5).map((reason) => (
+                        <div
+                          key={reason.text}
+                          className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                        >
+                          <p>{reason.text}</p>
+                          {reason.labels ? (
+                            <div className="mt-2 flex justify-end gap-3 text-[13px] font-medium text-[#4B5459] md:text-[15px]">
+                              {reason.labels.map((label) => (
+                                <span key={label}>{label}</span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div
               className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
@@ -497,13 +530,35 @@ export default function CareerClient() {
             <button
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
-              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+                showAllJobReasons
+                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
+              }`}
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
               {showAllJobReasons ? "閉じる" : "もっと見る"}
-              <span className="text-[16px] leading-none md:text-[24px]">
-                {showAllJobReasons ? "×" : "+"}
-              </span>
+              {showAllJobReasons ? (
+                // 「閉じる」時はマイナス表現で統一します。
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M6 12H18"
+                    stroke="#4B5459"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <span className="text-[16px] leading-none md:text-[24px]">
+                  +
+                </span>
+              )}
             </button>
           </div>
         ) : null}
@@ -536,20 +591,47 @@ export default function CareerClient() {
               </div>
             ))
           ) : gradReasons.length > 0 ? (
-            // 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。
-            (showAllGradReasons ? gradReasons : gradReasons.slice(0, 5)).map(
-              (reason) => (
-              <div
-                key={reason.text}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
-              >
-                <p>{reason.text}</p>
-                <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
-                  <span>{reason.course}</span>
+            <>
+              {/* 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。 */}
+              {gradReasons.slice(0, 5).map((reason) => (
+                <div
+                  key={reason.text}
+                  className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                >
+                  <p>{reason.text}</p>
+                  <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
+                    <span>{reason.course}</span>
+                  </div>
                 </div>
-              </div>
-              ),
-            )
+              ))}
+              {/* 追加分は研究室の開閉と同じロールアニメーションで表示します。 */}
+              {gradReasons.length > 5 ? (
+                <div
+                  className={`grid overflow-hidden transition-[grid-template-rows,opacity,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                    showAllGradReasons
+                      ? "grid-rows-[1fr] opacity-100 translate-y-0"
+                      : "grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                  }`}
+                  aria-hidden={!showAllGradReasons}
+                >
+                  <div className="min-h-0">
+                    <div className="mt-4 space-y-4">
+                      {gradReasons.slice(5).map((reason) => (
+                        <div
+                          key={reason.text}
+                          className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                        >
+                          <p>{reason.text}</p>
+                          <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
+                            <span>{reason.course}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </>
           ) : (
             <div
               className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
@@ -563,13 +645,35 @@ export default function CareerClient() {
             <button
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
-              className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px] md:text-[15px]"
+              // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+                showAllGradReasons
+                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
+              }`}
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >
               {showAllGradReasons ? "閉じる" : "もっと見る"}
-              <span className="text-[16px] leading-none md:text-[24px]">
-                {showAllGradReasons ? "×" : "+"}
-              </span>
+              {showAllGradReasons ? (
+                // 「閉じる」時はマイナス表現で統一します。
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M6 12H18"
+                    stroke="#4B5459"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ) : (
+                <span className="text-[16px] leading-none md:text-[24px]">
+                  +
+                </span>
+              )}
             </button>
           </div>
         ) : null}

@@ -17,8 +17,8 @@ export default function Footer({ className }: FooterProps) {
     // フッターを常に下端に寄せるため、親がflex-colの場合に効くmt-autoを付与します。
     <footer className={`${className ?? ""} mt-auto`.trim()}>
       {/* トップページの指示に合わせ、フッターの角丸は外してフラットな形状にします。 */}
-      {/* モバイルは左右余白をなくして全幅表示にし、md以上で既存の余白を維持します。 */}
-      <div className="relative w-full overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-0 py-12 text-center text-white md:px-4">
+      {/* どのページのコンテナ内でもウィンドウ幅いっぱいに広がるよう調整します。 */}
+      <div className="relative left-1/2 right-1/2 w-screen -mx-[50vw] overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-0 py-12 text-center text-white md:px-4">
         {/* 背景グラデーションの上にテクスチャ画像を重ね、Figmaの質感を再現します。 */}
         <div
           aria-hidden="true"
@@ -33,10 +33,19 @@ export default function Footer({ className }: FooterProps) {
           }}
         />
         <div>
-          <p className="font-medium [font-family:var(--font-roboto)]">CONTACT</p>
+          {/* Contactの見出しはOFFICIAL SNSと同じテキストスタイルに揃えます。 */}
+          <p className="text-[12px] tracking-[0.15em] [font-family:var(--font-roboto)]">
+            CONTACT
+          </p>
           <div className="space-y-1 text-[12px] tracking-normal">
-            <p>cy22000@shibaura-it.ac.jp</p>
-            <p className="underline">お問い合せフォームはこちらから</p>
+            <p>shibadesign2026sotsuten@gmail.com</p>
+            {/* お問い合わせフォームへのリンクは最新のフォームURLに差し替えます。 */}
+            <a
+              href="https://forms.gle/9pBuxBWgC9YuFo8j8"
+              className="underline"
+            >
+              お問い合せフォームはこちらから
+            </a>
           </div>
         </div>
 

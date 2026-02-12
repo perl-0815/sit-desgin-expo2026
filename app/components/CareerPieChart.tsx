@@ -18,7 +18,8 @@ export default function CareerPieChart({
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="relative h-[320px] w-[320px] max-w-full md:h-[463px] md:w-[463px]">
+      {/* 固定サイズを維持しつつ、親が狭い場合はmax幅で縮むようにしてはみ出しを防ぎます。 */}
+      <div className="relative h-[320px] w-[320px] max-h-full max-w-full md:h-[463px] md:w-[463px]">
         {/* 円グラフは3レイヤーで分割し、指定のグラデーションと単色で塗り分けます。 */}
         <div
           className="absolute inset-0 rounded-full"

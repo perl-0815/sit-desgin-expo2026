@@ -6,6 +6,7 @@ interface SkeletonLoaderProps {
   src?: string
   alt?: string
   className?: string
+  imgClassName?: string
   reloadKey?: number
   type?: "image" | "text"
   onError?: (event: React.SyntheticEvent<HTMLImageElement>) => void
@@ -23,6 +24,7 @@ const SkeletonLoaderInner: React.FC<SkeletonLoaderProps> = ({
   src,
   alt = "",
   className = "",
+  imgClassName,
   reloadKey = 0,
   type = "image",
   onError,
@@ -85,7 +87,7 @@ const SkeletonLoaderInner: React.FC<SkeletonLoaderProps> = ({
             alt={alt}
             onLoad={handleLoad}
             onError={handleError}
-            className="w-full h-full object-cover"
+            className={imgClassName ?? "h-full w-full object-cover"}
           />
         ) : null}
         {hasError && fallback ? fallback : null}

@@ -17,6 +17,7 @@ type Lab = {
   id: string
   name?: string | null
   official_name?: string | null
+  course?: string | null
 }
 
 type Student = {
@@ -63,6 +64,11 @@ type SkeletonBlockProps = {
   className?: string
 }
 
+type CourseMeta = {
+  key: string
+  buttonColor: string
+}
+
 const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   // ローディング時のプレースホルダーを統一するための簡易スケルトンです。
   return (
@@ -74,6 +80,22 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
 
 const PLACEHOLDER_BODY =
   "これはダミー文章です。作品の狙いや体験価値、制作プロセスなどをここに記載します。"
+
+const courseOrder: CourseMeta[] = [
+  { key: "社会情報コース", buttonColor: "#0A948A" },
+  { key: "UXコース", buttonColor: "#2C68D3" },
+  { key: "プロダクトコース", buttonColor: "#D1346F" },
+  { key: "その他", buttonColor: "#6A7378" },
+]
+
+const getCourseKey = (course?: string | null) => {
+  if (!course) return "その他"
+  return course
+}
+
+const getCourseMeta = (courseKey: string) => {
+  return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
+}
 
 const isAbsoluteUrl = (value?: string | null) => {
   return !!value && /^https?:\/\//i.test(value)
@@ -174,6 +196,16 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
     )
   }, [portfolios, portfolioId])
 
+  // 作品詳細のボタン色は所属コースの色に合わせます。
+  const studentLab = useMemo(
+    () => labs.find((lab) => lab.id === portfolio?.student?.lab_id),
+    [labs, portfolio?.student?.lab_id],
+  )
+  const courseMeta = useMemo(
+    () => getCourseMeta(getCourseKey(studentLab?.course)),
+    [studentLab?.course],
+  )
+
   const student = portfolio?.student
   const lab = student?.lab_id ? labById.get(student.lab_id) : undefined
 
@@ -262,15 +294,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
       {/* 固定ヘッダーと内容が重ならないよう、詳細ページ全体の上余白を確保します。 */}
       <div className="pt-[84px] md:pt-[96px]">
 
-      {/* モバイル版の見出しは残し、デスクトップではFigma通り非表示にします。 */}
-      <div className="flex items-center justify-between px-4 pt-6 md:hidden">
-        <div className="flex items-center gap-3">
-          <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
-          <h1 className="text-[24px] font-extrabold tracking-[0.04em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-            研究・作品紹介
-          </h1>
-        </div>
-      </div>
+      {/* 見出しはスマホ/デスクトップとも不要のため削除します。 */}
 
       {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
 
@@ -371,16 +395,17 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                 </p>
               )}
 
-              {/* 作品画像は16:9の高さ204px想定 */}
-              <div className="relative h-[204px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0] md:h-auto md:aspect-[16/9]">
+              {/* 作品画像は画像の縦幅に合わせて表示します。 */}
+              <div className="relative min-h-[160px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                 {loading ? (
                   <SkeletonBlock className="absolute inset-0" />
                 ) : workImage ? (
                   <SkeletonLoader
                     src={workImage}
                     alt=""
-                    // 詳細ページの画像サイズに合わせてフルサイズで表示します。
-                    className="h-full w-full"
+                    // 画像の縦幅に合わせて表示し、トリミングを避けます。
+                    className="w-full"
+                    imgClassName="h-auto w-full object-contain"
                     // 読み込み失敗時はプレースホルダーを表示します。
                     fallback={
                       <div className="absolute inset-0 grid place-items-center text-[12px] text-[#A3ADB2]">
@@ -406,7 +431,8 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                     href={workLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-full bg-[#0A948A] px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px]"
+                    className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px]"
+                    style={{ backgroundColor: courseMeta.buttonColor }}
                   >
                     この作品の詳細へ
                     <svg
@@ -443,7 +469,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
           {careerLoading || hasCareerContent ? (
             <section data-reveal className="px-4 md:px-[128px]">
               <div className="bg-white px-6 py-12 md:px-[24px] md:py-[96px]">
-                <div className="border-b border-[#14BDB1] pb-2">
+                {/* 進路見出し下線はコース色に合わせます。 */}
+                <div
+                  className="border-b pb-2"
+                  style={{ borderColor: courseMeta.buttonColor }}
+                >
                   <h3 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                     進路
                   </h3>

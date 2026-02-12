@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-require-imports */
+// このスクリプトは Node.js 単体実行の CommonJS で運用しているため、require を維持する。
+// 既存の実行方法や依存解決を変えずに lint エラーのみ解消する目的で、このファイルに限定して許可する。
 // イベント画像をR2へアップロードし、サムネイルを生成してCSVを更新します。
 
 const fs = require("fs")

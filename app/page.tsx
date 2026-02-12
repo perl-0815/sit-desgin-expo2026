@@ -1,4 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache"
+import { randomInt } from "node:crypto"
 
 import { prisma } from "@/lib/prisma"
 
@@ -151,7 +152,10 @@ export default async function Home() {
   const mixedItems = [...researchItems, ...portfolioItems]
   // ランダム表示用にFisher-Yatesでシャッフルします。
   for (let i = mixedItems.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1))
+    // React の purity ルールに抵触しないよう Math.random は使わず、
+    // サーバー実行で安全に使える node:crypto の randomInt で同等の乱択を行う。
+    // 既存の「毎回ランダム表示する」仕様は維持される。
+    const j = randomInt(i + 1)
     ;[mixedItems[i], mixedItems[j]] = [mixedItems[j], mixedItems[i]]
   }
   // Figmaの3枚レイアウトに合わせて3件に絞ります。

@@ -139,7 +139,9 @@ const LabKeywords = ({ keywords, isExpanded, labId }: LabKeywordsProps) => {
         <span
           key={`${labId}-${keyword}`}
           className={`rounded-full bg-[#EBEEF0] px-3 py-1 text-[10px] text-[#4B5459] md:text-[12px] ${
-            !isExpanded && index >= 3 ? "md:hidden" : ""
+            // モバイル/デスクトップともに未展開時は3件まで表示します。
+            // これに加えてコンテナ側の高さ制限で改行分は見切れるようにします。
+            !isExpanded && index >= 3 ? "hidden" : ""
           }`}
         >
           {keyword}
@@ -163,8 +165,9 @@ const getCourseMeta = (courseKey: string) => {
 
 const splitKeywords = (keywords?: string | null) => {
   if (!keywords) return []
+  // CSVの記入ゆれに対応するため、#, 空白, スラッシュでも区切る。
   return keywords
-    .split(/[,、]/)
+    .split(/[,、，#＃/\uFF0F\s\u3000]+/)
     .map((keyword) => keyword.trim())
     .filter(Boolean)
 }
@@ -513,13 +516,22 @@ export default function ResearchWorksClient() {
           {/* タブの高さは44px相当、内側余白は上下12pxで、タップしやすさと見た目の均整を両立します。 */}
           {/* Figmaの切り替えボタンに合わせて、外側は8pxパディング、内側は半透明白のピルにします。 */}
           <div className="rounded-full bg-[#EBEEF0] p-2 md:rounded-[9999px]">
-            <div className="grid grid-cols-2 gap-0">
+            {/* 白いピルが左右にスライドするよう、親をrelativeにしてインジケーターを重ねます。 */}
+            <div className="relative grid grid-cols-2 gap-0">
+              {/* 透明度のある白い背景を左右にスライドさせるための要素です。 */}
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 w-1/2 rounded-full border border-[#F9F9F9] bg-white/80 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                style={{
+                  transform:
+                    activeTab === "works" ? "translateX(100%)" : "translateX(0%)",
+                }}
+                aria-hidden="true"
+              />
               <button
                 type="button"
-                className={`w-full rounded-full px-1 py-3 text-[13px] font-medium transition ${
-                  activeTab === "research"
-                    ? "border border-[#F9F9F9] bg-white/80 text-[#2E3437]"
-                    : "text-[#6A7378]"
+                // タブ切り替え時に一瞬見えるブラウザ既定のフォーカス枠（黒い枠）を出さないようにします。
+                className={`relative z-10 w-full rounded-full px-1 py-3 text-[13px] font-medium transition outline-none focus:outline-none focus-visible:outline-none ${
+                  activeTab === "research" ? "text-[#2E3437]" : "text-[#6A7378]"
                 }`}
                 aria-pressed={activeTab === "research"}
                 onClick={() => updateTab("research")}
@@ -528,10 +540,9 @@ export default function ResearchWorksClient() {
               </button>
               <button
                 type="button"
-                className={`w-full rounded-full px-1 py-3 text-[13px] font-medium transition ${
-                  activeTab === "works"
-                    ? "border border-[#F9F9F9] bg-white/80 text-[#2E3437]"
-                    : "text-[#6A7378]"
+                // タブ切り替え時に一瞬見えるブラウザ既定のフォーカス枠（黒い枠）を出さないようにします。
+                className={`relative z-10 w-full rounded-full px-1 py-3 text-[13px] font-medium transition outline-none focus:outline-none focus-visible:outline-none ${
+                  activeTab === "works" ? "text-[#2E3437]" : "text-[#6A7378]"
                 }`}
                 aria-pressed={activeTab === "works"}
                 onClick={() => updateTab("works")}
@@ -788,7 +799,16 @@ export default function ResearchWorksClient() {
                                     ))}
                                   </div>
                                 </>
-                              ) : null}
+                              ) : (
+                                <>
+                                  {/* 研究がない研究室には、Figma指定の告知ボックスを表示します。 */}
+                                  <div className="mt-4 rounded-[4px] bg-[#EBEEF0] py-4 md:py-6">
+                                    <p className="text-center text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:text-[16px]">
+                                      出展している研究はありません
+                                    </p>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -801,6 +821,9 @@ export default function ResearchWorksClient() {
 
             const items = worksByCourse.get(course.key) ?? []
             const showAll = expandedCourses[course.key]
+            // 「もっと見る」時のロールアニメーション用に、表示分と追加分を分けます。
+            const visibleItems = items.slice(0, 4)
+            const extraItems = items.slice(4)
 
             return (
               <section
@@ -819,9 +842,7 @@ export default function ResearchWorksClient() {
 
                 {/* 作品一覧はデスクトップで4列にし、Figmaの16:9カード配置に合わせます。 */}
                 <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
-                  {items.map((item, index) => {
-                    const isHiddenOnMobile = !showAll && index >= 4
-                    return (
+                  {visibleItems.map((item) => (
                     <Link
                       key={item.id}
                       href={buildDetailHref(`/works/${item.id}`, {
@@ -830,9 +851,7 @@ export default function ResearchWorksClient() {
                         focus: `works-${item.id}`,
                       })}
                       id={`works-${item.id}`}
-                      className={`flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px] ${
-                        isHiddenOnMobile ? "hidden md:flex" : ""
-                      }`}
+                      className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                         {item.imageUrl ? (
@@ -875,33 +894,128 @@ export default function ResearchWorksClient() {
                         </p>
                       </div>
                     </Link>
-                  )
-                  })}
+                  ))}
                 </div>
+
+                {/* 「もっと見る」時のロールアニメーション用に、追加分を可変高さで開閉します。 */}
+                {extraItems.length > 0 ? (
+                  <div
+                    className={`grid overflow-hidden transition-[grid-template-rows,opacity,transform] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                      showAll
+                        ? "mt-6 grid-rows-[1fr] opacity-100 translate-y-0"
+                        : "mt-0 grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                    } md:mt-6 md:grid-rows-[1fr] md:opacity-100 md:translate-y-0 md:pointer-events-auto`}
+                    aria-hidden={!showAll}
+                  >
+                    <div className="min-h-0">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
+                        {extraItems.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={buildDetailHref(`/works/${item.id}`, {
+                              returnTab: "works",
+                              course: item.courseKey,
+                              focus: `works-${item.id}`,
+                            })}
+                            id={`works-${item.id}`}
+                            className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                          >
+                            <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
+                              {item.imageUrl ? (
+                                <SkeletonLoader
+                                  src={item.imageUrl}
+                                  alt=""
+                                  onError={handleImageError(item.imageOriginalUrl)}
+                                  // 既存のカードサイズに合わせてフルサイズで表示します。
+                                  className="h-full w-full"
+                                  // フォールバックも失敗した場合の表示を統一します。
+                                  fallback={
+                                    <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                      No Image
+                                    </div>
+                                  }
+                                />
+                              ) : (
+                                <div className="absolute inset-0 grid place-items-center text-[10px] text-[#A3ADB2]">
+                                  No Image
+                                </div>
+                              )}
+                            </div>
+                            {/* 作品カードも「タイトル」と「氏名」のみ表示し、情報量を抑えて視認性を上げます。 */}
+                            <div className="space-y-1 text-[12px] md:text-[16px]">
+                              {/* タイトルが3行以上になる場合は2行で省略します。 */}
+                              <p
+                                className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                                style={{
+                                  display: "-webkit-box",
+                                  WebkitBoxOrient: "vertical",
+                                  WebkitLineClamp: 2,
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {item.title}
+                              </p>
+                              {/* 氏名はFigma通り左寄せに統一し、カード内の視線の流れを揃えます。 */}
+                              <p className="text-left text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:text-[14px]">
+                                {item.studentName}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
                 {items.length > 4 ? (
                   <div className="mt-6 flex justify-center md:hidden">
                     {/* 「もっと見る」ボタンのアイコンはSVGで描画し、フォント依存を避けます。 */}
                     <button
                       type="button"
-                      className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium text-white shadow-[0_0_8px_rgba(106,115,120,0.15)]"
-                      style={{ backgroundColor: courseMeta.buttonColor }}
+                      // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
+                      className={`flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+                        showAll
+                          ? "border border-[#A3ADB2] bg-[#F9F9F9] text-[#4B5459]"
+                          : "text-white"
+                      }`}
+                      style={
+                        showAll
+                          ? undefined
+                          : { backgroundColor: courseMeta.buttonColor }
+                      }
                       onClick={() => toggleExpandedCourse(course.key)}
                     >
                       {showAll ? "閉じる" : "もっと見る"}
-                      <svg
-                        aria-hidden="true"
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path
-                          d="M12 6V18M6 12H18"
-                          stroke="#FFFFFF"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
+                      {showAll ? (
+                        // 「閉じる」時はマイナス表現で統一します。
+                        <svg
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M6 12H18"
+                            stroke="#4B5459"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                        >
+                          <path
+                            d="M12 6V18M6 12H18"
+                            stroke="#FFFFFF"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 ) : null}
