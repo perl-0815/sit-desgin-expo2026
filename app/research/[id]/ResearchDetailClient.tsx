@@ -116,26 +116,78 @@ const getCourseMeta = (courseKey: string) => {
   return courseOrder.find((course) => course.key === courseKey) ?? courseOrder[3]
 }
 
-const labLogoMap: Record<string, string> = {
-  // 研究室ロゴは `public/icon/lab` 配下の実ファイル名に合わせて明示的にマッピングします。
+type LabLogoPaths = {
+  pc: string
+  sp: string
+}
+
+const labLogoMap: Record<string, LabLogoPaths> = {
+  // 研究室ロゴ（テキスト込み）は `public/icon/lab/pc` と `public/icon/lab/sp` に分離して管理します。
   // 研究室名の表記ゆれ（末尾の「研究室」有無）を吸収するため、キーは「研究室」を除いた名称で揃えます。
-  "エモーショナルデザイン": "/icon/lab/エモーショナルデザイン.png",
-  "感性インタラクションデザイン": "/icon/lab/感性インタラクションデザイン.png",
-  "ユーザーエクスペリエンスデザイン":
-    "/icon/lab/ユーザーエクスペリエンスデザイン.png",
-  "コンピューティングデザイン": "/icon/lab/コンピューティングデザイン.png",
-  "メディア体験デザイン": "/icon/lab/メディア体験デザイン.png",
-  "身体知デザイン": "/icon/lab/身体知デザイン.png",
-  "プロダクト・エルゴノミクス・デザイン":
-    "/icon/lab/プロダクト・エルゴノミクス・デザイン.png",
-  "動態デザイン": "/icon/lab/動態デザイン.png",
-  "ヘルスケアデザイン": "/icon/lab/ヘルスケアデザイン.png",
-  "感性価値デザイン": "/icon/lab/感性価値デザイン.png",
-  "インサイトデザイン": "/icon/lab/インサイトデザイン.png",
-  "デザインプロセス": "/icon/lab/デザインプロセス.png",
-  "リサイクルデザイン": "/icon/lab/リサイクルデザイン.png",
-  "認知デザイン": "/icon/lab/認知デザイン.png",
-  "デライトデザイン": "/icon/lab/デライトデザイン.png",
+  "エモーショナルデザイン": {
+    pc: "/icon/lab/pc/エモーショナルデザイン.svg",
+    sp: "/icon/lab/sp/エモーショナルデザイン.svg",
+  },
+  "感性インタラクションデザイン": {
+    pc: "/icon/lab/pc/感性インタラクションデザイン.svg",
+    sp: "/icon/lab/sp/感性インタラクションデザイン.svg",
+  },
+  "ユーザーエクスペリエンスデザイン": {
+    pc: "/icon/lab/pc/ユーザーエクスペリエンスデザイン.svg",
+    sp: "/icon/lab/sp/ユーザーエクスペリエンスデザイン.svg",
+  },
+  "コンテクスチュアルデザイン": {
+    pc: "/icon/lab/pc/コンテクスチュアルデザイン.svg",
+    sp: "/icon/lab/sp/コンテクスチュアルデザイン.svg",
+  },
+  "コンピューティングデザイン": {
+    pc: "/icon/lab/pc/コンピューティングデザイン.svg",
+    sp: "/icon/lab/sp/コンピューティングデザイン.svg",
+  },
+  "メディア体験デザイン": {
+    pc: "/icon/lab/pc/メディア体験デザイン.svg",
+    sp: "/icon/lab/sp/メディア体験デザイン.svg",
+  },
+  "身体知デザイン": {
+    pc: "/icon/lab/pc/身体知デザイン.svg",
+    sp: "/icon/lab/sp/身体知デザイン.svg",
+  },
+  "プロダクト・エルゴノミクス・デザイン": {
+    pc: "/icon/lab/pc/プロダクト・エルゴノミクス・デザイン.svg",
+    sp: "/icon/lab/sp/プロダクト・エルゴノミクス・デザイン.svg",
+  },
+  "動態デザイン": {
+    pc: "/icon/lab/pc/動態デザイン.svg",
+    sp: "/icon/lab/sp/動態デザイン.svg",
+  },
+  "ヘルスケアデザイン": {
+    pc: "/icon/lab/pc/ヘルスケアデザイン.svg",
+    sp: "/icon/lab/sp/ヘルスケアデザイン.svg",
+  },
+  "感性価値デザイン": {
+    pc: "/icon/lab/pc/感性価値デザイン.svg",
+    sp: "/icon/lab/sp/感性価値デザイン.svg",
+  },
+  "インサイトデザイン": {
+    pc: "/icon/lab/pc/インサイトデザイン.svg",
+    sp: "/icon/lab/sp/インサイトデザイン.svg",
+  },
+  "デザインプロセス": {
+    pc: "/icon/lab/pc/デザインプロセス.svg",
+    sp: "/icon/lab/sp/デザインプロセス.svg",
+  },
+  "リサイクルデザイン": {
+    pc: "/icon/lab/pc/リサイクルデザイン.svg",
+    sp: "/icon/lab/sp/リサイクルデザイン.svg",
+  },
+  "認知デザイン": {
+    pc: "/icon/lab/pc/認知デザイン.svg",
+    sp: "/icon/lab/sp/認知デザイン.svg",
+  },
+  "デライトデザイン": {
+    pc: "/icon/lab/pc/デライトデザイン.svg",
+    sp: "/icon/lab/sp/デライトデザイン.svg",
+  },
 }
 
 const normalizeLabKey = (value?: string | null) => {
@@ -149,8 +201,8 @@ const resolveLabLogoPath = (lab?: Lab) => {
   for (const candidate of candidates) {
     const key = normalizeLabKey(candidate)
     if (!key) continue
-    const path = labLogoMap[key]
-    if (path) return path
+    const paths = labLogoMap[key]
+    if (paths) return paths
   }
   return null
 }
@@ -644,25 +696,30 @@ export default function ResearchDetailClient({
 
           {loading || labDisplayName ? (
             <section data-reveal className="px-4 md:px-[128px]">
-              {/* Figmaに合わせ、モバイルは縦積み・デスクトップは横並びでロゴと研究室名を中央配置します。 */}
-              <div className="flex flex-col items-center justify-center gap-3 md:flex-row md:gap-5">
+              {/* 下部の研究室表示は、テキスト込みロゴ画像に置き換えます。 */}
+              {/* SP/PCで別画像を使うため、ブレークポイントで表示を切り替えます。 */}
+              <div className="flex justify-center">
                 {loading ? (
-                  <SkeletonBlock className="h-[72px] w-[140px] rounded-md md:h-[88px] md:w-[170px]" />
+                  <SkeletonBlock className="h-[82px] w-[180px] rounded-md md:h-[80px] md:w-[240px]" />
                 ) : labLogoPath ? (
-                  <img
-                    src={labLogoPath}
-                    alt={`${labDisplayName || "研究室"} ロゴ`}
-                    className="h-[72px] w-auto object-contain md:h-[88px]"
-                  />
-                ) : null}
-                {loading ? (
-                  <SkeletonBlock className="h-6 w-40 rounded-md md:w-[280px]" />
-                ) : (
-                  <p className="text-center text-[16px] font-bold leading-[1.5] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:min-w-[280px] md:max-w-[320px] md:text-left md:text-[20px]">
-                    {/* PC版で研究室名が3行以上に分割されにくいよう、表示幅を拡張します。 */}
+                  <>
+                    <img
+                      src={labLogoPath.sp}
+                      alt={`${labDisplayName || "研究室"} ロゴ`}
+                      className="h-[120px] w-auto object-contain md:hidden"
+                    />
+                    <img
+                      src={labLogoPath.pc}
+                      alt={`${labDisplayName || "研究室"} ロゴ`}
+                      className="hidden h-[70px] w-auto object-contain md:block"
+                    />
+                  </>
+                ) : labDisplayName ? (
+                  // 画像未登録の研究室だけはテキストを表示し、表示欠落を防ぎます。
+                  <p className="text-center text-[16px] font-bold leading-[1.5] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
                     {labDisplayName}
                   </p>
-                )}
+                ) : null}
               </div>
             </section>
           ) : null}
