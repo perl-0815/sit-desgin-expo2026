@@ -121,15 +121,15 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja">
       <body
         className={`${notoSansJP.variable} ${roboto.variable} ${shipporiMinchoB1.variable} antialiased`}
       >
         {children}
       </body>
     </html>
-  )
+  );
 }

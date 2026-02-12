@@ -4,6 +4,7 @@ import { randomInt } from "node:crypto"
 import { prisma } from "@/lib/prisma"
 
 import TopPageClient from "./TopPageClient"
+import KeyVisual from "./components/KeyVisual"
 
 type PreviewItem = {
   id: string
@@ -162,17 +163,20 @@ export default async function Home() {
   const previewItems = mixedItems.slice(0, 3)
 
   return (
-    <main className="min-h-screen bg-[#F9F9F9] text-[#2E3437]">
-      {/* トップページはFigmaの構成に合わせてクライアント側のUIで描画します。 */}
-      <TopPageClient
-        careerStats={{
-          total,
-          gradCount,
-          jobCount,
-          otherCount,
-        }}
-        previewItems={previewItems}
-      />
-    </main>
+    <>
+      <KeyVisual />
+      <main className="min-h-screen bg-[#F9F9F9] text-[#2E3437]">
+        {/* トップページはFigmaの構成に合わせてクライアント側のUIで描画します。 */}
+        <TopPageClient
+          careerStats={{
+            total,
+            gradCount,
+            jobCount,
+            otherCount,
+          }}
+          previewItems={previewItems}
+        />
+      </main>
+    </>
   )
 }
