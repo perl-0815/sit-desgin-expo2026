@@ -46,7 +46,17 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
-  // 駅から大学までの動画は未公開のため、トップページで準備中モーダルの開閉状態を管理します。
+  const [kvComplete, setKvComplete] = useState(false)
+  useEffect(() => {
+    if (document.body.dataset.keyvisualComplete === "1") {
+      setKvComplete(true)
+      return
+    }
+    const handler = () => setKvComplete(true)
+    window.addEventListener("keyvisual:complete", handler)
+    return () => window.removeEventListener("keyvisual:complete", handler)
+  }, [])
+
   const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false)
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total
@@ -137,7 +147,7 @@ export default function TopPageClient({
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
-      <GlobalHeader activeId="top" />
+      <GlobalHeader activeId="top" hidden={!kvComplete} />
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
