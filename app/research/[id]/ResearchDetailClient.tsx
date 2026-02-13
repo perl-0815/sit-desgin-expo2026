@@ -700,18 +700,22 @@ export default function ResearchDetailClient({
               {/* SP/PCで別画像を使うため、ブレークポイントで表示を切り替えます。 */}
               <div className="flex justify-center">
                 {loading ? (
-                  <SkeletonBlock className="h-[82px] w-[180px] rounded-md md:h-[80px] md:w-[240px]" />
+                  // Figma指定ノード（SP: 986:11973, PC: 986:11993）の実寸に合わせ、
+                  // ロゴ画像表示前後のサイズ差でレイアウトが跳ねないようスケルトン寸法も揃えます。
+                  <SkeletonBlock className="h-[103px] w-[129px] rounded-md md:h-[60px] md:w-[346px]" />
                 ) : labLogoPath ? (
                   <>
                     <img
                       src={labLogoPath.sp}
                       alt={`${labDisplayName || "研究室"} ロゴ`}
-                      className="h-[120px] w-auto object-contain md:hidden"
+                      // 画像自体が「ロゴ+研究室名テキスト」のため、テキスト込みの見た目高さをFigma基準に合わせます。
+                      className="h-[103px] w-auto object-contain md:hidden"
                     />
                     <img
                       src={labLogoPath.pc}
                       alt={`${labDisplayName || "研究室"} ロゴ`}
-                      className="hidden h-[70px] w-auto object-contain md:block"
+                      // PCはFigmaノード高60pxに合わせ、現状の70px表示による縦方向の膨らみを解消します。
+                      className="hidden h-[60px] w-auto object-contain md:block"
                     />
                   </>
                 ) : labDisplayName ? (
