@@ -356,23 +356,8 @@ export default function ResearchDetailClient({
         const data = (await res.json()) as StudentDetail
         if (!active) return
         const careers = data.careers ?? []
-        if (careers.length > 0) {
-          setStudentCareers(careers)
-          return
-        }
-        // 進路が空の場合は、student_id との紐付け不整合に備えてフォールバック取得します。
-        // 既存データがある環境でのみ追加取得し、公開フィルタは維持します。
-        const fallbackRes = await fetch("/api/careers?visibility=public")
-        if (!fallbackRes.ok) {
-          setStudentCareers([])
-          return
-        }
-        const fallbackCareers = (await fallbackRes.json()) as Career[]
-        if (!active) return
-        const matchedCareers = fallbackCareers.filter(
-          (career) => normalizeText(career.student_id) === studentId,
-        )
-        setStudentCareers(matchedCareers)
+        // 先行公開版では students API の関連データのみを使用し、重複するフォールバックAPI呼び出しは行いません。
+        setStudentCareers(careers)
       } catch {
         if (!active) return
         setStudentCareers([])

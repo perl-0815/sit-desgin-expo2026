@@ -48,7 +48,7 @@ npm run lint
 
 ## Git接続先（remote）
 
-- 現在の接続先は3つ: `origin` / `test` / `development`
+- 現在の接続先は3つ: `origin` / `production` / `development`
 - `origin`: `https://github.com/syogakusya/sit-desgin-expo2026.git`
-- `test`: `https://github.com/perl-0815/sit-design-expo2026-test.git`
+- `production`: `https://github.com/perl-0815/sit-design-expo2026-test.git`
 - `development`: `https://github.com/perl-0815/sit-design-expo2026-Development.git`
