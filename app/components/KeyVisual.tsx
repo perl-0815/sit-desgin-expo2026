@@ -1,7 +1,4 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
-// このコンポーネントはスクロール進行に応じた段階演出を時系列で固定する設計のため、
-// 一部の状態遷移はEffect内で順番に更新する実装を許容します。
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
@@ -27,6 +24,8 @@ export default function KeyVisual() {
   const [scrollIndicatorVisible, setScrollIndicatorVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedCompleteRef = useRef(false);
+  const scrollAdjustedRef = useRef(false);
+  const savedContentOffsetRef = useRef(0);
   const scrollIndicatorTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -66,6 +65,7 @@ export default function KeyVisual() {
             setProgress(Math.min(Math.max(-rect.top / scrollable, 0), 1));
           }
           if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
+            savedContentOffsetRef.current = Math.max(0, window.scrollY - el.offsetHeight);
             setKvEverCompleted(true);
           }
         }
@@ -423,12 +423,16 @@ export default function KeyVisual() {
 
   useLayoutEffect(() => {
     if (!kvEverCompleted) return;
-    const diff = (scrollPages - 1) * window.innerHeight;
-    window.scrollBy(0, -diff);
+    if (scrollAdjustedRef.current) return;
+    scrollAdjustedRef.current = true;
+    const el = containerRef.current;
+    if (!el) return;
+    const kvBottom = el.offsetTop + el.offsetHeight;
+    window.scrollTo(0, kvBottom + savedContentOffsetRef.current);
   }, [kvEverCompleted]);
 
   return (
-    <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh` }}>
+    <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh`, overflowAnchor: "none" as const }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
         <div
           className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${

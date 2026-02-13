@@ -1,11 +1,33 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
 import Footer from "./components/Footer"
 import GlobalHeader from "./components/GlobalHeader"
-import KeyVisual from "./components/KeyVisual"
 import useSectionReveal from "./components/useSectionReveal"
+
+// トップページの構成要素をまとめて管理し、Figmaの階層と同じ順番で描画します。
+type CareerStats = {
+  total: number
+  gradCount: number
+  jobCount: number
+  otherCount: number
+}
+
+type TopPageClientProps = {
+  careerStats: CareerStats
+  previewItems: PreviewItem[]
+}
+
+type PreviewItem = {
+  id: string
+  title: string
+  author: string
+  imageUrl: string
+  href: string
+  kind: "research" | "works"
+}
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
 const sitMapImageUrl = "/image/sit_map.png"
@@ -13,8 +35,31 @@ const sitMapImageUrl = "/image/sit_map.png"
 // 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
 const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg"
 const exhibitionDecorationRightUrl = "/image/top-decoration2.svg"
+// 研究・作品紹介の装飾はトップ専用のSVGに切り替えます。
+const worksDecorationPrimaryUrl = "/image/top-decoration4.svg"
+const worksDecorationSecondaryUrl = "/image/top-decoration3.svg"
+// コンセプト背景はローカルの単一画像に統一します。
+const conceptBackgroundUrl = "/image/concept.png"
 
-export default function TopPageClient() {
+export default function TopPageClient({
+  careerStats,
+  previewItems,
+}: TopPageClientProps) {
+  // 初回表示時点でKeyVisual完了フラグを参照し、Effect内の同期setStateを避けます。
+  // これにより `react-hooks/set-state-in-effect` 警告を回避しつつ、再訪時の表示状態も維持します。
+  const [kvComplete, setKvComplete] = useState(() => {
+    if (typeof document === "undefined") {
+      return false
+    }
+    return document.body.dataset.keyvisualComplete === "1"
+  })
+  useEffect(() => {
+    const handler = () => setKvComplete(true)
+    window.addEventListener("keyvisual:complete", handler)
+    return () => window.removeEventListener("keyvisual:complete", handler)
+  }, [])
+
+
   // 開催開始日（2026年3月7日）までの残り日数を、ローカル日付の0時基準で計算します。
   const eventStartDate = new Date(2026, 2, 7)
   const today = new Date()
@@ -26,8 +71,18 @@ export default function TopPageClient() {
     Math.ceil((eventStartDate.getTime() - today.getTime()) / msPerDay),
   )
 
-  // トップページの各セクションにスクロール時のスライドインを付与します。
-  useSectionReveal()
+  // データ未登録時でもレイアウトが崩れないよう、フォールバック用の表示データを準備します。
+  const fallbackPreviewItems: PreviewItem[] = Array.from({ length: 3 }).map(
+    (_, index) => ({
+      id: `preview-${index}`,
+      title:
+        "研究または作品タイトルが入ります。研究または作品タイトルが入ります。",
+      author: "苗字 名前",
+      imageUrl: "/image/preview.png",
+      href: "/research",
+      kind: "research",
+    }),
+  )
 
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
@@ -35,10 +90,11 @@ export default function TopPageClient() {
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
-      <GlobalHeader activeId="top" />
-
-      {/* syogakushaのKV演出をそのまま使うため、専用コンポーネントを配置します。 */}
-      <KeyVisual />
+      {/* GlobalHeaderにhiddenプロパティはないため、classNameで表示状態を切り替えます。 */}
+      <GlobalHeader
+        activeId="top"
+        className={kvComplete ? "" : "opacity-0 pointer-events-none"}
+      />
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
@@ -175,7 +231,82 @@ export default function TopPageClient() {
         </div>
       </section>
 
-      {/* 先行公開向けの簡易版では、CONCEPT/イベント/研究作品紹介/進路セクションを非表示にして導線を整理します。 */}
+      {/* コンセプトは背景のレイヤーと改行位置をFigma通りに合わせます。 */}
+      {/* モバイルの下余白を少し広げ、次セクションとの間隔を確保します。 */}
+      <section
+        data-reveal
+        className="relative mt-0 overflow-hidden px-4 pb-20 pt-12 md:mt-0 md:px-8 lg:px-[128px] md:py-[96px]"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+        >
+          {/* デスクトップ/モバイル共通で同一の背景画像を使用します。 */}
+          <img
+            alt=""
+            src={conceptBackgroundUrl}
+            className="absolute h-full w-full object-cover"
+          />
+        </div>
+        <div className="relative flex flex-col items-center gap-4 md:gap-6">
+          <div className="flex w-full flex-col items-center py-1 md:py-2">
+            <p className="text-[16px] font-extrabold leading-[1.5] text-[#EBEEF0] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+              CONCEPT
+            </p>
+            <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.96px] text-[#F9F9F9] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[56px] md:tracking-[1.12px]">
+              接点
+            </p>
+          </div>
+
+          {/* デスクトップ本文 */}
+          <div className="hidden w-full px-[128px] text-center md:block">
+            <div className="text-[18px] leading-[2.2] tracking-[0.72px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
+              <p className="mb-0">
+                卒展は、来場者と研究の接点となるだけでなく、
+              </p>
+              <p className="mb-0 text-[18px]">&nbsp;</p>
+              <p className="mb-0">研究と社会の仕組み、</p>
+              <p className="mb-0">研究と過去の経験、</p>
+              <p className="mb-0">研究と新たに生まれる可能性、</p>
+              <p className="mb-0 text-[18px]">&nbsp;</p>
+              <p className="mb-0">
+                など接点を持ちうる様々な要素に囲まれている。
+              </p>
+              <p className="mb-0">
+                客観的に見た卒展は、そういった外部の接点を多様に持ち、 様々な接点の上で成り立っている。
+              </p>
+              <p className="mb-0 text-[18px]">&nbsp;</p>
+              <p>
+                そんな卒展を覗くと、たくさんのアイデアにあふれていて、 来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+              </p>
+            </div>
+          </div>
+
+          {/* モバイル本文 */}
+          <div className="w-full text-center md:hidden">
+            <div className="text-[15px] leading-[2.2] tracking-[0.6px] text-[#F9F9F9] [font-family:'Noto_Sans_JP',sans-serif]">
+              <p className="mb-0">
+                卒展は、来場者と研究の接点となるだけでなく、
+              </p>
+              <p className="mb-0 text-[15px]">&nbsp;</p>
+              <p className="mb-0">研究と社会の仕組み、</p>
+              <p className="mb-0">研究と過去の経験、</p>
+              <p className="mb-0">研究と新たに生まれる可能性、</p>
+              <p className="mb-0 text-[15px]">&nbsp;</p>
+              <p className="mb-0">
+                など接点を持ちうる様々な要素に囲まれている。
+              </p>
+              <p className="mb-0">
+                客観的に見た卒展は、そういった外部の接点を多様に持ち、 様々な接点の上で成り立っている。
+              </p>
+              <p className="mb-0 text-[15px]">&nbsp;</p>
+              <p>
+                そんな卒展を覗くと、たくさんのアイデアにあふれていて、 来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
       <section
@@ -242,13 +373,13 @@ export default function TopPageClient() {
         </div>
       </section>
 
-      {/* 先行公開向けの簡易版では、準備中の動画導線を外してアクセス情報のみ掲載します。 */}
+      {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
       <section
         data-reveal
         className="px-4 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto md:max-w-[1024px]">
-          {/* デスクトップは見出し線を中間幅で止めて右に地図を配置します。 */}
+          {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}
           <div className="mt-4 flex flex-col gap-6 md:mt-0 md:grid md:grid-cols-[480px_480px] md:items-start md:gap-[64px]">
             <div>
               {/* 見出し下の線は下のテキストボックス幅に揃えるため、固定幅ではなく左カラム全幅に合わせます。 */}
@@ -294,7 +425,6 @@ export default function TopPageClient() {
           <Footer className="w-full" />
         </div>
       </div>
-
     </div>
   )
 }
