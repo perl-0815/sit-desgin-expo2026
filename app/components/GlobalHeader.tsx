@@ -8,6 +8,7 @@ import NavigationMenu from "./NavigationMenu"
 type GlobalHeaderProps = {
   activeId?: string
   className?: string
+  hidden?: boolean
 }
 
 type NavigationItem = {
@@ -32,6 +33,7 @@ const headerLogoUrl = "/icon/header_icon.png"
 export default function GlobalHeader({
   activeId,
   className,
+  hidden = false,
 }: GlobalHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -55,12 +57,11 @@ export default function GlobalHeader({
 
       {/* Figmaのヘッダーは画面上部に固定し、背景の透過と影を再現します。 */}
       <div
-        className={`fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none ${
-          className ?? ""
-        }`.trim()}
+        className={`fixed inset-x-0 top-0 z-40 flex justify-center pointer-events-none transition-opacity duration-500 ${
+          hidden ? "opacity-0" : "opacity-100"
+        } ${className ?? ""}`.trim()}
       >
-        {/* モバイルは画面幅いっぱいに広げ、デスクトップも同じ横マージンに揃えます。 */}
-        <div className="w-full px-4 pt-2 pointer-events-auto lg:max-w-[1280px] lg:px-4 lg:pt-[24px]">
+        <div className={`w-full px-4 pt-2 lg:max-w-[1280px] lg:px-4 lg:pt-[24px] ${hidden ? "pointer-events-none" : "pointer-events-auto"}`}>
           <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] lg:px-5 lg:py-3">
             <Link
               href="/"
