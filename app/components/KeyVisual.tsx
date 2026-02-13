@@ -12,6 +12,7 @@ const ZOOM_SCROLL_PAGES = 3.0;
 
 export default function KeyVisual() {
   const [scale, setScale] = useState(1);
+  const [coverScale, setCoverScale] = useState(1);
   const [layout, setLayout] = useState<"horizontal" | "vertical">("horizontal");
   const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -40,6 +41,7 @@ export default function KeyVisual() {
           ? Math.min(vw / base.w, vh / base.h)
           : Math.max(vw / base.w, vh / base.h),
       );
+      setCoverScale(Math.max(vw / base.w, vh / base.h));
     };
     updateScale();
     window.addEventListener("resize", updateScale);
@@ -434,6 +436,43 @@ export default function KeyVisual() {
   return (
     <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh`, overflowAnchor: "none" as const }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
+        {layout === "vertical" && (
+          <div
+            aria-hidden="true"
+            className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in ${
+              isVisible ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ zIndex: -1 }}
+          >
+            <div
+              className="absolute left-1/2 top-1/2 origin-center"
+              style={{
+                transform: `translate(-50%, -50%) scale(${coverScale * sceneZoom * 1.1})`,
+                width: base.w,
+                height: base.h,
+                filter: "blur(0px)",
+              }}
+            >
+              <img
+                src={backgroundSrc}
+                alt=""
+                width={base.w}
+                height={base.h}
+                className="absolute inset-0 h-full w-full"
+              />
+              <img
+                src={layers[0].src}
+                alt=""
+                width={layers[0].w}
+                height={layers[0].h}
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 block select-none"
+                style={{
+                  transform: `translate(-50%, -50%) translate(${layers[0].x}px, ${layers[0].y}px) scale(${layers[0].scale})`,
+                }}
+              />
+            </div>
+          </div>
+        )}
         <div
           className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${
             isVisible ? "opacity-100" : "opacity-0"
