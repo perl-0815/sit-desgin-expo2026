@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
-const SCROLL_PAGES = 6.0;
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
 const COLOR_FADE_DURATION_MS = 800;
-const TE_FADE_DURATION_MS = 700;
+const TE_FADE_DURATION_MS = 300;
 const FINAL_TO_ZOOM_THRESHOLD = 0.15;
+const ZOOM_SCROLL_PAGES = 3.0;
 
 
 export default function KeyVisual() {
@@ -20,8 +20,11 @@ export default function KeyVisual() {
   const [teShownProgress, setTeShownProgress] = useState<number | null>(null);
   const [teFadeCompleted, setTeFadeCompleted] = useState(false);
   const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
+  const [kvEverCompleted, setKvEverCompleted] = useState(false);
+  const [scrollIndicatorVisible, setScrollIndicatorVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedCompleteRef = useRef(false);
+  const scrollIndicatorTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const updateScale = () => {
@@ -59,18 +62,44 @@ export default function KeyVisual() {
           if (scrollable > 0) {
             setProgress(Math.min(Math.max(-rect.top / scrollable, 0), 1));
           }
+          if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
+            setKvEverCompleted(true);
+          }
         }
         ticking = false;
       });
     };
+    const clampScroll = () => {
+      if (hasDispatchedCompleteRef.current) return;
+      const el = containerRef.current;
+      if (!el) return;
+      const maxScroll = el.offsetTop + el.offsetHeight - window.innerHeight;
+      if (window.scrollY > maxScroll) {
+        window.scrollTo(0, maxScroll);
+      }
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", clampScroll);
     onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", clampScroll);
+    };
   }, []);
 
   const colorRevealThreshold = 0.15;
   const teRevealThreshold = 0.15;
   const finalRevealThreshold = 0.15;
+  const preZoomMinProgress =
+    colorRevealThreshold + teRevealThreshold + finalRevealThreshold + FINAL_TO_ZOOM_THRESHOLD + 0.05;
+  const scrollPages = Math.max(
+    Math.ceil(ZOOM_SCROLL_PAGES / (1 - preZoomMinProgress)) + 1,
+    6,
+  );
+  const zoomScrollRange = ZOOM_SCROLL_PAGES / (scrollPages - 1);
+  const colorShownMax = 1 - teRevealThreshold - finalRevealThreshold - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
+  const teShownMax = 1 - finalRevealThreshold - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
+  const finalShownMax = 1 - FINAL_TO_ZOOM_THRESHOLD - zoomScrollRange;
   const colorRevealed = progress > colorRevealThreshold;
   const teReadyByScroll =
     colorShownProgress !== null && progress > colorShownProgress + teRevealThreshold;
@@ -88,10 +117,15 @@ export default function KeyVisual() {
   const zoomProgress =
     finalRevealed && zoomReadyByScroll
       ? Math.min(
-          Math.max((progress - zoomStartProgress) / (1 - zoomStartProgress), 0),
+          Math.max((progress - zoomStartProgress) / zoomScrollRange, 0),
           1,
         )
       : 0;
+
+  const effectiveColorRevealed = kvEverCompleted || colorRevealed;
+  const effectiveTeRevealed = kvEverCompleted || teRevealed;
+  const effectiveFinalRevealed = kvEverCompleted || finalRevealed;
+  const effectiveZoomProgress = kvEverCompleted ? 0 : zoomProgress;
 
   useEffect(() => {
     if (progress <= colorRevealThreshold && colorShownProgress !== null) {
@@ -99,7 +133,7 @@ export default function KeyVisual() {
       return;
     }
     if (colorShownProgress === null && colorRevealed) {
-      setColorShownProgress(progress);
+      setColorShownProgress(Math.min(progress, colorShownMax));
     }
   }, [progress, colorRevealed, colorShownProgress]);
 
@@ -121,7 +155,7 @@ export default function KeyVisual() {
       return;
     }
     if (teShownProgress === null) {
-      setTeShownProgress(progress);
+      setTeShownProgress(Math.min(progress, teShownMax));
     }
     const timer = window.setTimeout(() => {
       setTeFadeCompleted(true);
@@ -135,7 +169,7 @@ export default function KeyVisual() {
       return;
     }
     if (finalShownProgress === null) {
-      setFinalShownProgress(progress);
+      setFinalShownProgress(Math.min(progress, finalShownMax));
     }
   }, [finalRevealed, finalShownProgress, progress]);
 
@@ -173,7 +207,7 @@ export default function KeyVisual() {
       scale: 1,
       rotate: 0,
       z: -21,
-      opacity: colorRevealed ? 1 : 0,
+      opacity: effectiveColorRevealed ? 1 : 0,
       animate: true,
     },
     {
@@ -221,7 +255,7 @@ export default function KeyVisual() {
       scale: 1.03,
       rotate: 0,
       z: -10,
-      opacity: colorRevealed ? 1 : 0,
+      opacity: effectiveColorRevealed ? 1 : 0,
       animate: true,
     },
     {
@@ -233,7 +267,7 @@ export default function KeyVisual() {
       scale: 0.25,
       rotate: 0,
       z: 20,
-      opacity: teRevealed ? 1 : 0,
+      opacity: effectiveTeRevealed ? 1 : 0,
       animate: true,
     },
   ];
@@ -272,7 +306,7 @@ export default function KeyVisual() {
       scale: 1,
       rotate: 0,
       z: -21,
-      opacity: colorRevealed ? 1 : 0,
+      opacity: effectiveColorRevealed ? 1 : 0,
       animate: true,
     },
     {
@@ -320,7 +354,7 @@ export default function KeyVisual() {
       scale: 1,
       rotate: 0,
       z: -10,
-      opacity: colorRevealed ? 1 : 0,
+      opacity: effectiveColorRevealed ? 1 : 0,
       animate: true,
     },
     {
@@ -332,15 +366,15 @@ export default function KeyVisual() {
       scale: 0.75,
       rotate: 0,
       z: 20,
-      opacity: teRevealed ? 1 : 0,
+      opacity: effectiveTeRevealed ? 1 : 0,
       animate: true,
     },
   ];
 
   const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
   const sceneZoomTarget = layout === "vertical" ? 4.1 : 3.2;
-  const sceneZoom = 1 + (sceneZoomTarget - 1) * zoomProgress;
-  const whiteFadeOpacity = Math.min(zoomProgress * 1.2, 1);
+  const sceneZoom = 1 + (sceneZoomTarget - 1) * effectiveZoomProgress;
+  const whiteFadeOpacity = Math.min(effectiveZoomProgress * 1.2, 1);
   const base = layout === "vertical" ? verticalBase : horizontalBase;
   const backgroundSrc =
     layout === "vertical"
@@ -355,8 +389,43 @@ export default function KeyVisual() {
     window.dispatchEvent(new Event("keyvisual:complete"));
   }, [finalRevealed, whiteFadeOpacity]);
 
+  const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrollIndicatorVisible(false);
+      if (scrollIndicatorTimerRef.current !== null) {
+        window.clearTimeout(scrollIndicatorTimerRef.current);
+      }
+      scrollIndicatorTimerRef.current = window.setTimeout(() => {
+        if (!hasDispatchedCompleteRef.current) {
+          setScrollIndicatorVisible(true);
+        }
+      }, 1500);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (scrollIndicatorTimerRef.current !== null) {
+        window.clearTimeout(scrollIndicatorTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (kvComplete) {
+      setScrollIndicatorVisible(false);
+    }
+  }, [kvComplete]);
+
+  useLayoutEffect(() => {
+    if (!kvEverCompleted) return;
+    const diff = (scrollPages - 1) * window.innerHeight;
+    window.scrollBy(0, -diff);
+  }, [kvEverCompleted]);
+
   return (
-    <div ref={containerRef} style={{ height: `${SCROLL_PAGES * 100}vh` }}>
+    <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh` }}>
       <section className="sticky top-0 flex h-screen w-full items-center justify-center overflow-hidden">
         <div
           className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${
@@ -382,7 +451,7 @@ export default function KeyVisual() {
             const isCenterText = l.src === "/key-visual/center-text.svg";
             const isTe = l.src === "/key-visual/te.png";
             const teFollowStrength = layout === "vertical" ? 0.42 : 0.5;
-            const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * zoomProgress), l.y - 100), l.y + 100) : l.y;
+            const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * effectiveZoomProgress), l.y - 100), l.y + 100) : l.y;
             const common = {
               transform: `translate(-50%, -50%) translate(${l.x}px, ${layerY}px) scale(${l.scale}) rotate(${l.rotate}deg)`,
               zIndex: l.z,
@@ -489,7 +558,7 @@ export default function KeyVisual() {
           className="pointer-events-none absolute inset-0"
           style={{
             zIndex: 40,
-            opacity: finalRevealed ? 0.8 * (1 - whiteFadeOpacity) : 0,
+            opacity: effectiveFinalRevealed ? 0.8 * (1 - whiteFadeOpacity) : 0,
             transition: "opacity 0.8s ease-in",
             background:
               "radial-gradient(circle at center, rgba(255, 255, 255, 0.00) 0%, rgba(255, 255, 255, 0.80) 100%)",
@@ -509,7 +578,7 @@ export default function KeyVisual() {
           className="pointer-events-none absolute bottom-[48px] left-[40px] inline-flex flex-col items-start gap-2"
           style={{
             zIndex: 42,
-            opacity: finalRevealed ? 1 - whiteFadeOpacity : 0,
+            opacity: effectiveFinalRevealed ? 1 - whiteFadeOpacity : 0,
             transition: "opacity 0.8s ease-in",
             color: "#3C3C3C",
             textShadow: "0 2px 20px rgba(0,0,0,0.25)",
@@ -525,6 +594,73 @@ export default function KeyVisual() {
           </div>
           <p className="text-[16px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-none">2026年3月7日（土）~ 3月17日（火）</p>
         </div>
+
+        <div
+          className={`pointer-events-none absolute bottom-8 right-8 flex flex-col items-center text-neutral-700 transition-opacity ease-in [font-family:var(--font-roboto),'Hiragino_Kaku_Gothic_ProN',sans-serif] ${isVisible && scrollIndicatorVisible && !kvComplete ? "opacity-100 duration-1000" : "opacity-0 duration-500"}`}
+          style={{ zIndex: 10 }}
+        >
+          <p
+            className="whitespace-nowrap rotate-90 text-center text-[14px] font-medium tracking-[2.1px] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]"
+            style={{ animation: "kv-scroll-pulse 2000ms linear infinite" }}
+          >
+            SCROLL
+          </p>
+          <div className="relative mt-8 h-[60px] w-px overflow-hidden bg-neutral-700 drop-shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+            <div
+              className="absolute inset-0 origin-top bg-neutral-50"
+              style={{
+                animation: "kv-scroll-bar-light-fill 2000ms linear infinite",
+              }}
+            />
+            <div
+              className="absolute inset-0 origin-top bg-neutral-700"
+              style={{
+                animation: "kv-scroll-bar-dark-fill 2000ms linear infinite",
+              }}
+            />
+          </div>
+        </div>
+        <style>{`
+          @keyframes kv-scroll-pulse {
+            0% {
+              color: var(--color-neutral-700);
+              animation-timing-function: ease-in;
+            }
+            50% {
+              color: var(--color-neutral-50);
+              animation-timing-function: ease-out;
+            }
+            100% {
+              color: var(--color-neutral-700);
+            }
+          }
+          @keyframes kv-scroll-bar-light-fill {
+            0% {
+              transform: scaleY(0);
+              animation-timing-function: ease-in;
+            }
+            50% {
+              transform: scaleY(1);
+              animation-timing-function: ease-out;
+            }
+            100% {
+              transform: scaleY(1);
+            }
+          }
+          @keyframes kv-scroll-bar-dark-fill {
+            0% {
+              transform: scaleY(0);
+            }
+            50% {
+              transform: scaleY(0);
+              animation-timing-function: ease-out;
+            }
+            100% {
+              transform: scaleY(1);
+              animation-timing-function: ease-in;
+            }
+          }
+        `}</style>
       </section>
     </div>
   );

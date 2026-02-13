@@ -154,8 +154,6 @@ export default function TopPageClient({
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       {isKeyVisualCompleted ? <GlobalHeader activeId="top" /> : null}
 
-      {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
-
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
         data-reveal
