@@ -78,9 +78,6 @@ const SkeletonBlock = ({ className = "" }: SkeletonBlockProps) => {
   )
 }
 
-const PLACEHOLDER_BODY =
-  "これはダミー文章です。作品の狙いや体験価値、制作プロセスなどをここに記載します。"
-
 const courseOrder: CourseMeta[] = [
   { key: "社会情報コース", buttonColor: "#0A948A" },
   { key: "UXコース", buttonColor: "#2C68D3" },
@@ -121,6 +118,97 @@ const parseWorkId = (value?: string | null) => {
     portfolioId: match[1].trim(),
     index: match[2] === "2" ? (2 as const) : (1 as const),
   }
+}
+
+type LabLogoPaths = {
+  pc: string
+  sp: string
+}
+
+const labLogoMap: Record<string, LabLogoPaths> = {
+  // 研究室ロゴ（テキスト込み）は `public/icon/lab/pc` と `public/icon/lab/sp` に分離して管理します。
+  // 研究室名の表記ゆれ（末尾の「研究室」有無）を吸収するため、キーは「研究室」を除いた名称で揃えます。
+  "エモーショナルデザイン": {
+    pc: "/icon/lab/pc/emotional-design.svg",
+    sp: "/icon/lab/sp/emotional-design.svg",
+  },
+  "感性インタラクションデザイン": {
+    pc: "/icon/lab/pc/kansei-interaction-design.svg",
+    sp: "/icon/lab/sp/kansei-interaction-design.svg",
+  },
+  "ユーザーエクスペリエンスデザイン": {
+    pc: "/icon/lab/pc/user-experience-design.svg",
+    sp: "/icon/lab/sp/user-experience-design.svg",
+  },
+  "コンテクスチュアルデザイン": {
+    pc: "/icon/lab/pc/contextual-design.svg",
+    sp: "/icon/lab/sp/contextual-design.svg",
+  },
+  "コンピューティングデザイン": {
+    pc: "/icon/lab/pc/computing-design.svg",
+    sp: "/icon/lab/sp/computing-design.svg",
+  },
+  "メディア体験デザイン": {
+    pc: "/icon/lab/pc/media-experience-design.svg",
+    sp: "/icon/lab/sp/media-experience-design.svg",
+  },
+  "身体知デザイン": {
+    pc: "/icon/lab/pc/embodied-knowledge-design.svg",
+    sp: "/icon/lab/sp/embodied-knowledge-design.svg",
+  },
+  "プロダクト・エルゴノミクス・デザイン": {
+    pc: "/icon/lab/pc/product-ergonomics-design.svg",
+    sp: "/icon/lab/sp/product-ergonomics-design.svg",
+  },
+  "動態デザイン": {
+    pc: "/icon/lab/pc/dynamic-design.svg",
+    sp: "/icon/lab/sp/dynamic-design.svg",
+  },
+  "ヘルスケアデザイン": {
+    pc: "/icon/lab/pc/healthcare-design.svg",
+    sp: "/icon/lab/sp/healthcare-design.svg",
+  },
+  "感性価値デザイン": {
+    pc: "/icon/lab/pc/kansei-value-design.svg",
+    sp: "/icon/lab/sp/kansei-value-design.svg",
+  },
+  "インサイトデザイン": {
+    pc: "/icon/lab/pc/insight-design.svg",
+    sp: "/icon/lab/sp/insight-design.svg",
+  },
+  "デザインプロセス": {
+    pc: "/icon/lab/pc/design-process.svg",
+    sp: "/icon/lab/sp/design-process.svg",
+  },
+  "リサイクルデザイン": {
+    pc: "/icon/lab/pc/recycle-design.svg",
+    sp: "/icon/lab/sp/recycle-design.svg",
+  },
+  "認知デザイン": {
+    pc: "/icon/lab/pc/cognitive-design.svg",
+    sp: "/icon/lab/sp/cognitive-design.svg",
+  },
+  "デライトデザイン": {
+    pc: "/icon/lab/pc/delight-design.svg",
+    sp: "/icon/lab/sp/delight-design.svg",
+  },
+}
+
+const normalizeLabKey = (value?: string | null) => {
+  // 表示名の末尾に「研究室」が付く/付かない両方を同じキーとして扱えるように正規化します。
+  return normalizeText(value).replace(/研究室$/u, "")
+}
+
+const resolveLabLogoPath = (lab?: Lab) => {
+  if (!lab) return null
+  const candidates = [lab.official_name, lab.name]
+  for (const candidate of candidates) {
+    const key = normalizeLabKey(candidate)
+    if (!key) continue
+    const paths = labLogoMap[key]
+    if (paths) return paths
+  }
+  return null
 }
 
 export default function WorksDetailClient({ id }: WorksDetailClientProps) {
@@ -208,9 +296,15 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
 
   const student = portfolio?.student
   const lab = student?.lab_id ? labById.get(student.lab_id) : undefined
+  // 研究室の下部表示は、表示名とロゴパスを先に解決して JSX 側を簡潔に保ちます。
+  const labDisplayName = normalizeText(lab?.official_name ?? lab?.name)
+  const labLogoPath = resolveLabLogoPath(lab)
 
   const workTitle = index === 2 ? portfolio?.title2 : portfolio?.title1
-  const workSummary = index === 2 ? portfolio?.summary2 : portfolio?.summary1
+  // 作品概要は未入力のケースがあるため、空白のみを除去して表示有無を判定します。
+  const workSummary = normalizeText(
+    index === 2 ? portfolio?.summary2 : portfolio?.summary1,
+  )
   const workImage = index === 2
     ? pickOriginalImage(portfolio?.image2_url, portfolio?.image2_thumb_url)
     : pickOriginalImage(portfolio?.image1_url, portfolio?.image1_thumb_url)
@@ -389,11 +483,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                   <SkeletonBlock className="h-4 w-11/12 rounded-md" />
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
-              ) : (
+              ) : workSummary ? (
                 <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
-                  {workSummary ?? PLACEHOLDER_BODY}
+                  {workSummary}
                 </p>
-              )}
+              ) : null}
 
               {/* 作品画像は画像の縦幅に合わせて表示します。 */}
               <div className="relative min-h-[160px] w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
@@ -509,6 +603,40 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                     </>
                   )}
                 </div>
+              </div>
+            </section>
+          ) : null}
+
+          {loading || labDisplayName ? (
+            <section data-reveal className="px-4 md:px-[128px]">
+              {/* 下部の研究室表示は、テキスト込みロゴ画像に置き換えます。 */}
+              {/* SP/PCで別画像を使うため、ブレークポイントで表示を切り替えます。 */}
+              <div className="flex justify-center">
+                {loading ? (
+                  // Figma指定ノード（SP: 986:11973, PC: 986:11993）の実寸に合わせ、
+                  // ロゴ画像表示前後のサイズ差でレイアウトが跳ねないようスケルトン寸法も揃えます。
+                  <SkeletonBlock className="h-[103px] w-[129px] rounded-md md:h-[60px] md:w-[346px]" />
+                ) : labLogoPath ? (
+                  <>
+                    <img
+                      src={labLogoPath.sp}
+                      alt={`${labDisplayName || "研究室"} ロゴ`}
+                      // 画像自体が「ロゴ+研究室名テキスト」のため、テキスト込みの見た目高さをFigma基準に合わせます。
+                      className="h-[103px] w-auto object-contain md:hidden"
+                    />
+                    <img
+                      src={labLogoPath.pc}
+                      alt={`${labDisplayName || "研究室"} ロゴ`}
+                      // PCはFigmaノード高60pxに合わせ、現状の70px表示による縦方向の膨らみを解消します。
+                      className="hidden h-[60px] w-auto object-contain md:block"
+                    />
+                  </>
+                ) : labDisplayName ? (
+                  // 画像未登録の研究室だけはテキストを表示し、表示欠落を防ぎます。
+                  <p className="text-center text-[16px] font-bold leading-[1.5] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                    {labDisplayName}
+                  </p>
+                ) : null}
               </div>
             </section>
           ) : null}
