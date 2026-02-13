@@ -132,18 +132,26 @@ export default function KeyVisual() {
 
   useEffect(() => {
     if (progress <= colorRevealThreshold && colorShownProgress !== null) {
-      setColorShownProgress(null);
-      return;
+      // react-hooks/set-state-in-effect対策として、同期更新を1フレーム遅延させます。
+      const frame = window.requestAnimationFrame(() => {
+        setColorShownProgress(null);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
     if (colorShownProgress === null && colorRevealed) {
-      setColorShownProgress(Math.min(progress, colorShownMax));
+      const frame = window.requestAnimationFrame(() => {
+        setColorShownProgress(Math.min(progress, colorShownMax));
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
-  }, [progress, colorRevealed, colorShownProgress]);
+  }, [progress, colorRevealed, colorShownProgress, colorShownMax]);
 
   useEffect(() => {
     if (!colorRevealed) {
-      setColorFadeCompleted(false);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setColorFadeCompleted(false);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
     const timer = window.setTimeout(() => {
       setColorFadeCompleted(true);
@@ -153,28 +161,38 @@ export default function KeyVisual() {
 
   useEffect(() => {
     if (!teRevealed) {
-      setTeShownProgress(null);
-      setTeFadeCompleted(false);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setTeShownProgress(null);
+        setTeFadeCompleted(false);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
     if (teShownProgress === null) {
-      setTeShownProgress(Math.min(progress, teShownMax));
+      const frame = window.requestAnimationFrame(() => {
+        setTeShownProgress(Math.min(progress, teShownMax));
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
     const timer = window.setTimeout(() => {
       setTeFadeCompleted(true);
     }, TE_FADE_DURATION_MS);
     return () => window.clearTimeout(timer);
-  }, [teRevealed, teShownProgress, progress]);
+  }, [teRevealed, teShownProgress, progress, teShownMax]);
 
   useEffect(() => {
     if (!finalRevealed) {
-      setFinalShownProgress(null);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setFinalShownProgress(null);
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
     if (finalShownProgress === null) {
-      setFinalShownProgress(Math.min(progress, finalShownMax));
+      const frame = window.requestAnimationFrame(() => {
+        setFinalShownProgress(Math.min(progress, finalShownMax));
+      });
+      return () => window.cancelAnimationFrame(frame);
     }
-  }, [finalRevealed, finalShownProgress, progress]);
+  }, [finalRevealed, finalShownProgress, progress, finalShownMax]);
 
   const horizontalLayers = [
     {
@@ -414,12 +432,6 @@ export default function KeyVisual() {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (kvComplete) {
-      setScrollIndicatorVisible(false);
-    }
-  }, [kvComplete]);
 
   useLayoutEffect(() => {
     if (!kvEverCompleted) return;

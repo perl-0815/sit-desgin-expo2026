@@ -91,43 +91,46 @@ export default function EventsClient() {
             {activeTab === "reserved" ? (
               // 予約必須イベントタブは、懇親会カードと準備中カードの2カラム構成を維持します。
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
-                {/* 懇親会カードは詳細ページへの導線なので、カード全体をクリック可能にして遷移しやすくします。 */}
-                <Link
-                  href="/events/farewell-lecture"
-                  className="block rounded-[24px] outline-none transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F9F9F9] md:h-full"
-                  aria-label="退職される先生の最終講義と懇親会ページへ"
-                >
-                  {/* 懇親会カードはFigmaに合わせ、白ベタではなく淡いグレー背景・弱い枠線/影・やや大きい角丸に調整します。 */}
-                  <article className="rounded-[24px] border border-[#E6E9EC] bg-[#F4F6F7] p-6 shadow-[0_8px_24px_rgba(46,52,55,0.08)] md:h-full md:p-8">
-                    <h2 className="text-[20px] font-bold leading-[1.65] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
-                      退職される先生の最終講義と懇親会
-                    </h2>
+                {/* Figmaノード1110:7919に合わせ、懇親会カードは右下に「詳しく見る」導線を明示します。 */}
+                <article className="flex h-full flex-col gap-2 rounded-[12px] bg-[rgba(255,255,255,0.8)] px-3 py-4 shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+                  <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                    退職される先生の最終講義と懇親会
+                  </h2>
 
-                    <div className="mt-6 space-y-4 text-[14px] leading-[2] text-[#4B5459] md:text-[16px]">
-                      <p className="flex items-center gap-2.5">
-                        {/* Figma準拠でアイコンをオレンジ系にして、本文とのコントラストを揃えます。 */}
-                        <span className="shrink-0 text-[#E5A967]" aria-hidden="true">
-                          <CalendarIcon />
-                        </span>
-                        <span>3/14(土) 14:00~</span>
-                      </p>
-                      <p className="flex items-center gap-2.5">
-                        <span className="shrink-0 text-[#E5A967]" aria-hidden="true">
-                          <PinIcon />
-                        </span>
-                        <span>
-                          最終講義：交流棟6階大講義室
-                          <br />
-                          懇親会：本部棟6階
-                        </span>
-                      </p>
-                    </div>
-
-                    <p className="mt-7 text-[14px] leading-[2.05] text-[#4B5459] md:text-[15px]">
-                      2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。
+                  <div className="flex flex-col gap-2">
+                    <p className="flex items-center gap-2 text-[16px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+                      <span className="shrink-0" aria-hidden="true">
+                        <CalendarIcon />
+                      </span>
+                      <span>3/14(土) 14:00~</span>
                     </p>
-                  </article>
-                </Link>
+                    <p className="flex items-center gap-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                      <span className="shrink-0" aria-hidden="true">
+                        <PinIcon />
+                      </span>
+                      <span>
+                        最終講義：交流棟6階大講義室
+                        <br />
+                        懇親会：本部棟6階
+                      </span>
+                    </p>
+                  </div>
+
+                  <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                    2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。
+                  </p>
+
+                  <div className="mt-auto flex justify-end pt-2">
+                    <Link
+                      href="/events/farewell-lecture"
+                      className="inline-flex items-center gap-3 text-[15px] font-medium leading-[1.5] text-[#D3793D] outline-none transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F9F9F9]"
+                      aria-label="退職される先生の最終講義と懇親会を詳しく見る"
+                    >
+                      <span>詳しく見る</span>
+                      <ChevronRightIcon />
+                    </Link>
+                  </div>
+                </article>
 
                 {/* 準備中カードは研究・作品紹介ページと同じ配色/枠線/影/文字スタイルへ揃えて統一感を持たせます。 */}
                 <article className="flex min-h-[280px] items-center justify-center rounded-[24px] border border-[#E6E9EC] bg-[#ECEFF1] p-6 text-center shadow-[0_8px_24px_rgba(46,52,55,0.08)] md:h-full md:min-h-0">
@@ -155,24 +158,50 @@ export default function EventsClient() {
 
 function CalendarIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" role="img">
-      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3 9.5H21" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 3V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M16 3V7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img">
+      <defs>
+        <linearGradient id="event-calendar-gradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FB9678" />
+          <stop offset="1" stopColor="#E5A967" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="5" width="16" height="15" rx="2" stroke="url(#event-calendar-gradient)" strokeWidth="1.8" />
+      <path d="M4 9H20" stroke="url(#event-calendar-gradient)" strokeWidth="1.8" />
+      <path d="M8 3.5V7" stroke="url(#event-calendar-gradient)" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16 3.5V7" stroke="url(#event-calendar-gradient)" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   )
 }
 
 function PinIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" role="img">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img">
+      <defs>
+        <linearGradient id="event-pin-gradient" x1="5.5" y1="4" x2="18.5" y2="21" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FB9678" />
+          <stop offset="1" stopColor="#E5A967" />
+        </linearGradient>
+      </defs>
       <path
-        d="M12 21C12 21 19 14.35 19 9.5C19 5.91 15.87 3 12 3C8.13 3 5 5.91 5 9.5C5 14.35 12 21 12 21Z"
-        stroke="currentColor"
+        d="M12 21C12 21 18.5 14.9 18.5 10.2C18.5 6.52 15.59 4 12 4C8.41 4 5.5 6.52 5.5 10.2C5.5 14.9 12 21 12 21Z"
+        stroke="url(#event-pin-gradient)"
         strokeWidth="1.8"
       />
-      <circle cx="12" cy="9.5" r="2.6" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="12" cy="10.2" r="2.4" stroke="url(#event-pin-gradient)" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" role="img">
+      <path
+        d="M10 7L15 12L10 17"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }

@@ -118,7 +118,7 @@ export default function TopPageClient({
               <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
               <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
-                芝浦工業大学 豊洲キャンパス
+                芝浦工業大学豊洲キャンパス交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
@@ -127,7 +127,7 @@ export default function TopPageClient({
                   開催時間
                 </p>
                 <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
-                  10:00 - 19:00
+                  10:00 - 17:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
