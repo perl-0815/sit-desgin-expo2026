@@ -48,7 +48,12 @@ npm run lint
 
 ## Git接続先（remote）
 
-- 現在の接続先は3つ: `origin` / `production` / `development`
-- `origin`: `https://github.com/syogakusya/sit-desgin-expo2026.git`
+- 現在の接続先は3つ: `origin` / `upstream` / `production`
+- `origin`: `https://github.com/perl-0815/sit-desgin-expo2026.git`
+- `upstream`: `https://github.com/syogakusya/sit-desgin-expo2026.git`
 - `production`: `https://github.com/perl-0815/sit-design-expo2026-test.git`
-- `development`: `https://github.com/perl-0815/sit-design-expo2026-Development.git`
+
+## ブランチ運用メモ
+
+- `mishima_backend_api` と `mishima_front_middleware` は upstream 側で削除済みのため、追跡・復元は不要。
+- `git branch -vv` で `[...: gone]` と表示されても、上記2ブランチについては正しい状態として扱う。
