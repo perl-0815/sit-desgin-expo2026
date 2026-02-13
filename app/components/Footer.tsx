@@ -56,7 +56,8 @@ export default function Footer({ className }: FooterProps) {
           {/* SNSアイコンはSVG画像で表示し、実際の公式リンクに遷移します。 */}
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 py-1">
             <a
-              href="https://x.com/b7xWHVd7ak81271"
+              // X公式アカウントが変更されたため、フッターの遷移先を新URLへ更新します。
+              href="https://x.com/sitdezasotsu_26?s=21"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="X"

@@ -142,7 +142,9 @@ export default function TopPageClient({
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
       <section
         data-reveal
-        className="relative h-[698px] w-full overflow-hidden md:h-[720px]"
+        // SPは画像の縦横比に合わせて高さを自動決定し、KV画像全体が切れずに表示されるようにします。
+        // PCは従来どおり固定高さでヒーロー領域を構成します。
+        className="relative w-full overflow-hidden md:h-[720px]"
       >
         {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
         <img
@@ -155,21 +157,12 @@ export default function TopPageClient({
           aria-hidden="true"
           alt=""
           src="/image/top-kv-sp.png"
-          className="absolute inset-0 h-full w-full object-cover md:hidden"
+          // SPはobject-coverを使わず画像全体を表示し、縦方向のトリミングを防ぎます。
+          className="block h-auto w-full md:hidden"
         />
 
-        {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-8 lg:px-[128px]">
-          <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)] md:text-[14px] md:tracking-[0.35em]">
-            SIT DESIGN EXPO 2026
-          </p>
-          <h1 className="mt-4 text-[32px] font-extrabold tracking-[0.08em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:mt-6 md:text-[40px] md:tracking-[0.1em]">
-            卒業・修了研究展
-          </h1>
-          <p className="mt-3 text-[13px] text-[#6A7378] md:text-[15px]">
-            芝浦工業大学 デザイン工学部
-          </p>
-        </div>
+        {/* KV画像に文字情報を埋め込んだため重ね表示は削除し、見出し構造維持のために不可視h1のみ残します。 */}
+        <h1 className="sr-only">SIT DESIGN EXPO 2026 卒業・修了研究展</h1>
 
         {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </section>
