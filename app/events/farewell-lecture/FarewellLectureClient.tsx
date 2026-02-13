@@ -10,9 +10,8 @@ import useSectionReveal from "../../components/useSectionReveal"
 const detailPageUrl =
   "https://www.shibaura-it.ac.jp/headline/detail_event/20260114-7070-001.html"
 
-// 申し込みボタンは指定されたURLへ遷移させます。
-const formUrl =
-  "https://www.google.com/url?q=https://www.shibaura-it.ac.jp/headline/detail_event/20260114-7070-001.html&source=gmail-imap&ust=1771556554000000&usg=AOvVaw1lIat8PiWaeDwES515QSaO"
+// 懇親会ページの申し込み導線は、最新のGoogleフォームURLへ統一します。
+const formUrl = "https://forms.gle/Eq3TJZzU2asjfCwT9"
 
 export default function FarewellLectureClient() {
   const router = useRouter()
