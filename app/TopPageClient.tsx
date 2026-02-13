@@ -142,30 +142,38 @@ export default function TopPageClient({
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
       <section
         data-reveal
-        // SPは画像の縦横比に合わせて高さを自動決定し、KV画像全体が切れずに表示されるようにします。
+        // SPはセクション高さをビューポート内に制限し、画像が画面外にはみ出さないようにします。
         // PCは従来どおり固定高さでヒーロー領域を構成します。
-        className="relative w-full overflow-hidden md:h-[720px]"
+        className="relative h-[100svh] w-full overflow-hidden md:h-[720px]"
       >
-        {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
+        {/* デスクトップは従来どおり全面coverで表示します。 */}
         <img
           aria-hidden="true"
           alt=""
           src="/image/top_kv-pc.png"
           className="absolute inset-0 hidden h-full w-full object-cover md:block"
         />
+
+        {/* SPは左右の余白をブラー背景で埋めるため、同一画像を背面に敷いて拡大表示します。 */}
         <img
           aria-hidden="true"
           alt=""
           src="/image/top-kv-sp.png"
-          // SPはobject-coverを使わず画像全体を表示し、縦方向のトリミングを防ぎます。
-          className="block h-auto w-full md:hidden"
+          className="absolute inset-0 h-full w-full object-cover blur-[3px] md:hidden"
+        />
+        {/* SPの前面画像はcontainで全体表示し、はみ出しを防ぎます。 */}
+        <img
+          aria-hidden="true"
+          alt=""
+          src="/image/top-kv-sp.png"
+          className="absolute inset-0 h-full w-full object-contain md:hidden"
         />
 
         {/* KV画像に文字情報を埋め込んだため重ね表示は削除し、見出し構造維持のために不可視h1のみ残します。 */}
         <h1 className="sr-only">SIT DESIGN EXPO 2026 卒業・修了研究展</h1>
 
         {/* FigmaのKV右下インジケーターに合わせ、SCROLLテキストと縦線アニメーションを重ねます。 */}
-        <div className="pointer-events-none absolute bottom-3 right-4 flex w-[22px] flex-col items-center gap-2">
+        <div className="pointer-events-none absolute bottom-3 right-10 flex w-[22px] flex-col items-center gap-2">
           <div className="flex h-[62px] w-[21px] items-center justify-center">
             {/* 文字は90度回転・字間2.1pxでFigma指定に合わせます。 */}
             <p className="rotate-90 text-center text-[14px] font-medium leading-[1.5] tracking-[2.1px] text-[#4B5459] [font-family:var(--font-roboto)] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]">
