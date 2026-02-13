@@ -4,6 +4,7 @@ import Link from "next/link"
 
 import Footer from "./components/Footer"
 import GlobalHeader from "./components/GlobalHeader"
+import KeyVisual from "./components/KeyVisual"
 import useSectionReveal from "./components/useSectionReveal"
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
@@ -36,56 +37,8 @@ export default function TopPageClient() {
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" />
 
-      {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
-      <section
-        data-reveal
-        // SPはセクション高さをビューポート内に制限し、画像が画面外にはみ出さないようにします。
-        // PCは従来どおり固定高さでヒーロー領域を構成します。
-        className="relative h-[100svh] w-full overflow-hidden md:h-[720px]"
-      >
-        {/* デスクトップは従来どおり全面coverで表示します。 */}
-        <img
-          aria-hidden="true"
-          alt=""
-          src="/image/top_kv-pc.png"
-          className="absolute inset-0 hidden h-full w-full object-cover md:block"
-        />
-
-        {/* SPは左右の余白をブラー背景で埋めるため、同一画像を背面に敷いて拡大表示します。 */}
-        <img
-          aria-hidden="true"
-          alt=""
-          src="/image/top-kv-sp.png"
-          className="absolute inset-0 h-full w-full object-cover blur-[3px] md:hidden"
-        />
-        {/* SPの前面画像はcontainで全体表示し、はみ出しを防ぎます。 */}
-        <img
-          aria-hidden="true"
-          alt=""
-          src="/image/top-kv-sp.png"
-          className="absolute inset-0 h-full w-full object-contain md:hidden"
-        />
-
-        {/* KV画像に文字情報を埋め込んだため重ね表示は削除し、見出し構造維持のために不可視h1のみ残します。 */}
-        <h1 className="sr-only">SIT DESIGN EXPO 2026 卒業・修了研究展</h1>
-
-        {/* FigmaのKV右下インジケーターに合わせ、SCROLLテキストと縦線アニメーションを重ねます。 */}
-        <div className="pointer-events-none absolute bottom-3 right-10 flex w-[22px] flex-col items-center gap-2">
-          <div className="flex h-[62px] w-[21px] items-center justify-center">
-            {/* 文字は90度回転・字間2.1pxでFigma指定に合わせます。 */}
-            <p className="rotate-90 text-center text-[14px] font-medium leading-[1.5] tracking-[2.1px] text-[#4B5459] [font-family:var(--font-roboto)] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]">
-              SCROLL
-            </p>
-          </div>
-          <div className="relative h-[60px] w-[22px] overflow-hidden">
-            {/* 下地ラインは60px固定で表示し、動くラインのみ別レイヤーで流します。 */}
-            <span className="absolute left-1/2 top-0 h-[60px] w-px -translate-x-1/2 bg-[#B8C0C4]" />
-            <span className="kv-scroll-indicator-line absolute left-1/2 top-0 h-[100px] w-px -translate-x-1/2 bg-[#4B5459]" />
-          </div>
-        </div>
-
-        {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
-      </section>
+      {/* syogakushaのKV演出をそのまま使うため、専用コンポーネントを配置します。 */}
+      <KeyVisual />
 
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
