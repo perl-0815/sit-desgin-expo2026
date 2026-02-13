@@ -61,3 +61,27 @@ body.page-reveal-ready [data-reveal].is-visible {
   height: 100%;
   animation: skeleton-shimmer 2s linear infinite;
 }
+
+/* KV右下のSCROLL線はFigmaの3状態(-100px / -20px / 60px)を往復せず下方向へ流す動きで再現します。 */
+@keyframes kv-scroll-line-flow {
+  0% {
+    transform: translate(-50%, -100px);
+  }
+  70% {
+    transform: translate(-50%, -20px);
+  }
+  100% {
+    transform: translate(-50%, 60px);
+  }
+}
+
+.kv-scroll-indicator-line {
+  animation: kv-scroll-line-flow 1.8s cubic-bezier(0.35, 0, 0.15, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-scroll-indicator-line {
+    animation: none;
+    transform: translate(-50%, -20px);
+  }
+}

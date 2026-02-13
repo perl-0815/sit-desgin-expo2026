@@ -164,6 +164,21 @@ export default function TopPageClient({
         {/* KV画像に文字情報を埋め込んだため重ね表示は削除し、見出し構造維持のために不可視h1のみ残します。 */}
         <h1 className="sr-only">SIT DESIGN EXPO 2026 卒業・修了研究展</h1>
 
+        {/* FigmaのKV右下インジケーターに合わせ、SCROLLテキストと縦線アニメーションを重ねます。 */}
+        <div className="pointer-events-none absolute bottom-3 right-4 flex w-[22px] flex-col items-center gap-2">
+          <div className="flex h-[62px] w-[21px] items-center justify-center">
+            {/* 文字は90度回転・字間2.1pxでFigma指定に合わせます。 */}
+            <p className="rotate-90 text-center text-[14px] font-medium leading-[1.5] tracking-[2.1px] text-[#4B5459] [font-family:var(--font-roboto)] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]">
+              SCROLL
+            </p>
+          </div>
+          <div className="relative h-[60px] w-[22px] overflow-hidden">
+            {/* 下地ラインは60px固定で表示し、動くラインのみ別レイヤーで流します。 */}
+            <span className="absolute left-1/2 top-0 h-[60px] w-px -translate-x-1/2 bg-[#B8C0C4]" />
+            <span className="kv-scroll-indicator-line absolute left-1/2 top-0 h-[100px] w-px -translate-x-1/2 bg-[#4B5459]" />
+          </div>
+        </div>
+
         {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
       </section>
 
