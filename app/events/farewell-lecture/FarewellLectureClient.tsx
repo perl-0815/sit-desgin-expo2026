@@ -75,9 +75,9 @@ export default function FarewellLectureClient() {
           </section>
 
           <section data-reveal className="px-4 pb-12 md:px-[128px] md:pb-24 md:pt-9">
-            <div className="max-w-[1024px]">
-              {/* セクション見出しの下線色と太さをFigmaに合わせ、識別性を優先します。 */}
-              <h2 className="inline-block border-b-2 border-[#D9854C] pb-2 text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:min-w-[361px] md:text-[24px]">
+            <div className="w-full">
+              {/* 下線をセクション横幅いっぱいに伸ばし、色も他ページで使う#FB9678へ統一します。 */}
+              <h2 className="w-full border-b-2 border-[#FB9678] pb-2 text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                 参加予約・スケジュール
               </h2>
 
