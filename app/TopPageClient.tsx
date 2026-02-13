@@ -142,33 +142,49 @@ export default function TopPageClient({
       {/* ヒーロー領域は指定のKV画像に差し替えます。 */}
       <section
         data-reveal
-        className="relative h-[698px] w-full overflow-hidden md:h-[720px]"
+        // SPはセクション高さをビューポート内に制限し、画像が画面外にはみ出さないようにします。
+        // PCは従来どおり固定高さでヒーロー領域を構成します。
+        className="relative h-[100svh] w-full overflow-hidden md:h-[720px]"
       >
-        {/* デスクトップ/モバイルでKV画像を切り替えます。 */}
+        {/* デスクトップは従来どおり全面coverで表示します。 */}
         <img
           aria-hidden="true"
           alt=""
           src="/image/top_kv-pc.png"
           className="absolute inset-0 hidden h-full w-full object-cover md:block"
         />
+
+        {/* SPは左右の余白をブラー背景で埋めるため、同一画像を背面に敷いて拡大表示します。 */}
         <img
           aria-hidden="true"
           alt=""
           src="/image/top-kv-sp.png"
-          className="absolute inset-0 h-full w-full object-cover md:hidden"
+          className="absolute inset-0 h-full w-full object-cover blur-[3px] md:hidden"
+        />
+        {/* SPの前面画像はcontainで全体表示し、はみ出しを防ぎます。 */}
+        <img
+          aria-hidden="true"
+          alt=""
+          src="/image/top-kv-sp.png"
+          className="absolute inset-0 h-full w-full object-contain md:hidden"
         />
 
-        {/* ヒーロー内テキストは中央に寄せ、展示の正式名称を目立たせます。 */}
-        <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center md:px-8 lg:px-[128px]">
-          <p className="text-[12px] font-medium tracking-[0.3em] text-[#6A7378] [font-family:var(--font-roboto)] md:text-[14px] md:tracking-[0.35em]">
-            SIT DESIGN EXPO 2026
-          </p>
-          <h1 className="mt-4 text-[32px] font-extrabold tracking-[0.08em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:mt-6 md:text-[40px] md:tracking-[0.1em]">
-            卒業・修了研究展
-          </h1>
-          <p className="mt-3 text-[13px] text-[#6A7378] md:text-[15px]">
-            芝浦工業大学 デザイン工学部
-          </p>
+        {/* KV画像に文字情報を埋め込んだため重ね表示は削除し、見出し構造維持のために不可視h1のみ残します。 */}
+        <h1 className="sr-only">SIT DESIGN EXPO 2026 卒業・修了研究展</h1>
+
+        {/* FigmaのKV右下インジケーターに合わせ、SCROLLテキストと縦線アニメーションを重ねます。 */}
+        <div className="pointer-events-none absolute bottom-3 right-10 flex w-[22px] flex-col items-center gap-2">
+          <div className="flex h-[62px] w-[21px] items-center justify-center">
+            {/* 文字は90度回転・字間2.1pxでFigma指定に合わせます。 */}
+            <p className="rotate-90 text-center text-[14px] font-medium leading-[1.5] tracking-[2.1px] text-[#4B5459] [font-family:var(--font-roboto)] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]">
+              SCROLL
+            </p>
+          </div>
+          <div className="relative h-[60px] w-[22px] overflow-hidden">
+            {/* 下地ラインは60px固定で表示し、動くラインのみ別レイヤーで流します。 */}
+            <span className="absolute left-1/2 top-0 h-[60px] w-px -translate-x-1/2 bg-[#B8C0C4]" />
+            <span className="kv-scroll-indicator-line absolute left-1/2 top-0 h-[100px] w-px -translate-x-1/2 bg-[#4B5459]" />
+          </div>
         </div>
 
         {/* メニューボタンは共通ヘッダー側で固定表示しています。 */}
