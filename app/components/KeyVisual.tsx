@@ -28,6 +28,7 @@ export default function KeyVisual() {
   const scrollAdjustedRef = useRef(false);
   const savedContentOffsetRef = useRef(0);
   const scrollIndicatorTimerRef = useRef<number | null>(null);
+  const maxAllowedProgressRef = useRef(1);
 
   useEffect(() => {
     const updateScale = () => {
@@ -64,7 +65,8 @@ export default function KeyVisual() {
           const rect = el.getBoundingClientRect();
           const scrollable = el.offsetHeight - window.innerHeight;
           if (scrollable > 0) {
-            setProgress(Math.min(Math.max(-rect.top / scrollable, 0), 1));
+            const raw = Math.min(Math.max(-rect.top / scrollable, 0), 1);
+            setProgress(Math.min(raw, maxAllowedProgressRef.current));
           }
           if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
             savedContentOffsetRef.current = Math.max(0, window.scrollY - el.offsetHeight);
@@ -78,7 +80,9 @@ export default function KeyVisual() {
       if (hasDispatchedCompleteRef.current) return;
       const el = containerRef.current;
       if (!el) return;
-      const maxScroll = el.offsetTop + el.offsetHeight - window.innerHeight;
+      const scrollable = el.offsetHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const maxScroll = el.offsetTop + scrollable * maxAllowedProgressRef.current;
       if (window.scrollY > maxScroll) {
         window.scrollTo(0, maxScroll);
       }
@@ -177,6 +181,16 @@ export default function KeyVisual() {
       setFinalShownProgress(Math.min(progress, finalShownMax));
     }
   }, [finalRevealed, finalShownProgress, progress]);
+
+  useLayoutEffect(() => {
+    if (!colorFadeCompleted) {
+      maxAllowedProgressRef.current = teShownMax + 0.01;
+    } else if (!teFadeCompleted) {
+      maxAllowedProgressRef.current = finalShownMax + 0.01;
+    } else {
+      maxAllowedProgressRef.current = 1;
+    }
+  }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax]);
 
   const horizontalLayers = [
     {
