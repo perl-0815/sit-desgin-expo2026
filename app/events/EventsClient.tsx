@@ -91,46 +91,48 @@ export default function EventsClient() {
             {activeTab === "reserved" ? (
               // 予約必須イベントタブは、懇親会カードと準備中カードの2カラム構成を維持します。
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">
-                {/* Figmaノード1110:7919に合わせ、懇親会カードは右下に「詳しく見る」導線を明示します。 */}
-                <article className="flex h-full flex-col gap-2 rounded-[12px] bg-[rgba(255,255,255,0.8)] px-3 py-4 shadow-[0_0_8px_rgba(106,115,120,0.15)]">
-                  <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                    退職される先生の最終講義と懇親会
-                  </h2>
+                {/* カード全体をクリック可能にし、ボタン文言は視覚的な導線として残します。 */}
+                <Link
+                  href="/events/farewell-lecture"
+                  className="block rounded-[12px] outline-none transition hover:opacity-95 focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F9F9F9]"
+                  aria-label="退職される先生の最終講義と懇親会ページへ"
+                >
+                  <article className="flex h-full flex-col gap-2 rounded-[12px] bg-[rgba(255,255,255,0.8)] px-3 py-4 shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+                    <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      退職される先生の最終講義と懇親会
+                    </h2>
 
-                  <div className="flex flex-col gap-2">
-                    <p className="flex items-center gap-2 text-[16px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-                      <span className="shrink-0" aria-hidden="true">
-                        <CalendarIcon />
-                      </span>
-                      <span>3/14(土) 14:00~</span>
+                    <div className="flex flex-col gap-2">
+                      <p className="flex items-center gap-2 text-[16px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+                        <span className="shrink-0" aria-hidden="true">
+                          <CalendarIcon />
+                        </span>
+                        <span>3/14(土) 14:00~</span>
+                      </p>
+                      <p className="flex items-center gap-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                        <span className="shrink-0" aria-hidden="true">
+                          <PinIcon />
+                        </span>
+                        <span>
+                          最終講義：交流棟6階大講義室
+                          <br />
+                          懇親会：本部棟6階
+                        </span>
+                      </p>
+                    </div>
+
+                    <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                      2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。
                     </p>
-                    <p className="flex items-center gap-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
-                      <span className="shrink-0" aria-hidden="true">
-                        <PinIcon />
-                      </span>
-                      <span>
-                        最終講義：交流棟6階大講義室
-                        <br />
-                        懇親会：本部棟6階
-                      </span>
-                    </p>
-                  </div>
 
-                  <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-                    2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。
-                  </p>
-
-                  <div className="mt-auto flex justify-end pt-2">
-                    <Link
-                      href="/events/farewell-lecture"
-                      className="inline-flex items-center gap-3 text-[15px] font-medium leading-[1.5] text-[#D3793D] outline-none transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F9F9F9]"
-                      aria-label="退職される先生の最終講義と懇親会を詳しく見る"
-                    >
-                      <span>詳しく見る</span>
-                      <ChevronRightIcon />
-                    </Link>
-                  </div>
-                </article>
+                    <div className="mt-auto flex justify-end pt-2">
+                      <span className="inline-flex items-center gap-3 text-[15px] font-medium leading-[1.5] text-[#D3793D]">
+                        <span>詳しく見る</span>
+                        <ChevronRightIcon />
+                      </span>
+                    </div>
+                  </article>
+                </Link>
 
                 {/* 準備中カードは研究・作品紹介ページと同じ配色/枠線/影/文字スタイルへ揃えて統一感を持たせます。 */}
                 <article className="flex min-h-[280px] items-center justify-center rounded-[24px] border border-[#E6E9EC] bg-[#ECEFF1] p-6 text-center shadow-[0_8px_24px_rgba(46,52,55,0.08)] md:h-full md:min-h-0">
