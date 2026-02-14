@@ -33,17 +33,17 @@ export default function FarewellLectureClient() {
               onClick={() => {
                 if (window.history.length > 1) {
                   router.back()
-                return
-              }
-              router.push("/events")
-            }}
-              className="flex h-[80px] items-center gap-2 px-4 text-[13px] font-medium text-[#6A7378] md:px-[128px] md:text-[15px]"
+                  return
+                }
+                router.push("/events")
+              }}
+              className="inline-flex h-[80px] items-center gap-1.5 px-4 text-[13px] font-medium leading-none text-[#6A7378] md:px-[128px] md:text-[15px]"
             >
-            <span aria-hidden="true" className="text-[20px] md:text-[24px]">
-              ‹
-            </span>
-            <span>戻る</span>
-          </button>
+              <span aria-hidden="true" className="inline-flex h-5 w-5 items-center justify-center translate-y-[1px] md:h-6 md:w-6">
+                <BackChevronIcon />
+              </span>
+              <span className="leading-none">戻る</span>
+            </button>
 
           <section data-reveal className="px-4 pb-8 md:px-[128px] md:pb-9 md:pt-9">
             <h1 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
@@ -173,6 +173,20 @@ function ExternalLinkIcon() {
         strokeLinejoin="round"
       />
       <rect x="2.7" y="4.7" width="8.6" height="8.6" rx="1.6" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  )
+}
+
+function BackChevronIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" role="img">
+      <path
+        d="M9.5 3.5L5 8L9.5 12.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }

@@ -103,14 +103,16 @@ export default function EventsClient() {
                     </h2>
 
                     <div className="flex flex-col gap-2">
-                      <p className="flex items-center gap-2 text-[16px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
-                        <span className="shrink-0" aria-hidden="true">
+                      <p className="flex items-center gap-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                        {/* アイコンの行送り差によるズレを防ぐため、常に中央配置の固定ボックスで表示します。 */}
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           <CalendarIcon />
                         </span>
                         <span>3/14(土) 14:00~</span>
                       </p>
                       <p className="flex items-center gap-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
-                        <span className="shrink-0" aria-hidden="true">
+                        {/* 複数行テキストでもアイコンの中心が本文中心に合うよう、同じ固定ボックスを使います。 */}
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden="true">
                           <PinIcon />
                         </span>
                         <span>
