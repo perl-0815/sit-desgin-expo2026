@@ -1,82 +1,82 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import CareerPieChart from "./components/CareerPieChart"
-import Footer from "./components/Footer"
-import GlobalHeader from "./components/GlobalHeader"
-import useSectionReveal from "./components/useSectionReveal"
+import CareerPieChart from "./components/CareerPieChart";
+import Footer from "./components/Footer";
+import GlobalHeader from "./components/GlobalHeader";
+import useSectionReveal from "./components/useSectionReveal";
 
 // トップページの構成要素をまとめて管理し、Figmaの階層と同じ順番で描画します。
 type CareerStats = {
-  total: number
-  gradCount: number
-  jobCount: number
-  otherCount: number
-}
+  total: number;
+  gradCount: number;
+  jobCount: number;
+  otherCount: number;
+};
 
 type TopPageClientProps = {
-  careerStats: CareerStats
-  previewItems: PreviewItem[]
-}
+  careerStats: CareerStats;
+  previewItems: PreviewItem[];
+};
 
 type PreviewItem = {
-  id: string
-  title: string
-  author: string
-  imageUrl: string
-  href: string
-  kind: "research" | "works"
-}
+  id: string;
+  title: string;
+  author: string;
+  imageUrl: string;
+  href: string;
+  kind: "research" | "works";
+};
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
-const sitMapImageUrl = "/image/sit_map.png"
+const sitMapImageUrl = "/image/sit_map.png";
 // 「卒業・修了研究展とは」セクションの装飾は、公開フォルダのSVGに集約して読み込みます。
 // 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
-const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg"
-const exhibitionDecorationRightUrl = "/image/top-decoration2.svg"
+const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg";
+const exhibitionDecorationRightUrl = "/image/top-decoration2.svg";
 // 研究・作品紹介の装飾はトップ専用のSVGに切り替えます。
-const worksDecorationPrimaryUrl = "/image/top-decoration4.svg"
-const worksDecorationSecondaryUrl = "/image/top-decoration3.svg"
+const worksDecorationPrimaryUrl = "/image/top-decoration4.svg";
+const worksDecorationSecondaryUrl = "/image/top-decoration3.svg";
 // コンセプト背景はローカルの単一画像に統一します。
-const conceptBackgroundUrl = "/image/concept.png"
+const conceptBackgroundUrl = "/image/concept.png";
 
 export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
-  const [kvComplete, setKvComplete] = useState(false)
+  const [kvComplete, setKvComplete] = useState(false);
   useEffect(() => {
     if (document.body.dataset.keyvisualComplete === "1") {
-      setKvComplete(true)
-      return
+      setKvComplete(true);
+      return;
     }
-    const handler = () => setKvComplete(true)
-    window.addEventListener("keyvisual:complete", handler)
-    return () => window.removeEventListener("keyvisual:complete", handler)
-  }, [])
+    const handler = () => setKvComplete(true);
+    window.addEventListener("keyvisual:complete", handler);
+    return () => window.removeEventListener("keyvisual:complete", handler);
+  }, []);
 
-  const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false)
+  const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false);
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
-  const totalCareers = careerStats.total
+  const totalCareers = careerStats.total;
   const gradPercent =
-    totalCareers === 0 ? 0 : (careerStats.gradCount / totalCareers) * 100
+    totalCareers === 0 ? 0 : (careerStats.gradCount / totalCareers) * 100;
   const jobPercent =
-    totalCareers === 0 ? 0 : (careerStats.jobCount / totalCareers) * 100
+    totalCareers === 0 ? 0 : (careerStats.jobCount / totalCareers) * 100;
   const otherPercent =
-    totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100
+    totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100;
 
   // 開催開始日（2026年3月7日）までの残り日数を、ローカル日付の0時基準で計算します。
-  const eventStartDate = new Date(2026, 2, 7)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  eventStartDate.setHours(0, 0, 0, 0)
-  const msPerDay = 1000 * 60 * 60 * 24
+  const eventStartDate = new Date(2026, 2, 7);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  eventStartDate.setHours(0, 0, 0, 0);
+  const msPerDay = 1000 * 60 * 60 * 24;
   const daysUntilEvent = Math.max(
     0,
     Math.ceil((eventStartDate.getTime() - today.getTime()) / msPerDay),
-  )
+  );
 
   // データ未登録時でもレイアウトが崩れないよう、フォールバック用の表示データを準備します。
   const fallbackPreviewItems: PreviewItem[] = Array.from({ length: 3 }).map(
@@ -89,57 +89,57 @@ export default function TopPageClient({
       href: "/research",
       kind: "research",
     }),
-  )
+  );
   const visiblePreviewItems =
-    previewItems.length > 0 ? previewItems : fallbackPreviewItems
+    previewItems.length > 0 ? previewItems : fallbackPreviewItems;
   // モバイルのスライドは1枚ずつ切り替えるため、現在表示するカードのインデックスを持ちます。
-  const [mobilePreviewIndex, setMobilePreviewIndex] = useState(0)
+  const [mobilePreviewIndex, setMobilePreviewIndex] = useState(0);
   // アニメーションを毎回発火させるため、切り替えごとにキーを更新します。
-  const [mobilePreviewKey, setMobilePreviewKey] = useState(0)
+  const [mobilePreviewKey, setMobilePreviewKey] = useState(0);
   // モバイル表示は一定間隔で順番にカードを切り替えます。
   useEffect(() => {
     if (visiblePreviewItems.length <= 1) {
-      return
+      return;
     }
     // アニメーションの尺(6000ms)と同期させて、切り替えのタイミングを揃えます。
     const intervalId = window.setInterval(() => {
       setMobilePreviewIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % visiblePreviewItems.length
-        return nextIndex
-      })
-      setMobilePreviewKey((prevKey) => prevKey + 1)
-    }, 6000)
-    return () => window.clearInterval(intervalId)
-  }, [visiblePreviewItems.length])
+        const nextIndex = (prevIndex + 1) % visiblePreviewItems.length;
+        return nextIndex;
+      });
+      setMobilePreviewKey((prevKey) => prevKey + 1);
+    }, 6000);
+    return () => window.clearInterval(intervalId);
+  }, [visiblePreviewItems.length]);
   // トップページの各セクションにスクロール時のスライドインを付与します。
-  useSectionReveal()
+  useSectionReveal();
   // プレビュー件数が減ったときに範囲外にならないよう、表示時に安全なインデックスへ補正します。
   // Effect内でsetStateしないことで、不要な再レンダーの連鎖を避けます。
   const safeMobilePreviewIndex =
-    mobilePreviewIndex >= visiblePreviewItems.length ? 0 : mobilePreviewIndex
+    mobilePreviewIndex >= visiblePreviewItems.length ? 0 : mobilePreviewIndex;
   const mobilePreviewItem =
-    visiblePreviewItems[safeMobilePreviewIndex] ?? visiblePreviewItems[0]
+    visiblePreviewItems[safeMobilePreviewIndex] ?? visiblePreviewItems[0];
   // 左右のカードを表示するため、前後のインデックスもここで算出しておきます。
-  const hasMultiplePreviews = visiblePreviewItems.length > 1
+  const hasMultiplePreviews = visiblePreviewItems.length > 1;
   // 2件以下だと左右カードが同一になりやすいので、3件以上の時だけ左右カードを出します。
-  const hasSidePreviews = visiblePreviewItems.length > 2
+  const hasSidePreviews = visiblePreviewItems.length > 2;
   const mobilePrevIndex =
     (safeMobilePreviewIndex - 1 + visiblePreviewItems.length) %
-    visiblePreviewItems.length
+    visiblePreviewItems.length;
   const mobileNextIndex =
-    (safeMobilePreviewIndex + 1) % visiblePreviewItems.length
-  const mobilePrevItem = visiblePreviewItems[mobilePrevIndex]
-  const mobileNextItem = visiblePreviewItems[mobileNextIndex]
+    (safeMobilePreviewIndex + 1) % visiblePreviewItems.length;
+  const mobilePrevItem = visiblePreviewItems[mobilePrevIndex];
+  const mobileNextItem = visiblePreviewItems[mobileNextIndex];
 
   // 駅導線ボタンを押したときは外部遷移せず、準備中案内をモーダルで表示します。
   const handleGuideVideoClick = () => {
-    setIsGuideVideoModalOpen(true)
-  }
+    setIsGuideVideoModalOpen(true);
+  };
 
   // モーダルを閉じる処理を共通化し、背景クリック・閉じるボタンの両方で再利用します。
   const handleCloseGuideVideoModal = () => {
-    setIsGuideVideoModalOpen(false)
-  }
+    setIsGuideVideoModalOpen(false);
+  };
 
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
@@ -155,23 +155,23 @@ export default function TopPageClient({
         className="px-4 pb-6 pt-6 md:px-8 lg:px-[128px] md:pb-[96px] md:pt-[96px]"
       >
         <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[1024px] md:p-9">
-        {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
-        <div className="border-b border-[#FB9678] pb-1 text-center">
-          <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
-            開催情報
-          </p>
-        </div>
+          {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
+          <div className="border-b border-[#FB9678] pb-1 text-center">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+              開催情報
+            </p>
+          </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
             <div className="flex flex-col items-center gap-4">
               <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
-              3.07
-              <span className="text-[16px] text-[#2C68D3]">(土)</span>
-              <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
-              3.17
-              <span className="text-[16px] text-[#6A7378]">(火)</span>
+                3.07
+                <span className="text-[16px] text-[#2C68D3]">(土)</span>
+                <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
+                3.17
+                <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
               <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
-                芝浦工業大学 豊洲キャンパス
+                芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
@@ -180,7 +180,7 @@ export default function TopPageClient({
                   開催時間
                 </p>
                 <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
-                  10:00 - 19:00
+                  10:00 - 17:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
@@ -194,9 +194,7 @@ export default function TopPageClient({
               </div>
             </div>
             <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9] md:w-[280px] md:px-[56px] md:py-[12px]">
-              <span className="text-[13px] md:text-[15px]">
-                開催まであと{" "}
-              </span>
+              <span className="text-[13px] md:text-[15px]">開催まであと </span>
               <span className="text-[24px] font-extrabold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                 {daysUntilEvent}
               </span>
@@ -249,9 +247,7 @@ export default function TopPageClient({
           {/* デスクトップ本文は改行位置と文言をFigmaに合わせています。 */}
           <div className="hidden px-4 pt-4 md:flex md:justify-center">
             <div className="max-w-[768px] text-center text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">
-                芝浦工業大学デザイン工学部の学生による、
-              </p>
+              <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
               <p className="mb-0">それぞれの研究を展示する場です。</p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p className="mb-0">
@@ -267,9 +263,7 @@ export default function TopPageClient({
           {/* モバイル本文はFigmaの改行と文言をそのまま反映します。 */}
           <div className="px-4 pt-4 md:hidden">
             <div className="text-[15px] leading-[2.2] tracking-[0.6px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">
-                芝浦工業大学デザイン工学部の学生による、
-              </p>
+              <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
               <p className="mb-0">それぞれの研究を展示する場です。</p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p className="mb-0">
@@ -326,11 +320,13 @@ export default function TopPageClient({
                 など接点を持ちうる様々な要素に囲まれている。
               </p>
               <p className="mb-0">
-                客観的に見た卒展は、そういった外部の接点を多様に持ち、 様々な接点の上で成り立っている。
+                客観的に見た卒展は、そういった外部の接点を多様に持ち、
+                様々な接点の上で成り立っている。
               </p>
               <p className="mb-0 text-[18px]">&nbsp;</p>
               <p>
-                そんな卒展を覗くと、たくさんのアイデアにあふれていて、 来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+                そんな卒展を覗くと、たくさんのアイデアにあふれていて、
+                来場者も自分なりに研究との接点を見つけられる空間が広がっている。
               </p>
             </div>
           </div>
@@ -350,11 +346,13 @@ export default function TopPageClient({
                 など接点を持ちうる様々な要素に囲まれている。
               </p>
               <p className="mb-0">
-                客観的に見た卒展は、そういった外部の接点を多様に持ち、 様々な接点の上で成り立っている。
+                客観的に見た卒展は、そういった外部の接点を多様に持ち、
+                様々な接点の上で成り立っている。
               </p>
               <p className="mb-0 text-[15px]">&nbsp;</p>
               <p>
-                そんな卒展を覗くと、たくさんのアイデアにあふれていて、 来場者も自分なりに研究との接点を見つけられる空間が広がっている。
+                そんな卒展を覗くと、たくさんのアイデアにあふれていて、
+                来場者も自分なりに研究との接点を見つけられる空間が広がっている。
               </p>
             </div>
           </div>
@@ -619,7 +617,11 @@ export default function TopPageClient({
       >
         {/* 背景装飾は指定のdotgrid.svgを使用します。 */}
         <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
-          <img src="/image/dotgrid.svg" alt="" className="h-[144px] w-[192px]" />
+          <img
+            src="/image/dotgrid.svg"
+            alt=""
+            className="h-[144px] w-[192px]"
+          />
         </div>
         {/* PC表示のみ、薄い円の装飾を追加してFigmaの雰囲気に寄せます。 */}
         <div className="pointer-events-none absolute left-70 top-110 hidden -translate-x-1/3 -translate-y-1/2 md:block">
@@ -795,7 +797,7 @@ export default function TopPageClient({
               </div>
               <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
                 大学への行き方動画はこちらから
-                <br/>
+                <br />
                 (Youtubeに遷移します。)
               </p>
               <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
@@ -879,5 +881,5 @@ export default function TopPageClient({
         </div>
       ) : null}
     </div>
-  )
+  );
 }
