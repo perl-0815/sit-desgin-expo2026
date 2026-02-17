@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
@@ -14,6 +14,7 @@ export default function KeyVisual() {
   const [scale, setScale] = useState(1);
   const [coverScale, setCoverScale] = useState(1);
   const [layout, setLayout] = useState<"horizontal" | "vertical">("horizontal");
+  const [layoutReady, setLayoutReady] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const [colorShownProgress, setColorShownProgress] = useState<number | null>(null);
@@ -29,30 +30,81 @@ export default function KeyVisual() {
   const savedContentOffsetRef = useRef(0);
   const scrollIndicatorTimerRef = useRef<number | null>(null);
   const maxAllowedProgressRef = useRef(1);
+  const hasInitializedLayoutRef = useRef(false);
+  const initialRevealRafRef = useRef<number | null>(null);
+  const hasStartedRevealRef = useRef(false);
 
-  useEffect(() => {
-    const updateScale = () => {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const isVertical = vw / vh <= 4 / 3;
-      const base = isVertical ? verticalBase : horizontalBase;
-      setLayout(isVertical ? "vertical" : "horizontal");
-      setScale(
-        isVertical
-          ? Math.min(vw / base.w, vh / base.h)
-          : Math.max(vw / base.w, vh / base.h),
-      );
-      setCoverScale(Math.max(vw / base.w, vh / base.h));
+  const startInitialReveal = useCallback((isVertical: boolean) => {
+    if (hasStartedRevealRef.current) return;
+    hasStartedRevealRef.current = true;
+    const preloadSources = isVertical
+      ? [
+          "/key-visual/back-vertical.png",
+          "/key-visual/vertical/hoka.svg",
+          "/key-visual/vertical/setu.svg",
+          "/key-visual/vertical/ten.svg",
+        ]
+      : [
+          "/key-visual/back-horizontal.png",
+          "/key-visual/horizontal/hoka.svg",
+          "/key-visual/horizontal/setu.svg",
+          "/key-visual/horizontal/ten.svg",
+        ];
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      initialRevealRafRef.current = requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
     };
-    updateScale();
-    window.addEventListener("resize", updateScale);
-    return () => window.removeEventListener("resize", updateScale);
+    const timeoutId = window.setTimeout(finish, 1200);
+    Promise.allSettled(
+      preloadSources.map(
+        (src) =>
+          new Promise<void>((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+            img.src = src;
+          }),
+      ),
+    ).then(() => {
+      window.clearTimeout(timeoutId);
+      finish();
+    });
   }, []);
 
+  const updateScale = useCallback(() => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const isVertical = vw / vh <= 4 / 3;
+    const base = isVertical ? verticalBase : horizontalBase;
+    setLayout(isVertical ? "vertical" : "horizontal");
+    setScale(
+      isVertical
+        ? Math.min(vw / base.w, vh / base.h)
+        : Math.max(vw / base.w, vh / base.h),
+    );
+    setCoverScale(Math.max(vw / base.w, vh / base.h));
+    if (!hasInitializedLayoutRef.current) {
+      hasInitializedLayoutRef.current = true;
+      setLayoutReady(true);
+      startInitialReveal(isVertical);
+    }
+  }, [startInitialReveal]);
+
   useEffect(() => {
-    const id = requestAnimationFrame(() => setIsVisible(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+    const initialRaf = requestAnimationFrame(updateScale);
+    window.addEventListener("resize", updateScale);
+    return () => {
+      if (initialRevealRafRef.current !== null) {
+        cancelAnimationFrame(initialRevealRafRef.current);
+      }
+      cancelAnimationFrame(initialRaf);
+      window.removeEventListener("resize", updateScale);
+    };
+  }, [updateScale]);
 
   useEffect(() => {
     let ticking = false;
@@ -454,7 +506,7 @@ export default function KeyVisual() {
           <div
             aria-hidden="true"
             className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in ${
-              isVisible ? "opacity-100" : "opacity-0"
+              layoutReady && isVisible ? "opacity-100" : "opacity-0"
             }`}
             style={{ zIndex: -1 }}
           >
@@ -489,7 +541,7 @@ export default function KeyVisual() {
         )}
         <div
           className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${
-            isVisible ? "opacity-100" : "opacity-0"
+            layoutReady && isVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
             transform: `translate(-50%, -50%) scale(${scale * sceneZoom})`,
