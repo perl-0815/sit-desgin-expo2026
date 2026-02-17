@@ -8,6 +8,7 @@ const COLOR_FADE_DURATION_MS = 800;
 const TE_FADE_DURATION_MS = 300;
 const FINAL_TO_ZOOM_THRESHOLD = 0.15;
 const ZOOM_SCROLL_PAGES = 3.0;
+const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 
 
 export default function KeyVisual() {
@@ -33,6 +34,7 @@ export default function KeyVisual() {
   const hasInitializedLayoutRef = useRef(false);
   const initialRevealRafRef = useRef<number | null>(null);
   const hasStartedRevealRef = useRef(false);
+  const restoredFromStorageRef = useRef(false);
 
   const startInitialReveal = useCallback((isVertical: boolean) => {
     if (hasStartedRevealRef.current) return;
@@ -95,9 +97,27 @@ export default function KeyVisual() {
   }, [startInitialReveal]);
 
   useEffect(() => {
+    let restoreRaf: number | null = null;
+    const storedCompleted = window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
+    if (storedCompleted) {
+      restoredFromStorageRef.current = true;
+      hasStartedRevealRef.current = true;
+      hasDispatchedCompleteRef.current = true;
+      document.body.dataset.keyvisualComplete = "1";
+      restoreRaf = requestAnimationFrame(() => {
+        setLayoutReady(true);
+        setIsVisible(true);
+        setKvEverCompleted(true);
+        setScrollIndicatorVisible(false);
+      });
+    }
+
     const initialRaf = requestAnimationFrame(updateScale);
     window.addEventListener("resize", updateScale);
     return () => {
+      if (restoreRaf !== null) {
+        cancelAnimationFrame(restoreRaf);
+      }
       if (initialRevealRafRef.current !== null) {
         cancelAnimationFrame(initialRevealRafRef.current);
       }
@@ -456,6 +476,7 @@ export default function KeyVisual() {
     if (hasDispatchedCompleteRef.current) return;
     if (!finalRevealed || whiteFadeOpacity < 1) return;
     hasDispatchedCompleteRef.current = true;
+    window.sessionStorage.setItem(KV_COMPLETED_STORAGE_KEY, "1");
     document.body.dataset.keyvisualComplete = "1";
     window.dispatchEvent(new Event("keyvisual:complete"));
   }, [finalRevealed, whiteFadeOpacity]);
@@ -491,6 +512,7 @@ export default function KeyVisual() {
 
   useLayoutEffect(() => {
     if (!kvEverCompleted) return;
+    if (restoredFromStorageRef.current) return;
     if (scrollAdjustedRef.current) return;
     scrollAdjustedRef.current = true;
     const el = containerRef.current;
