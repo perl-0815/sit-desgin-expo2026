@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import NavigationMenu from "./NavigationMenu"
 
@@ -36,6 +36,32 @@ export default function GlobalHeader({
   hidden = false,
 }: GlobalHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMenuMounted, setIsMenuMounted] = useState(false)
+
+  const openMenu = () => {
+    setIsMenuMounted(true)
+    requestAnimationFrame(() => {
+      setIsMenuOpen(true)
+    })
+  }
+
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+
+  useEffect(() => {
+    if (isMenuOpen || !isMenuMounted) {
+      return
+    }
+
+    const timerId = window.setTimeout(() => {
+      setIsMenuMounted(false)
+    }, 200)
+
+    return () => {
+      window.clearTimeout(timerId)
+    }
+  }, [isMenuMounted, isMenuOpen])
 
   const contactItem = globalMenuItems.find((item) => item.id === "contact")
   // デスクトップ版は左のロゴがTOP導線のため、TOPを除外して表示します。
@@ -45,12 +71,16 @@ export default function GlobalHeader({
 
   return (
     <>
-      {isMenuOpen ? (
-        <div className="fixed inset-0 z-50 flex justify-center bg-[#F9F9F9]">
+      {isMenuMounted ? (
+        <div
+          className={`fixed inset-0 z-50 flex justify-center bg-[#F9F9F9] transition-opacity duration-200 ease-out ${
+            isMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+        >
           <NavigationMenu
             items={globalMenuItems}
             activeId={activeId}
-            onClose={() => setIsMenuOpen(false)}
+            onClose={closeMenu}
           />
         </div>
       ) : null}
@@ -122,7 +152,7 @@ export default function GlobalHeader({
               className="grid h-10 w-10 place-items-center rounded-full lg:hidden"
               type="button"
               aria-label="メニュー"
-              onClick={() => setIsMenuOpen(true)}
+              onClick={openMenu}
             >
               <svg
                 aria-hidden="true"
