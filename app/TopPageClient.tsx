@@ -171,7 +171,7 @@ export default function TopPageClient({
                 <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
               <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
-                芝浦工業大学 豊洲キャンパス
+                芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
