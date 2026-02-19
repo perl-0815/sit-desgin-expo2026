@@ -104,6 +104,12 @@ model EventRoundtableSession {
   roundtable_id String
   start_at      DateTime
   end_at        DateTime
+  // 受付開始時刻（未指定時は開始時刻の10分前など、画面側でフォールバック計算）
+  reception_start_at DateTime?
+  // 枠ごとの開催場所（同一イベント内でも日程ごとに会場が変わるためセッション側で保持）
+  location      String?
+  // 枠ごとの予約フォームURL（フォームを分割運用するためセッション単位で保持）
+  booking_form_url String?
   capacity      Int?
   remaining     Int?
   is_full       Boolean  @default(false)

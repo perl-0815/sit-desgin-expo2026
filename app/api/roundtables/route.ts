@@ -9,7 +9,7 @@ const DEFAULT_SHEET_ID = "1L6Q23wcFNZS_pqB2qXCAoQCQnzdNn9qLwqz-dhQF5wU"
 const DEFAULT_SHEET_NAME = "フォームの回答１"
 // 1つの座談会の定員（人数）
 // 定員ルールが変わる場合はここを調整
-const CAPACITY_PER_SESSION = 20
+const CAPACITY_PER_SESSION = 40
 
 // Google Form のヘッダー名（列名）と一致させる必要あり
 // フォーム質問文を変更した場合は、ここを更新する
