@@ -47,8 +47,8 @@ type ApiRoundtable = {
   sessions: ApiRoundtableSession[]
 }
 
-// 注意事項の文中リンクはデザイン上の「お問い合せフォーム」に合わせて固定化します。
-const contactFormUrl = "/contact"
+// 注意事項の文中リンクはフッターの実問い合わせ先（Googleフォーム）に統一します。
+const contactFormUrl = "https://forms.gle/9pBuxBWgC9YuFo8j8"
 
 // Figmaの文言・並びを維持するため、本文コンテンツを定数化してコンポーネント内の差分を減らします。
 const pointCards = [
@@ -293,7 +293,12 @@ export default function FarewellLectureClient() {
               <li>当日の状況により、プログラム内容やスケジュールが一部変更になる場合がございます。</li>
               <li>
                 お申し込み後にキャンセルされる場合は、お早めに
-                <Link href={contactFormUrl} className="text-[#D3793D] underline">
+                <Link
+                  href={contactFormUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#D3793D] underline"
+                >
                   お問い合せフォーム
                 </Link>
                 よりご連絡ください。
@@ -359,9 +364,6 @@ function ScheduleCard({
         </p>
         <div className="text-right">
           <p className={`text-[13px] font-medium leading-[1.5] md:text-[15px] ${derived.statusTextColor}`}>{derived.statusLabel}</p>
-          {derived.remainingText ? (
-            <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">{derived.remainingText}</p>
-          ) : null}
         </div>
       </div>
 
@@ -424,10 +426,8 @@ function deriveSlotDisplay(
       ...getSlotStatusFromTag("full"),
       status: "full" as const,
       receptionStart: receptionStartFromApi ?? slot.receptionStart,
-      remainingText:
-        typeof remaining === "number" && typeof capacity === "number"
-          ? `残り ${Math.max(remaining, 0)} 組 / ${capacity} 組`
-          : null,
+      // 変更理由: 「残り〇組」は逼迫時のみ表示する運用に合わせ、満席時は件数表示を出さない。
+      remainingText: null,
     }
   }
 
@@ -437,7 +437,9 @@ function deriveSlotDisplay(
         ...getSlotStatusFromTag("few"),
         status: "few" as const,
         receptionStart: receptionStartFromApi ?? slot.receptionStart,
-        remainingText: typeof capacity === "number" ? `残り ${remaining} 組 / ${capacity} 組` : `残り ${remaining} 組`,
+        // 変更理由: 下段の「残り〇組」表示を廃止し、上段ラベルに具体的な残数を表示する。
+        statusLabel: `△残り${remaining}組`,
+        remainingText: null,
       }
     }
 
@@ -445,7 +447,8 @@ function deriveSlotDisplay(
       ...getSlotStatusFromTag("available"),
       status: "available" as const,
       receptionStart: receptionStartFromApi ?? slot.receptionStart,
-      remainingText: typeof capacity === "number" ? `残り ${remaining} 組 / ${capacity} 組` : `残り ${remaining} 組`,
+      // 変更理由: 残数が6組以上のときは件数表示を出さない（例: 「残り39組 / 40組」を非表示）。
+      remainingText: null,
     }
   }
 
