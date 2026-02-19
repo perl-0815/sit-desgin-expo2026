@@ -192,6 +192,10 @@ const main = async () => {
       roundtable_id: normalize(row.roundtable_id),
       start_at: normalize(row.start_at),
       end_at: normalize(row.end_at),
+      // Figma運用では枠ごとに受付開始時刻・会場・予約フォームURLを変えるため、セッション単位で保持します。
+      reception_start_at: normalize(row.reception_start_at),
+      location: normalize(row.location),
+      booking_form_url: normalize(row.booking_form_url),
       capacity: normalizeNumber(row.capacity),
       remaining: normalizeNumber(row.remaining),
       is_full: normalizeBoolean(row.is_full) ?? false,

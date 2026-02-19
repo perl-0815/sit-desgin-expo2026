@@ -11,7 +11,7 @@ const NAME_TITLE = "お名前"
 // フォームの質問文（メールアドレス）
 const EMAIL_TITLE = "メールアドレス"
 // 各座談会の定員（人数）
-const CAPACITY = 20
+const CAPACITY = 40
 // 複数選択の区切り文字（Googleフォームの仕様に合わせる）
 const DELIMITER = ","
 // 管理者への通知先（複数可、カンマ区切りで送信）
