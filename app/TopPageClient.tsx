@@ -208,7 +208,7 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative overflow-hidden bg-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative overflow-hidden bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
