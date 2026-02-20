@@ -51,3 +51,6 @@ next-env.d.ts
 
 #AGENTS.md
 AGENTS.md
+
+# ローカル運用専用のGASファイル。環境依存のため誤ってリモート共有しないよう常時除外する。
+scripts/roundtable-reservation-webhook-all-forms.gs

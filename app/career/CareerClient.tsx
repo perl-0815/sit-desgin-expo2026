@@ -69,12 +69,34 @@ const resolveJobCategory = (career: Career) => {
   return raw || "その他"
 }
 
+const normalizeCompanyNameForCompare = (value: string) => {
+  // 企業名表示の重複を減らすため、比較専用キーを作ります。
+  // ここでは表示文字列は変えず、比較時のみ「株式会社の前後差」「（株）」「空白」などを吸収します。
+  const raw = value.trim()
+  if (!raw) return ""
+
+  // 「Visional（株式会社ビズリーチ）」のように括弧内に法人名がある場合は、
+  // 表記ゆれ吸収のため括弧内を優先して比較キーに使います。
+  const parenthesizedCorp = raw.match(/[（(]\s*(株式会社[^)）]+)\s*[)）]$/)
+  const base = parenthesizedCorp?.[1] ?? raw
+
+  return base
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .replace(/（株）|\(株\)|㈱/g, "株式会社")
+    .replace(/&/g, "＆")
+    .replace(/^株式会社/, "")
+    .replace(/株式会社$/, "")
+    .toLowerCase()
+}
+
 const toUniqueList = (items: string[], limit = 5) => {
   const seen = new Set<string>()
   const results: string[] = []
   items.forEach((item) => {
-    if (!item || seen.has(item)) return
-    seen.add(item)
+    const normalizedKey = normalizeCompanyNameForCompare(item)
+    if (!item || !normalizedKey || seen.has(normalizedKey)) return
+    seen.add(normalizedKey)
     results.push(item)
   })
   return results.slice(0, limit)

@@ -216,7 +216,7 @@ export default function FarewellLectureClient() {
     <div className="min-h-screen bg-[#F9F9F9]">
       <GlobalHeader activeId="events" />
 
-      <main className="pb-12 pt-[92px] md:pb-[36px] md:pt-[124px]">
+      <main className="pb-12 pt-[92px] md:pb-[48px] md:pt-[124px]">
         {/* 戻る導線はFigma通りヘッダー直下に固定高さで置き、一覧への復帰操作を分かりやすくします。 */}
         <div className="mx-auto w-full max-w-[760px] px-4 md:px-0">
           <button
@@ -228,14 +228,15 @@ export default function FarewellLectureClient() {
               }
               router.push("/events")
             }}
-            className="inline-flex h-[64px] items-center gap-2 text-[13px] font-medium text-[#6A7378] md:h-[80px] md:gap-3 md:text-[15px]"
+            className="inline-flex h-[80px] items-center gap-2 text-[13px] font-medium text-[#6A7378] md:gap-3 md:text-[15px]"
           >
             <BackChevronIcon />
             <span>戻る</span>
           </button>
         </div>
 
-        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-6 md:px-0 md:pb-9">
+        {/* 変更理由: Figmaの縦リズム（SP 12px / PC 20px）に合わせ、ヒーロー直下の各要素間隔を調整します。 */}
+        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-8 md:px-0 md:pb-14">
           <div className="space-y-3 md:space-y-5">
             <img
               src="/image/osekkai.png"
@@ -255,7 +256,7 @@ export default function FarewellLectureClient() {
           </div>
         </section>
 
-        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-6 md:px-0 md:pb-9">
+        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-8 md:px-0 md:pb-14">
           {/* 見出し両端の罫線を疑似要素ではなく要素で構成し、SP/PCの見た目差分を安定させます。 */}
           <div className="flex items-center gap-6">
             <span className="h-px flex-1 bg-[#EBEEF0]" />
@@ -312,13 +313,14 @@ export default function FarewellLectureClient() {
             </ul>
           </article>
 
-          <div className="mt-6 border-b-2 border-[#14BDB1] pb-2 md:mt-8">
+          {/* 変更理由: 予約見出し下線はFigma準拠でブランドカラーの1pxラインに統一します。 */}
+          <div className="mt-6 border-b border-[#D3793D] pb-2 md:mt-8">
             <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
               参加予約・スケジュール
             </h2>
           </div>
 
-          <div className="mt-2 space-y-0.5 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:mt-3 md:text-[16px]">
+          <div className="mt-2 space-y-0.5 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:mt-3 md:text-[14px] md:leading-[1.6]">
             <p>参加をご希望される方は時間を選び・項目を確認の上で、ご予約をお願いします。（Google Formsに遷移します。）</p>
             <p>日にちによって会場や開催時間が異なりますのでご注意ください。</p>
           </div>
@@ -337,7 +339,7 @@ export default function FarewellLectureClient() {
                   </div>
                 </div>
 
-                <div className="mt-2 grid grid-cols-1 gap-4 md:mt-3 md:grid-cols-2 md:gap-14">
+                <div className="mt-2 grid grid-cols-1 gap-4 md:mt-2 md:grid-cols-2 md:gap-14">
                   {day.slots.map((slot) => (
                     <ScheduleCard key={slot.id} slot={slot} isLoading={isSessionLoading} />
                   ))}
@@ -369,7 +371,8 @@ function ScheduleCard({
   const derived = deriveSlotDisplay(slot)
 
   return (
-    <article className="rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:p-6">
+    // 変更理由: Figmaノード1578:9060（Desktop予約カード）の角丸16px・余白24pxに合わせるため、PC側の24px/24px設定へ統一します。
+    <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
         <p className="text-[24px] font-bold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
           {slot.start} - {slot.end}
@@ -379,7 +382,7 @@ function ScheduleCard({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-4 md:mt-5">
+      <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
         <div>
           <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">受付開始</p>
           <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[15px]">{derived.receptionStart}</p>
@@ -394,7 +397,7 @@ function ScheduleCard({
         <button
           type="button"
           disabled
-          className="mt-4 flex h-[38px] w-full items-center justify-center rounded-[4px] bg-[#EBEEF0] px-8 text-[11px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-6 md:h-[44px] md:text-[12px]"
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-full bg-[#EBEEF0] px-8 text-[13px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-9 md:h-[72px] md:text-[15px]"
         >
           受付終了
         </button>
@@ -403,7 +406,7 @@ function ScheduleCard({
           href={slot.apiSession?.booking_form_url ?? slot.formUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 flex h-[38px] w-full items-center justify-center rounded-[4px] bg-[#4B5459] px-8 text-[11px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-6 md:h-[44px] md:text-[12px]"
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-full bg-[#4B5459] px-8 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-colors hover:bg-[#3f474c] md:mt-9 md:h-[72px] md:text-[15px]"
         >
           予約する
         </a>
@@ -414,13 +417,14 @@ function ScheduleCard({
 
 function ScheduleCardSkeleton() {
   return (
-    <article className="rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:p-6" aria-hidden="true">
+    // 変更理由: 実カードと同一のサイズ感を保ち、ローディング時のレイアウトジャンプを防ぐためPCの角丸・余白を一致させます。
+    <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6" aria-hidden="true">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
         <SkeletonBlock className="h-9 w-40 rounded-md md:h-11 md:w-52" />
         <SkeletonBlock className="h-5 w-20 rounded-md" />
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-4 md:mt-5">
+      <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
         <div>
           <SkeletonBlock className="h-3 w-12 rounded-md" />
           <SkeletonBlock className="mt-2 h-5 w-16 rounded-md" />
@@ -431,7 +435,7 @@ function ScheduleCardSkeleton() {
         </div>
       </div>
 
-      <SkeletonBlock className="mt-4 h-[38px] w-full rounded-[4px] md:mt-6 md:h-[44px]" />
+      <SkeletonBlock className="mt-6 h-[48px] w-full rounded-full md:mt-9 md:h-[72px]" />
     </article>
   )
 }
