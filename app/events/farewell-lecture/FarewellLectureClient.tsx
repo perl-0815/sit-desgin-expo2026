@@ -160,6 +160,8 @@ export default function FarewellLectureClient() {
 
   // DBの残席情報をセッションID単位で保持します。
   const [sessionMap, setSessionMap] = useState<Record<string, ApiRoundtableSession>>({})
+  // 変更理由: API取得前の仮文言（プレースホルダー）を表示せず、読込中はスケルトンへ統一するための状態です。
+  const [isSessionLoading, setIsSessionLoading] = useState(true)
 
   useEffect(() => {
     let active = true
@@ -183,6 +185,10 @@ export default function FarewellLectureClient() {
         setSessionMap(nextMap)
       } catch {
         // APIが利用不可の場合もUIはフォールバック表示で継続させます。
+      } finally {
+        if (active) {
+          setIsSessionLoading(false)
+        }
       }
     }
 
@@ -333,7 +339,7 @@ export default function FarewellLectureClient() {
 
                 <div className="mt-2 grid grid-cols-1 gap-4 md:mt-3 md:grid-cols-2 md:gap-14">
                   {day.slots.map((slot) => (
-                    <ScheduleCard key={slot.id} slot={slot} />
+                    <ScheduleCard key={slot.id} slot={slot} isLoading={isSessionLoading} />
                   ))}
                 </div>
               </article>
@@ -349,11 +355,17 @@ export default function FarewellLectureClient() {
 
 function ScheduleCard({
   slot,
+  isLoading,
 }: {
   slot: ScheduleSlot & {
     apiSession?: ApiRoundtableSession
   }
+  isLoading: boolean
 }) {
+  if (isLoading) {
+    return <ScheduleCardSkeleton />
+  }
+
   const derived = deriveSlotDisplay(slot)
 
   return (
@@ -397,6 +409,38 @@ function ScheduleCard({
         </a>
       )}
     </article>
+  )
+}
+
+function ScheduleCardSkeleton() {
+  return (
+    <article className="rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:p-6" aria-hidden="true">
+      <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
+        <SkeletonBlock className="h-9 w-40 rounded-md md:h-11 md:w-52" />
+        <SkeletonBlock className="h-5 w-20 rounded-md" />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-4 md:mt-5">
+        <div>
+          <SkeletonBlock className="h-3 w-12 rounded-md" />
+          <SkeletonBlock className="mt-2 h-5 w-16 rounded-md" />
+        </div>
+        <div>
+          <SkeletonBlock className="h-3 w-8 rounded-md" />
+          <SkeletonBlock className="mt-2 h-5 w-16 rounded-md" />
+        </div>
+      </div>
+
+      <SkeletonBlock className="mt-4 h-[38px] w-full rounded-[4px] md:mt-6 md:h-[44px]" />
+    </article>
+  )
+}
+
+function SkeletonBlock({ className }: { className: string }) {
+  return (
+    <div className={`relative overflow-hidden bg-[#EBEEF0] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
   )
 }
 

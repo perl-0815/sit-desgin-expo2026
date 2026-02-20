@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 
 import { prisma } from "@/lib/prisma"
 
@@ -9,6 +10,12 @@ type ReservationPayload = {
   participantCount?: number
   action?: ReservationAction
   token?: string
+}
+
+type LockedSessionRow = {
+  id: string
+  capacity: number | null
+  remaining: number | null
 }
 
 function parsePositiveInt(value: unknown, fallback: number) {
@@ -30,6 +37,22 @@ function resolveToken(request: NextRequest, payloadToken?: string) {
   // Apps Script側はヘッダー送信・本文送信のどちらでも扱えるようにします。
   const headerToken = request.headers.get("x-webhook-token")
   return headerToken ?? payloadToken
+}
+
+function getCurrentRemaining(session: LockedSessionRow) {
+  if (typeof session.remaining === "number") return session.remaining
+  if (typeof session.capacity === "number") return session.capacity
+  return 0
+}
+
+async function lockSession(tx: Prisma.TransactionClient, sessionId: string) {
+  const lockedRows = await tx.$queryRaw<LockedSessionRow[]>`
+    SELECT "id", "capacity", "remaining"
+    FROM "EventRoundtableSession"
+    WHERE "id" = ${sessionId}
+    FOR UPDATE
+  `
+  return lockedRows[0] ?? null
 }
 
 export async function POST(request: NextRequest) {
@@ -63,38 +86,36 @@ export async function POST(request: NextRequest) {
   const participantCount = parsePositiveInt(payload.participantCount, 1)
 
   try {
-    // 同時送信時の競合を避けるため、更新処理はトランザクションで一括処理します。
+    // 変更理由: 同時回答時の過予約を防ぐため、残席判定と更新を同一トランザクションで直列化します。
     const updated = await prisma.$transaction(async (tx) => {
-      const session = await tx.eventRoundtableSession.findUnique({
-        where: { id: sessionId },
-      })
-
+      const session = await lockSession(tx, sessionId)
       if (!session) {
         throw new Error("SESSION_NOT_FOUND")
       }
 
-      const capacity = session.capacity ?? 0
-      const currentRemaining = session.remaining ?? capacity
+      const currentRemaining = getCurrentRemaining(session)
+      const capacity = session.capacity
 
       let nextRemaining = currentRemaining
       if (action === "reserve") {
-        nextRemaining = Math.max(currentRemaining - participantCount, 0)
+        if (currentRemaining < participantCount) {
+          throw new Error("INSUFFICIENT_REMAINING")
+        }
+        nextRemaining = currentRemaining - participantCount
       } else {
         // キャンセルは定員を超えない範囲で残席を戻します。
-        if (capacity > 0) {
+        if (typeof capacity === "number") {
           nextRemaining = Math.min(currentRemaining + participantCount, capacity)
         } else {
           nextRemaining = currentRemaining + participantCount
         }
       }
 
-      const isFull = nextRemaining <= 0
-
       return tx.eventRoundtableSession.update({
         where: { id: sessionId },
         data: {
           remaining: nextRemaining,
-          is_full: isFull,
+          is_full: nextRemaining <= 0,
         },
       })
     })
@@ -109,8 +130,14 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    if (error instanceof Error && error.message === "SESSION_NOT_FOUND") {
-      return NextResponse.json({ error: "Session not found." }, { status: 404 })
+    if (error instanceof Error) {
+      if (error.message === "SESSION_NOT_FOUND") {
+        return NextResponse.json({ error: "Session not found." }, { status: 404 })
+      }
+
+      if (error.message === "INSUFFICIENT_REMAINING") {
+        return NextResponse.json({ error: "No remaining slots." }, { status: 409 })
+      }
     }
 
     return NextResponse.json({ error: "Failed to update reservation count." }, { status: 500 })

@@ -16,7 +16,7 @@ export async function GET() {
     })
 
     return NextResponse.json(roundtables)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch roundtable events." },
       { status: 500 },
