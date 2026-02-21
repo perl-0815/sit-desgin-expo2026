@@ -7,7 +7,7 @@ import GlobalHeader from "../components/GlobalHeader";
 import useSectionReveal from "../components/useSectionReveal";
 
 const contactEmail = "shibadesign2026sotsuten@gmail.com";
-// お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
+// お問い合せフォームのURLが確定していないため、後から差し替えできるよう定数化します。
 const contactFormUrl = "https://forms.gle/9pBuxBWgC9YuFo8j8";
 
 export default function ContactClient() {
@@ -16,7 +16,7 @@ export default function ContactClient() {
   );
   const copyTimeoutRef = useRef<number | null>(null);
 
-  // お問い合わせページの各セクションにスライドインを適用します。
+  // お問い合せページの各セクションにスライドインを適用します。
   useSectionReveal();
 
   const resetCopyStatus = () => {
@@ -111,7 +111,7 @@ export default function ContactClient() {
 
         {/* デスクトップは左右2カラムで配置し、各カラムの情報密度を揃えます。 */}
         <div className="flex flex-col md:flex-row md:gap-[64px]">
-          {/* メールお問い合わせブロック */}
+          {/* メールお問い合せブロック */}
           <section
             data-reveal
             className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0"
@@ -166,7 +166,7 @@ export default function ContactClient() {
             </div>
           </section>
 
-          {/* その他方法のお問い合わせブロック */}
+          {/* その他方法のお問い合せブロック */}
           <section
             data-reveal
             className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]"
