@@ -1,6 +1,17 @@
 import { Suspense } from "react"
+import type { Metadata } from "next"
+
+import { buildPageMetadata } from "@/lib/site-metadata"
 
 import ResearchWorksClient from "./ResearchWorksClient"
+
+// 変更理由: 研究/作品一覧の内容を検索結果で伝えやすくするため、ページ固有メタを追加します。
+export const metadata: Metadata = buildPageMetadata({
+  title: "研究・作品一覧",
+  description:
+    "芝浦工業大学デザイン工学部 卒業展示2026の研究・作品一覧です。学生ごとの研究概要と制作物を閲覧できます。",
+  path: "/research",
+})
 
 export default function ResearchPage() {
   return (
