@@ -18,6 +18,23 @@ type LockedSessionRow = {
   remaining: number | null
 }
 
+const DEFAULT_OVERBOOK_LIMIT = 2
+
+function parseNonNegativeInt(value: unknown, fallback: number) {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return Math.floor(value)
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      return Math.floor(parsed)
+    }
+  }
+
+  return fallback
+}
+
 function parsePositiveInt(value: unknown, fallback: number) {
   if (typeof value === "number" && Number.isFinite(value) && value > 0) {
     return Math.floor(value)
@@ -43,6 +60,12 @@ function getCurrentRemaining(session: LockedSessionRow) {
   if (typeof session.remaining === "number") return session.remaining
   if (typeof session.capacity === "number") return session.capacity
   return 0
+}
+
+function resolveOverbookLimit() {
+  // 変更理由: フロント表示上限(40組)は維持しつつ、送信タイミング競合時のみ運用許容分を受け入れるため。
+  // 未設定時は 2組ぶんを既定値として扱い、必要に応じて環境変数で上書きします。
+  return parseNonNegativeInt(process.env.EVENT_RESERVATION_OVERBOOK_LIMIT, DEFAULT_OVERBOOK_LIMIT)
 }
 
 async function lockSession(tx: Prisma.TransactionClient, sessionId: string) {
@@ -84,6 +107,7 @@ export async function POST(request: NextRequest) {
 
   const action: ReservationAction = payload.action === "cancel" ? "cancel" : "reserve"
   const participantCount = parsePositiveInt(payload.participantCount, 1)
+  const overbookLimit = resolveOverbookLimit()
 
   try {
     // 変更理由: 同時回答時の過予約を防ぐため、残席判定と更新を同一トランザクションで直列化します。
@@ -98,7 +122,9 @@ export async function POST(request: NextRequest) {
 
       let nextRemaining = currentRemaining
       if (action === "reserve") {
-        if (currentRemaining < participantCount) {
+        // 変更理由: 送信時点で満席へ変化したケースでも、運用許容数までは予約成立にするため。
+        // remaining は負値を許容し、-overbookLimit を下回る更新だけ拒否します。
+        if (currentRemaining - participantCount < -overbookLimit) {
           throw new Error("INSUFFICIENT_REMAINING")
         }
         nextRemaining = currentRemaining - participantCount
@@ -136,7 +162,10 @@ export async function POST(request: NextRequest) {
       }
 
       if (error.message === "INSUFFICIENT_REMAINING") {
-        return NextResponse.json({ error: "No remaining slots." }, { status: 409 })
+        return NextResponse.json(
+          { error: "No remaining slots (including overbook limit)." },
+          { status: 409 },
+        )
       }
     }
 
