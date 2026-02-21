@@ -173,13 +173,15 @@ export default function ContactClient() {
           >
             <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
               <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
-                その他方法のお問い合せ
+                {/* 変更理由: Figma（1783:5213）の最新文言に合わせ、Googleフォーム誘導であることを見出しで明確化します。 */}
+                Googleフォームでのお問い合せ
               </h2>
             </div>
             <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
-              メール以外でのお問い合せはこちらから行うことができます。
+              {/* 変更理由: PC/SP共通でFigmaの説明文に統一し、表記ゆれ（Google Forms）を解消します。 */}
+              メール以外のお問い合せはこちらから行うことができます。
               <br />
-              （Google Formsに遷移します。）
+              （Googleフォームに遷移します。）
             </p>
             <div className="mt-3 flex justify-center md:mt-5 md:pb-[20px]">
               <a
