@@ -32,15 +32,37 @@ type PreviewItem = {
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
 const sitMapImageUrl = "/image/sit_map.png";
-// 「卒業・修了研究展とは」セクションの装飾は、公開フォルダのSVGに集約して読み込みます。
-// 以前のFigmaアセット分割をやめて1枚絵にまとめることで、配置調整と管理コストを下げます。
-const exhibitionDecorationLeftUrl = "/image/top-decoration1.svg";
-const exhibitionDecorationRightUrl = "/image/top-decoration2.svg";
-// 研究・作品紹介の装飾はトップ専用のSVGに切り替えます。
-const worksDecorationPrimaryUrl = "/image/top-decoration4.svg";
-const worksDecorationSecondaryUrl = "/image/top-decoration3.svg";
-// コンセプト背景はローカルの単一画像に統一します。
-const conceptBackgroundUrl = "/image/concept.png";
+// 装飾画像は `/public/image/decoration` に集約し、用途別に管理しやすくします。
+// トップページの装飾SVGも同ディレクトリ配下へ参照先を統一します。
+const exhibitionDecorationLeftUrl = "/image/decoration/top-decoration1.svg";
+const exhibitionDecorationRightUrl = "/image/decoration/top-decoration2.svg";
+// 研究・作品紹介セクションで使う装飾も同様に `decoration` 配下へ移動済みです。
+const worksDecorationPrimaryUrl = "/image/decoration/top-decoration4.svg";
+const worksDecorationSecondaryUrl = "/image/decoration/top-decoration3.svg";
+// チケット画像は開催ステータス（開催前/開催中/開催終了）ごとに切り替えます。
+// 画像差し替えだけで見た目を更新できるよう、パスを状態別にまとめます。
+// 命名規則は `to-ticket-<status>-<device>.svg` に統一して管理します。
+const topTicketImageUrls = {
+  before: {
+    pc: "/image/ticket/to-ticket-before-pc.svg",
+    sp: "/image/ticket/to-ticket-before-sp.svg",
+  },
+  during: {
+    pc: "/image/ticket/to-ticket-during-pc.svg",
+    sp: "/image/ticket/to-ticket-during-sp.svg",
+  },
+  ended: {
+    pc: "/image/ticket/to-ticket-ended-pc.svg",
+    sp: "/image/ticket/to-ticket-ended-sp.svg",
+  },
+} as const;
+// ラベル文言は画像に埋め込まずコード側で管理し、文言変更時に差し替えやすくします。
+const daysUntilTicketLabel = "開催まであと...";
+// コンセプト背景は `public/image/background` に移動したため参照先を合わせます。
+// Next.js の公開パスは `public` を除いた `/image/...` になるため、`background` ディレクトリ名のみ追加します。
+const conceptBackgroundUrl = "/image/background/concept.png";
+// イベント背景も同様に `public/image/background` 配下へ移動済みのため、404回避のため参照先を統一します。
+const eventBackgroundUrl = "/image/background/event_background.png";
 
 export default function TopPageClient({
   careerStats,
@@ -67,16 +89,26 @@ export default function TopPageClient({
   const otherPercent =
     totalCareers === 0 ? 0 : (careerStats.otherCount / totalCareers) * 100;
 
-  // 開催開始日（2026年3月7日）までの残り日数を、ローカル日付の0時基準で計算します。
+  // 開催期間は 2026/03/07 から 2026/03/17 まで（両日含む）として判定します。
+  // 0時基準で日付だけを比較し、時刻差による表示ぶれを防ぎます。
   const eventStartDate = new Date(2026, 2, 7);
+  const eventEndDate = new Date(2026, 2, 17);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   eventStartDate.setHours(0, 0, 0, 0);
+  eventEndDate.setHours(0, 0, 0, 0);
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysUntilEvent = Math.max(
     0,
     Math.ceil((eventStartDate.getTime() - today.getTime()) / msPerDay),
   );
+  // 開催前/開催中/開催終了の3状態に正規化し、画像とテキスト表示を切り替えます。
+  const eventTicketStatus: "before" | "during" | "ended" =
+    today < eventStartDate
+      ? "before"
+      : today > eventEndDate
+        ? "ended"
+        : "during";
 
   // データ未登録時でもレイアウトが崩れないよう、フォールバック用の表示データを準備します。
   const fallbackPreviewItems: PreviewItem[] = Array.from({ length: 3 }).map(
@@ -193,12 +225,59 @@ export default function TopPageClient({
                 </p>
               </div>
             </div>
-            <div className="w-full rounded-full bg-gradient-to-r from-[#FB9678] to-[#E5A967] px-8 py-2 text-center text-[#F9F9F9] md:w-[280px] md:px-[56px] md:py-[12px]">
-              <span className="text-[13px] md:text-[15px]">開催まであと </span>
-              <span className="text-[24px] font-extrabold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                {daysUntilEvent}
-              </span>
-              <span className="text-[13px] font-bold md:text-[15px]">日</span>
+            {/* FigmaのチケットUIに合わせ、開催まで表示を画像背景＋文字レイヤーに置き換えます。 */}
+            {/* SPとPCでチケット幅が異なるため、背景画像と余白をブレークポイントで分けます。 */}
+            <div className="relative aspect-[303/134] w-full max-w-[303px] md:hidden">
+              <img
+                src={topTicketImageUrls[eventTicketStatus].sp}
+                alt=""
+                // 背景画像を常に背面に固定し、開催までテキストが描画順で隠れないようにします。
+                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-contain"
+              />
+              {/* 開催前チケットのみ、残り日数のテキストをコード側で重ねて表示します。 */}
+              {eventTicketStatus === "before" ? (
+                // 左のミシン目エリアを空けることで、文字が背景の意匠と重なって読みにくくなるのを防ぎます。
+                // モバイル幅で縮小しても比率が崩れないよう、余白は固定値ではなく割合で確保します。
+                <div className="relative z-10 flex h-full flex-col items-center justify-center pl-[21.8%] text-[#F9F9F9]">
+                  <p className="[font-family:'Noto_Sans_JP',sans-serif] text-[13px] font-medium leading-[1.5]">
+                    {daysUntilTicketLabel}
+                  </p>
+                  {/* 数字はFigma同様にわずかに傾け、視覚的な勢いを出します。 */}
+                  <p className="-skew-x-[8deg] text-center leading-[1.5] text-shadow-[0_0_8px_rgba(106,115,120,0.1)]">
+                    <span className="text-[48px] font-extrabold tracking-[0.96px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {daysUntilEvent}
+                    </span>
+                    <span className="text-[24px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      日
+                    </span>
+                  </p>
+                </div>
+              ) : null}
+            </div>
+            <div className="relative hidden h-[134px] w-[380px] overflow-hidden md:block">
+              <img
+                src={topTicketImageUrls[eventTicketStatus].pc}
+                alt=""
+                // 背景画像を常に背面に固定し、開催までテキストが描画順で隠れないようにします。
+                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-contain"
+              />
+              {/* 開催前チケットのみ、残り日数のテキストをコード側で重ねて表示します。 */}
+              {eventTicketStatus === "before" ? (
+                // PC版はFigmaの左側スペース(93px)に合わせ、テキストエリア開始位置を固定します。
+                <div className="relative z-10 ml-[93px] flex h-full flex-col items-center justify-center text-[#F9F9F9]">
+                  <p className="[font-family:'Noto_Sans_JP',sans-serif] text-[18px] font-medium leading-[1.5]">
+                    {daysUntilTicketLabel}
+                  </p>
+                  <p className="-skew-x-[8deg] text-center leading-[1.5] text-shadow-[0_0_8px_rgba(106,115,120,0.1)]">
+                    <span className="text-[56px] font-extrabold tracking-[1.12px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      {daysUntilEvent}
+                    </span>
+                    <span className="text-[24px] font-bold [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                      日
+                    </span>
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -562,7 +641,7 @@ export default function TopPageClient({
         data-reveal
         className="bg-[#EBEEF0] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
         style={{
-          backgroundImage: "url('/image/event_background.png')",
+          backgroundImage: `url('${eventBackgroundUrl}')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -621,17 +700,21 @@ export default function TopPageClient({
         data-reveal
         className="relative bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
-        {/* 背景装飾は指定のdotgrid.svgを使用します。 */}
+        {/* 装飾画像の配置ルールに合わせ、dotgridはdecorationフォルダから参照します。 */}
         <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
           <img
-            src="/image/dotgrid.svg"
+            src="/image/decoration/dotgrid.svg"
             alt=""
             className="h-[144px] w-[192px]"
           />
         </div>
-        {/* PC表示のみ、薄い円の装飾を追加してFigmaの雰囲気に寄せます。 */}
+        {/* PC表示のみの円装飾も、他装飾と同じdecorationフォルダ配下から読み込みます。 */}
         <div className="pointer-events-none absolute left-70 top-110 hidden -translate-x-1/3 -translate-y-1/2 md:block">
-          <img src="/image/circle.svg" alt="" className="h-[320px] w-[320px]" />
+          <img
+            src="/image/decoration/circle.svg"
+            alt=""
+            className="h-[320px] w-[320px]"
+          />
         </div>
 
         <div className="mx-auto md:max-w-[1024px]">
@@ -685,10 +768,10 @@ export default function TopPageClient({
         </div>
       </section>
 
-      {/* 開催場所はFigmaのレイアウトに合わせ、モバイルは地図を表示しません。 */}
+      {/* 開催場所はFigma更新に合わせ、ガイド動画を同セクション内へ統合します。 */}
       <section
         data-reveal
-        className="bg-[#EBEEF0] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto flex flex-col gap-4 md:max-w-[1024px]">
           {/* 見出しは白背景+下線の構成に揃え、サイズはFigmaの20pxで固定します。 */}
@@ -699,21 +782,22 @@ export default function TopPageClient({
             </p>
           </div>
 
-          {/* 開催まとめはモバイルで縦並び、デスクトップで2カラムにします。 */}
+          {/* 平日・土日の説明カードは、Figmaの共通コンポーネント（白80%背景＋薄枠＋角丸）に揃えます。 */}
           <div className="flex flex-col gap-3 md:flex-row md:gap-6">
-            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+            <div className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] p-3 text-left md:flex-1 md:items-center md:text-center">
               <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 平日
               </p>
+              {/* 要望に合わせて「有元史郎記念校友会館」の文言を削除し、交流プラザ表記へ統一します。 */}
               <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-center">
-                有元史郎記念校友会館交流プラザにて研究の展示をします。展示されている研究の一覧は
+                交流プラザにて研究の展示をします。展示されている研究の一覧は
                 <Link href="/research" className="text-[#D3793D] underline">
                   こちら
                 </Link>
                 から。
               </p>
             </div>
-            <div className="rounded-lg bg-[#F9F9F9] p-3 text-left md:flex-1 md:items-center md:text-center">
+            <div className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] p-3 text-left md:flex-1 md:items-center md:text-center">
               <p className="text-[16px] font-medium leading-[1.5] text-[#D3793D] md:text-center">
                 土日
               </p>
@@ -722,13 +806,58 @@ export default function TopPageClient({
                 <Link href="/events" className="text-[#D3793D] underline">
                   こちら
                 </Link>
-                から
+                から。
               </p>
             </div>
           </div>
 
-          {/* SIT MAPはデスクトップのみ表示し、カード内の罫線は均等に配置します。 */}
-          <div className="hidden rounded-2xl bg-[#F9F9F9] px-4 py-6 md:block">
+          {/* ガイド動画は開催場所セクション内へ移動し、説明文をBody/M（13px）に統一します。 */}
+          <div className="w-full py-6">
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-[#DDE1E4]" />
+              <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
+                GUIDE VIDEOS
+              </p>
+              <span className="h-px flex-1 bg-[#DDE1E4]" />
+            </div>
+            <p className="mt-2 text-center text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+              大学への行き方動画はこちらから！
+              <br />
+              （Youtubeに遷移します。）
+            </p>
+            {/* SP/PCともに2ボタンを横並びにし、Figmaの線ボタン見た目を維持します。 */}
+            <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-6 md:px-12">
+              <button
+                type="button"
+                onClick={handleGuideVideoClick}
+                // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
+                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+              >
+                豊洲駅から
+                <img
+                  src="/icon/link.svg"
+                  alt=""
+                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                />
+              </button>
+              <button
+                type="button"
+                onClick={handleGuideVideoClick}
+                // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
+                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+              >
+                越中島駅から
+                <img
+                  src="/icon/link.svg"
+                  alt=""
+                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                />
+              </button>
+            </div>
+          </div>
+
+          {/* SIT MAPは背景カードを廃止し、見出し線＋説明＋地図のみの構成へ変更します。 */}
+          <div className="w-full py-6">
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-[#DDE1E4]" />
               <p className="text-[16px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)]">
@@ -736,10 +865,11 @@ export default function TopPageClient({
               </p>
               <span className="h-px flex-1 bg-[#DDE1E4]" />
             </div>
-            <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
-              開催場所の大学内の位置はこのようになっています。
+            {/* 要望に合わせてSIT MAP下の説明文もBody/M相当に統一します。 */}
+            <p className="mt-2 text-center text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459]">
+              開催場所の交流プラザの位置はこちらです。
             </p>
-            <div className="mt-4 overflow-hidden rounded-2xl">
+            <div className="mt-4 overflow-hidden">
               <img
                 src={sitMapImageUrl}
                 alt="豊洲キャンパス構内の配置図"
@@ -750,10 +880,10 @@ export default function TopPageClient({
         </div>
       </section>
 
-      {/* アクセス情報は地図と動画導線を同じカードにまとめます。 */}
+      {/* アクセスはFigma通り、上部が白系・下部がグレー系へ落ちる縦グラデ背景に変更します。 */}
       <section
         data-reveal
-        className="px-4 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         <div className="mx-auto md:max-w-[1024px]">
           {/* デスクトップは「卒業生の進路」と同様に、見出し線を中間幅で止めて右に地図を配置します。 */}
@@ -791,53 +921,6 @@ export default function TopPageClient({
                 className="h-[209px] w-full md:h-[278px]"
                 title="芝浦工業大学 豊洲キャンパスの地図"
               />
-            </div>
-          </div>
-          {/* ガイド動画導線は2段目で中央配置に整えます。 */}
-          <div className="mt-6 md:mt-8">
-            <div className="mx-auto max-w-[768px]">
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-                <p className="text-[12px] font-medium tracking-[0.15em] text-[#D3793D] [font-family:var(--font-roboto)] md:text-[16px] md:tracking-[0.2em]">
-                  GUIDE VIDEOS
-                </p>
-                <span className="h-px flex-1 bg-[#DDE1E4]" />
-              </div>
-              <p className="mt-2 text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
-                大学への行き方動画はこちらから
-                <br />
-                (Youtubeに遷移します。)
-              </p>
-              <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-[64px]">
-                <button
-                  type="button"
-                  onClick={handleGuideVideoClick}
-                  // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
-                >
-                  豊洲駅から
-                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img
-                    src="/icon/link.svg"
-                    alt=""
-                    className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGuideVideoClick}
-                  // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                  className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
-                >
-                  越中島駅から
-                  {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img
-                    src="/icon/link.svg"
-                    alt=""
-                    className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
-                  />
-                </button>
-              </div>
             </div>
           </div>
         </div>

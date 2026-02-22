@@ -172,7 +172,9 @@ export default function GlobalHeader({
               {contactItem ? (
                 <Link
                   href={contactItem.href}
-                  className="flex h-12 items-center justify-center rounded-full bg-[#4B5459] px-6 text-[16px] font-medium leading-none text-[#F9F9F9]"
+                  // 変更理由: Figma(1309:4849)準拠で、モノクロPrimaryボタンは
+                  // ホバー時に白グラデーションをplus-lighterで重ね、300msでグレー化して見せます。
+                  className="flex h-12 items-center justify-center rounded-full bg-[#4B5459] px-6 text-[16px] font-medium leading-none text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#4B5459] hover:[background-blend-mode:plus-lighter]"
                 >
                   <span className="relative top-[-1px]">{contactItem.label}</span>
                 </Link>
