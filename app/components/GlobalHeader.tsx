@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect, useState } from "react"
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-import NavigationMenu from "./NavigationMenu"
+import NavigationMenu from "./NavigationMenu";
 
 type GlobalHeaderProps = {
-  activeId?: string
-  className?: string
-  hidden?: boolean
-}
+  activeId?: string;
+  className?: string;
+  hidden?: boolean;
+};
 
 type NavigationItem = {
-  id: string
-  label: string
-  href: string
-}
+  id: string;
+  label: string;
+  href: string;
+};
 
 // 共通メニューは全ページで同じ順序・文言に統一します。
 const globalMenuItems: NavigationItem[] = [
@@ -26,7 +26,7 @@ const globalMenuItems: NavigationItem[] = [
   { id: "events", label: "イベント", href: "/events" },
   { id: "career", label: "卒業生の進路", href: "/career" },
   { id: "contact", label: "お問い合せ", href: "/contact" },
-]
+];
 
 // ヘッダーのロゴは共通の画像に差し替えやすいよう定数化します。
 const headerLogoUrl = "/icon/header_icon.png"
@@ -127,7 +127,7 @@ export default function GlobalHeader({
             <div className="hidden items-center gap-6 lg:flex">
               <nav className="flex items-center">
                 {desktopMenuItems.map((item, index) => {
-                  const isActive = item.id === activeId
+                  const isActive = item.id === activeId;
                   return (
                     <Link
                       key={item.id}
@@ -162,7 +162,7 @@ export default function GlobalHeader({
                         {item.label}
                       </span>
                     </Link>
-                  )
+                  );
                 })}
               </nav>
               {/* 
@@ -176,7 +176,9 @@ export default function GlobalHeader({
                   // ホバー時に白グラデーションをplus-lighterで重ね、300msでグレー化して見せます。
                   className="flex h-12 items-center justify-center rounded-full bg-[#4B5459] px-6 text-[16px] font-medium leading-none text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#4B5459] hover:[background-blend-mode:plus-lighter]"
                 >
-                  <span className="relative top-[-1px]">{contactItem.label}</span>
+                  <span className="relative top-[-1px]">
+                    {contactItem.label}
+                  </span>
                 </Link>
               ) : null}
             </div>
@@ -205,5 +207,5 @@ export default function GlobalHeader({
         </div>
       </div>
     </>
-  )
+  );
 }

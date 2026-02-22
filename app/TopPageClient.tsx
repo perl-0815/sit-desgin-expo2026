@@ -360,8 +360,7 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        // Figmaノード(PC:1228:14146=980px / SP:1228:14561=681px)に合わせてセクション高を固定します。
-        className="relative isolate h-[681px] px-4 py-12 md:h-[980px] md:px-8 lg:px-[128px] md:py-[128px]"
+        className="relative overflow-hidden bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景色はセクション幅ではなくビューポート幅いっぱいに広げ、Figmaのフルブリード背景を再現します。 */}
         <div
