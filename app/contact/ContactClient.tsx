@@ -7,7 +7,7 @@ import GlobalHeader from "../components/GlobalHeader";
 import useSectionReveal from "../components/useSectionReveal";
 
 const contactEmail = "shibadesign2026sotsuten@gmail.com";
-// お問い合わせフォームのURLが確定していないため、後から差し替えできるよう定数化します。
+// お問い合せフォームのURLが確定していないため、後から差し替えできるよう定数化します。
 const contactFormUrl = "https://forms.gle/9pBuxBWgC9YuFo8j8";
 
 export default function ContactClient() {
@@ -16,7 +16,7 @@ export default function ContactClient() {
   );
   const copyTimeoutRef = useRef<number | null>(null);
 
-  // お問い合わせページの各セクションにスライドインを適用します。
+  // お問い合せページの各セクションにスライドインを適用します。
   useSectionReveal();
 
   const resetCopyStatus = () => {
@@ -109,28 +109,32 @@ export default function ContactClient() {
           </p>
         </div>
 
-        {/* デスクトップは左右2カラムで配置し、各カラムの情報密度を揃えます。 */}
-        <div className="flex flex-col md:flex-row md:gap-[64px]">
-          {/* メールお問い合わせブロック */}
+        {/* 変更理由: 画面幅が狭い中間サイズでGoogleフォーム側が圧縮されるため、2カラム化は十分な横幅があるxl以上に限定します。 */}
+        {/* これにより、幅が不足する場合はモバイルと同様に上下配置へ戻して可読性を確保します。 */}
+        <div className="flex flex-col xl:flex-row xl:gap-[64px]">
+          {/* メールお問い合せブロック */}
           <section
             data-reveal
-            className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-[128px] md:pr-0"
+            // 変更理由: 縦積み時もイベント見出しと同じPCガイド（左右128px）に揃えるため、md以上は横余白を128pxに固定します。
+            // 2カラム時の左右非対称余白は従来どおりxl以上でのみ適用します。
+            className="px-4 py-12 md:px-[128px] xl:flex-1 xl:pb-[128px] xl:pl-[128px] xl:pr-0 xl:pt-[56px]"
           >
             {/* 見出し下のラインカラーはFigma指定のソーシャルカラーに合わせます。 */}
-            <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
-              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
+            <div className="border-b border-[#FB9678] pb-1 xl:mx-auto xl:w-full xl:max-w-[361px] xl:pb-2">
+              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] xl:text-center xl:text-[24px]">
                 メールでのお問い合せ
               </h2>
             </div>
-            <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
+            {/* 変更理由: Figma更新で見出し下の説明文が Body/M 指定になったため、サイズと行間を 13px / 1.9 に統一します。 */}
+            <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] xl:mt-3 xl:text-center xl:text-[13px]">
               以下のメールアドレスまで直接ご連絡ください。
             </p>
             {/* デスクトップ版ではコピー欄の前に少し余白を足して視線の抜けを作ります。 */}
-            <div className="mt-3 md:mt-12 md:pb-[20px]">
+            <div className="mt-3 xl:mt-12 xl:pb-[20px]">
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#EBEEF0] px-3 py-2 md:mx-auto md:min-h-[56px] md:max-w-[361px] md:px-5 md:py-3"
+                className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#EBEEF0] px-3 py-2 xl:mx-auto xl:min-h-[56px] xl:max-w-[361px] xl:px-5 xl:py-3"
                 aria-live="polite"
                 aria-label={`${contactEmail} をコピー`}
               >
@@ -166,25 +170,31 @@ export default function ContactClient() {
             </div>
           </section>
 
-          {/* その他方法のお問い合わせブロック */}
+          {/* その他方法のお問い合せブロック */}
           <section
             data-reveal
-            className="px-4 py-12 md:flex-1 md:py-[96px] md:pl-0 md:pr-[128px]"
+            // 変更理由: 縦積み時もイベント見出しと同じPCガイド（左右128px）へ揃え、中間幅でも可読性と整列を維持します。
+            // 2カラム時の左右非対称余白は従来どおりxl以上でのみ適用します。
+            className="px-4 py-12 md:px-[128px] xl:flex-1 xl:pb-[128px] xl:pl-0 xl:pr-[128px] xl:pt-[56px]"
           >
-            <div className="border-b border-[#FB9678] pb-1 md:mx-auto md:w-full md:max-w-[361px] md:pb-2">
-              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-center md:text-[24px]">
-                その他方法のお問い合せ
+            <div className="border-b border-[#FB9678] pb-1 xl:mx-auto xl:w-full xl:max-w-[361px] xl:pb-2">
+              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] xl:text-center xl:text-[24px]">
+                {/* 変更理由: Figma（1783:5213）の最新文言に合わせ、Googleフォーム誘導であることを見出しで明確化します。 */}
+                Googleフォームでのお問い合せ
               </h2>
             </div>
-            <p className="mt-2 text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:mt-3 md:text-center md:text-[14px]">
-              メール以外でのお問い合せはこちらから行うことができます。
+            {/* 変更理由: Figma更新で見出し下の説明文が Body/M 指定になったため、サイズと行間を 13px / 1.9 に統一します。 */}
+            <p className="mt-2 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] xl:mt-3 xl:text-center xl:text-[13px]">
+              {/* 変更理由: PC/SP共通でFigmaの説明文に統一し、表記ゆれ（Google Forms）を解消します。 */}
+              メール以外のお問い合せはこちらから行うことができます。
               <br />
-              （Google Formsに遷移します。）
+              （Googleフォームに遷移します。）
             </p>
-            <div className="mt-3 flex justify-center md:mt-5 md:pb-[20px]">
+            <div className="mt-3 flex justify-center xl:mt-5 xl:pb-[20px]">
               <a
                 href={contactFormUrl}
-                className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:min-h-[56px] md:px-[56px] md:py-[24px]"
+                // 枠線ボタンはFigmaのマウスオーバー仕様に合わせ、オレンジ塗りへ300msで遷移させます。
+                className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] xl:min-h-[56px] xl:px-[56px] xl:py-[24px]"
               >
                 お問い合せフォーム
                 <svg
@@ -195,21 +205,21 @@ export default function ContactClient() {
                 >
                   <path
                     d="M14 5H19V10"
-                    stroke="#4B5459"
+                    stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   <path
                     d="M10 14L19 5"
-                    stroke="#4B5459"
+                    stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                   <path
                     d="M5 7V19H17"
-                    stroke="#4B5459"
+                    stroke="currentColor"
                     strokeWidth="1.8"
                     strokeLinecap="round"
                     strokeLinejoin="round"

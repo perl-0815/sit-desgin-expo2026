@@ -33,13 +33,14 @@ export default function Footer({ className }: FooterProps) {
           }}
         />
         <div>
-          {/* Contactの見出しはOFFICIAL SNSと同じテキストスタイルに揃えます。 */}
-          <p className="text-[12px] tracking-[0.15em] [font-family:var(--font-roboto)]">
+          {/* 変更理由: Figma（node: 1228:14389 / 1228:14541）では英字見出しが12px・line-height 1.5・中ウェイト指定のため、実値を固定してズレを防ぎます。 */}
+          <p className="text-[12px] font-medium leading-[1.5] tracking-[0.15em] [font-family:var(--font-roboto)]">
             CONTACT
           </p>
-          <div className="space-y-1 text-[12px] tracking-normal">
+          {/* 変更理由: 連絡先本文は12px・line-height 1.6・字間0.02em（Body/S）に合わせ、環境差で詰まりすぎる見え方を防止します。 */}
+          <div className="space-y-1 text-[12px] leading-[1.6] tracking-[0.02em] [font-family:var(--font-noto-sans-jp)]">
             <p>shibadesign2026sotsuten@gmail.com</p>
-            {/* お問い合わせフォームへのリンクは最新のフォームURLに差し替えます。 */}
+            {/* お問い合せフォームへのリンクは最新のフォームURLに差し替えます。 */}
             <a
               href="https://forms.gle/9pBuxBWgC9YuFo8j8"
               className="underline"
@@ -50,7 +51,8 @@ export default function Footer({ className }: FooterProps) {
         </div>
 
         <div className="mt-8 space-y-3">
-          <p className="text-[12px] tracking-[0.15em] [font-family:var(--font-roboto)]">
+          {/* 変更理由: CONTACT見出しと同一の英字ラベル仕様に統一し、フッター内でのサイズブレをなくします。 */}
+          <p className="text-[12px] font-medium leading-[1.5] tracking-[0.15em] [font-family:var(--font-roboto)]">
             OFFICIAL SNS
           </p>
           {/* SNSアイコンはSVG画像で表示し、実際の公式リンクに遷移します。 */}

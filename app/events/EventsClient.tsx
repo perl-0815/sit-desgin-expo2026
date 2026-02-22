@@ -1,13 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 import Footer from "../components/Footer"
 import GlobalHeader from "../components/GlobalHeader"
 import useSectionReveal from "../components/useSectionReveal"
-
-type EventsTab = "reserved" | "experience"
 
 type ReservedEvent = {
   id: string
@@ -43,29 +40,9 @@ const reservedEvents: ReservedEvent[] = [
 ]
 
 export default function EventsClient() {
-  // URLクエリにタブ状態を保持し、再訪時も前回の表示を維持します。
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const router = useRouter()
-  const activeTab: EventsTab =
-    searchParams.get("tab") === "experience" ? "experience" : "reserved"
-
-  // 既存のページ遷移アニメーション設計に合わせるため、共通のrevealを継続利用します。
+  // 変更理由: Figma更新でイベントページ上部のトグルUIが廃止されたため、
+  // クエリ同期を含むタブ切替状態を撤去し、単一のイベント一覧として表示します。
   useSectionReveal()
-
-  // トグル操作をURLへ同期し、ブラウザの再読み込み後も選択状態を再現します。
-  const handleSwitchTab = (nextTab: EventsTab) => {
-    const nextParams = new URLSearchParams(searchParams.toString())
-    if (nextTab === "experience") {
-      nextParams.set("tab", "experience")
-    } else {
-      nextParams.delete("tab")
-    }
-    const nextQuery = nextParams.toString()
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
-      scroll: false,
-    })
-  }
 
   return (
     <div className="min-h-screen bg-[#F9F9F9]">
@@ -74,63 +51,26 @@ export default function EventsClient() {
       <main className="pb-12 pt-[92px] md:pb-0 md:pt-[144px]">
         <section
           data-reveal
-          className="mx-auto w-full max-w-[1280px] px-4 py-3 md:px-[128px] md:py-5"
+          className="mx-auto w-full max-w-[1280px] px-4 py-6 md:px-[128px] md:py-9"
         >
-          {/* Figmaの切替UIに合わせ、見出しを省いてトグルのみを上部に配置します。 */}
-          <div className="rounded-full bg-[#EBEEF0] p-2 md:p-3">
-            <div className="relative grid grid-cols-2">
-              {/* アクティブ背景は実カードと同じ白80%+薄枠で統一し、デザインの一貫性を保ちます。 */}
-              <div
-                className="pointer-events-none absolute inset-y-0 left-0 w-1/2 rounded-full border border-[#F9F9F9] bg-white/80 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-                style={{
-                  transform:
-                    activeTab === "experience"
-                      ? "translateX(100%)"
-                      : "translateX(0%)",
-                }}
-                aria-hidden="true"
-              />
-              <button
-                type="button"
-                className={`relative z-10 w-full rounded-full px-1 py-3 text-[13px] font-medium leading-[1.5] text-[#6A7378] transition md:py-5 md:text-[15px] ${
-                  activeTab === "reserved" ? "text-[#2E3437]" : "text-[#6A7378]"
-                }`}
-                aria-pressed={activeTab === "reserved"}
-                onClick={() => handleSwitchTab("reserved")}
-              >
-                予約必須イベント
-              </button>
-              <button
-                type="button"
-                className={`relative z-10 w-full rounded-full px-1 py-3 text-[13px] font-medium leading-[1.5] text-[#6A7378] transition md:py-5 md:text-[15px] ${
-                  activeTab === "experience" ? "text-[#2E3437]" : "text-[#6A7378]"
-                }`}
-                aria-pressed={activeTab === "experience"}
-                onClick={() => handleSwitchTab("experience")}
-              >
-                体験展示
-              </button>
-            </div>
+          {/* 変更理由: Figmaの見出し仕様に合わせ、イベントラベルを固定表示します。 */}
+          <div className="flex items-center gap-[10px]">
+            <span className="h-6 w-2 rounded-[4px] bg-gradient-to-b from-[#FB9678] to-[#E5A967]" />
+            <h1 className="text-[24px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px]">
+              イベント
+            </h1>
           </div>
         </section>
 
         <section
           data-reveal
-          className="mx-auto w-full max-w-[1280px] px-4 pb-12 pt-3 md:px-[128px] md:pb-[128px] md:pt-4"
+          className="mx-auto w-full max-w-[1280px] px-4 pb-12 pt-0 md:px-[128px] md:pb-[128px] md:pt-0"
         >
-          {activeTab === "reserved" ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-9">
-              {reservedEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          ) : (
-            <article className="flex h-[240px] items-center justify-center rounded-[12px] bg-white/80 p-6 text-center shadow-[0_0_8px_rgba(106,115,120,0.1)] md:h-[360px] md:rounded-[20px]">
-              <p className="text-[22px] font-semibold tracking-[0.06em] text-[#6A7378] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[28px]">
-                Coming Soon...
-              </p>
-            </article>
-          )}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-9">
+            {reservedEvents.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
         </section>
       </main>
 

@@ -2,21 +2,14 @@ import type { Metadata } from "next"
 import { Noto_Sans_JP, Roboto } from "next/font/google"
 import localFont from "next/font/local"
 
+import {
+  siteDescription,
+  siteTitle,
+  siteUrl,
+  socialPreviewImageUrl,
+} from "@/lib/site-metadata"
+
 import "./globals.css"
-
-// SNS 共有の正規URLは常に本番ドメインを基準にします。
-// 以前は VERCEL_URL を優先していたため、カスタムドメインでアクセスしても
-// og:url / og:image が *.vercel.app になるケースがあり、媒体によって
-// プレビュー画像が出ない要因になっていました。
-// NEXT_PUBLIC_SITE_URL を最優先し、未設定時は本番公開ドメインへ固定します。
-const resolvedSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sit-design-expo2026.jp"
-
-// SNS 共有画像は各プラットフォームで URL 単位に強くキャッシュされるため、
-// 画像内容やOG設定を更新しても即時反映されないことがある。
-// 共有媒体によっては相対URL解釈で取りこぼす場合があるため、絶対URLで明示します。
-// クエリ付きの固定URLを使って再クロールを確実に発生させる。
-const socialPreviewImageUrl = `${resolvedSiteUrl}/image/preview.png?v=20260212a`
 
 // 日本語本文はNoto Sans JPを標準にし、Figma指定の字形に近づけます。
 const notoSansJP = Noto_Sans_JP({
@@ -68,31 +61,45 @@ const shipporiMinchoB1 = localFont({
 })
 
 export const metadata: Metadata = {
-  title: "芝浦工業大学デザイン工学部卒業展示2026",
-  description:
-    // トップページの紹介文（卒業・修了研究展とは）に合わせ、SNS上でも意図した説明が表示されるように更新します。
-    "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
+  // 変更理由: ページ別 metadata を追加した際にサイト名ルールを統一できるよう、
+  // 既定タイトルとテンプレート（`{ページ名} | サイト名`）をlayout側で管理します。
+  title: {
+    default: siteTitle,
+    template: `%s | ${siteTitle}`,
+  },
+  description: siteDescription,
   // 実行環境に応じた公開URLを指定し、OG/Twitter の絶対URL解決に使います。
-  metadataBase: new URL(resolvedSiteUrl),
+  metadataBase: new URL(siteUrl),
+  // 変更理由: Search Console のHTMLメタタグ確認に対応するため、
+  // Googleが指定する site verification トークンを全ページheadへ出力します。
+  verification: {
+    google: "38bezo3YKUbqrvz3JRP7MgObcY_OxeDkTmbiB73eG7U",
+  },
+  alternates: {
+    canonical: "/",
+  },
   // public/icon/favicon.jpg から生成したファビコン/タッチアイコンを参照します。
   // favicon.ico は public 配下に置き、App Router の画像処理を避けます。
   icons: {
+    // 検索結果のサイトアイコン取得で推奨される 48x48 を明示し、クロール時の解釈差分を減らします。
+    shortcut: [{ url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" }],
     icon: [
       { url: "/favicon.ico", sizes: "16x16", type: "image/x-icon" },
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
       { url: "/icon.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
   // SNS 共有時に各サービスが画像を認識しやすいよう、OGの基本項目を明示します。
   openGraph: {
-    title: "芝浦工業大学デザイン工学部卒業展示2026",
-    description:
-      "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
+    title: siteTitle,
+    description: siteDescription,
     // 共有対象ページの正規URLを絶対URLで明示し、クローラの解釈差分を減らす。
-    url: resolvedSiteUrl,
+    url: siteUrl,
     type: "website",
     siteName: "SIT DESIGN EXPO 2026",
+    locale: "ja_JP",
     images: [
       {
         url: socialPreviewImageUrl,
@@ -106,9 +113,8 @@ export const metadata: Metadata = {
   // Twitter 共有時も同一のプレビュー画像を使い、カード形式を大型にします。
   twitter: {
     card: "summary_large_image",
-    title: "芝浦工業大学デザイン工学部卒業展示2026",
-    description:
-      "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。",
+    title: siteTitle,
+    description: siteDescription,
     images: [
       {
         url: socialPreviewImageUrl,

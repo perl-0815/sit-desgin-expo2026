@@ -159,8 +159,9 @@ export default async function Home() {
     const j = randomInt(i + 1)
     ;[mixedItems[i], mixedItems[j]] = [mixedItems[j], mixedItems[i]]
   }
-  // Figmaの3枚レイアウトに合わせて3件に絞ります。
-  const previewItems = mixedItems.slice(0, 3)
+  // 変更理由: トップのスライドはPC/SPとも6件運用に統一したため、
+  // サーバー側で渡すプレビュー件数も6件へ揃えて、同一3件の繰り返しを防ぎます。
+  const previewItems = mixedItems.slice(0, 6)
 
   return (
     <>

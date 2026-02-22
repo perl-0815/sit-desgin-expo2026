@@ -21,6 +21,7 @@ type ReasonCard = {
 type GradReasonCard = {
   text: string
   course: string
+  courseColor: string
 }
 
 type Career = {
@@ -69,12 +70,34 @@ const resolveJobCategory = (career: Career) => {
   return raw || "その他"
 }
 
+const normalizeCompanyNameForCompare = (value: string) => {
+  // 企業名表示の重複を減らすため、比較専用キーを作ります。
+  // ここでは表示文字列は変えず、比較時のみ「株式会社の前後差」「（株）」「空白」などを吸収します。
+  const raw = value.trim()
+  if (!raw) return ""
+
+  // 「Visional（株式会社ビズリーチ）」のように括弧内に法人名がある場合は、
+  // 表記ゆれ吸収のため括弧内を優先して比較キーに使います。
+  const parenthesizedCorp = raw.match(/[（(]\s*(株式会社[^)）]+)\s*[)）]$/)
+  const base = parenthesizedCorp?.[1] ?? raw
+
+  return base
+    .normalize("NFKC")
+    .replace(/\s+/g, "")
+    .replace(/（株）|\(株\)|㈱/g, "株式会社")
+    .replace(/&/g, "＆")
+    .replace(/^株式会社/, "")
+    .replace(/株式会社$/, "")
+    .toLowerCase()
+}
+
 const toUniqueList = (items: string[], limit = 5) => {
   const seen = new Set<string>()
   const results: string[] = []
   items.forEach((item) => {
-    if (!item || seen.has(item)) return
-    seen.add(item)
+    const normalizedKey = normalizeCompanyNameForCompare(item)
+    if (!item || !normalizedKey || seen.has(normalizedKey)) return
+    seen.add(normalizedKey)
     results.push(item)
   })
   return results.slice(0, limit)
@@ -100,6 +123,16 @@ const buildCourseLabel = (career: Career) => {
     normalizeText(career.student?.lab?.course) ||
     normalizeText(career.category_type)
   )
+}
+
+const resolveCourseLabelColor = (courseLabel: string) => {
+  // 変更理由: Figma仕様で「大学院進学の理由」のコースラベルはコース別カラー表示になったため、
+  // DBの表記ゆれ（例: 社会情報コース / 社会情報システムコース）を吸収して色を決定します。
+  const normalized = normalizeText(courseLabel)
+  if (normalized.includes("UX")) return "#2C68D3"
+  if (normalized.includes("社会情報")) return "#0A948A"
+  if (normalized.includes("プロダクト")) return "#D1346F"
+  return "#4B5459"
 }
 
 export default function CareerClient() {
@@ -258,12 +291,16 @@ export default function CareerClient() {
     // 大学院進学の理由は extra_notes を優先し、なければ decision_reason を補助に使います。
     const reasons = careers
       .filter((career) => normalizeText(career.category).includes("大学院"))
-      .map((career) => ({
-        text:
-          normalizeText(career.extra_notes) ||
-          normalizeText(career.decision_reason),
-        course: buildCourseLabel(career),
-      }))
+      .map((career): GradReasonCard => {
+        const course = buildCourseLabel(career)
+        return {
+          text:
+            normalizeText(career.extra_notes) ||
+            normalizeText(career.decision_reason),
+          course,
+          courseColor: resolveCourseLabelColor(course),
+        }
+      })
       .filter((reason) => reason.text && reason.course)
 
     const seen = new Set<string>()
@@ -271,7 +308,11 @@ export default function CareerClient() {
     reasons.forEach((reason) => {
       if (seen.has(reason.text)) return
       seen.add(reason.text)
-      results.push({ text: reason.text, course: reason.course })
+      results.push({
+        text: reason.text,
+        course: reason.course,
+        courseColor: reason.courseColor,
+      })
     })
 
     return results
@@ -310,29 +351,100 @@ export default function CareerClient() {
         ) : null}
       </div>
 
-      {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
+      {/* 変更理由: Figmaの進路グラフセクション(PC/モバイル)の構成に合わせて、見出し・グラフ・内訳カードを再配置します。 */}
       <section
         data-reveal
-        className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]"
+        className="px-4 pb-12 pt-12 md:px-[128px] md:pb-[128px] md:pt-[56px]"
       >
-        <div className="md:flex md:items-start md:gap-[64px]">
-          <div className="md:w-[480px]">
-            <div className="border-b border-[#FB9678] pb-1 md:pb-2">
-              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.02em]">
-                進路別の割合
-              </h2>
+        <div className="flex items-center justify-between border-b-2 border-[#FB9678] py-1 md:py-2">
+          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+            進路別の割合
+          </h2>
+          {/* 変更理由: Figmaの見出し右側チェックUIを再現し、以降の就職先一覧と同じトグル状態を共有します。 */}
+          <button
+            type="button"
+            className="flex items-center gap-[6px]"
+            aria-pressed={includeGraduate}
+            onClick={() => setIncludeGraduate((prev) => !prev)}
+          >
+            <span className="inline-flex h-6 w-6 items-center justify-center">
+              {includeGraduate ? (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-gradient-to-br from-[#FB9678] to-[#E5A967]">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-[18px] w-[18px]"
+                    fill="none"
+                  >
+                    <path
+                      d="M6 12.5L10 16.5L18 8.5"
+                      stroke="#F9F9F9"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#EBEEF0] p-[2px]">
+                  <span className="h-full w-full rounded-[4px] bg-[#F9F9F9]" />
+                </span>
+              )}
+            </span>
+            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437] md:text-[18px]">
+              大学院生を含む
+            </span>
+          </button>
+        </div>
+
+        <div className="mt-6 flex flex-col md:grid md:grid-cols-[480px_480px] md:gap-[64px]">
+          {/* 変更理由: Figmaのモバイル版はグラフ直下のカード開始位置が詰まっているため、上余白を12pxに調整します。 */}
+          <div className="order-2 mt-3 md:order-1 md:mt-14">
+            {/* 変更理由: Figmaの左カラム内訳カードに合わせ、人数と割合を2枚カード+未定1枚で表示します。 */}
+            <div className="grid grid-cols-2 gap-3 md:gap-5">
+              <article className="rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-4 py-2 text-center md:rounded-[12px] md:px-6 md:py-3">
+                <p className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#368D30] md:text-[24px]">
+                  進学
+                </p>
+                <p className="text-[13px] font-medium leading-[1.5] text-[#368D30] md:text-[18px]">
+                  (本学大学院：{careerStats.gradCount}名)
+                </p>
+                <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {careerStats.gradPercent.toFixed(1)}
+                  <span className="text-[16px] font-bold text-[#6A7378]">%</span>
+                </p>
+              </article>
+              <article className="rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-4 py-2 text-center md:rounded-[12px] md:px-6 md:py-3">
+                <p className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#D3793D] md:text-[24px]">
+                  就職
+                </p>
+                <p className="text-[13px] font-medium leading-[1.5] text-[#D3793D] md:text-[18px]">
+                  ({careerStats.jobCount}名)
+                </p>
+                <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {careerStats.jobPercent.toFixed(1)}
+                  <span className="text-[16px] font-bold text-[#6A7378]">%</span>
+                </p>
+              </article>
             </div>
-            {/* デスクトップでは注釈を見出し直下に配置します。 */}
-            <p className="mt-4 hidden text-[14px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:block">
+            <div className="mt-3 rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] py-3 md:mt-5 md:rounded-[12px] md:py-5">
+              <p className="text-center text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                未定({careerStats.otherCount}名)：{careerStats.otherPercent.toFixed(1)}%
+              </p>
+            </div>
+            <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:mt-5 md:text-[16px]">
               ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
             </p>
           </div>
-          <div className="mt-8 flex justify-center md:mt-0 md:w-[480px] md:justify-start">
+
+          <div className="order-1 flex justify-center md:order-2 md:justify-start">
             <div className="relative">
-              {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
+              {/* 円グラフの実寸は維持しつつ、Figma指示に合わせて扇形ラベル内の%表示を非表示化します。 */}
               {loading ? (
-                // 円グラフの実寸と同じサイズでスケルトンを出し、ロード直後の拡大ズレを防ぎます。
-                <SkeletonBlock className="h-[320px] w-[320px] rounded-full md:h-[463px] md:w-[463px]" />
+                // 変更理由: パイチャート本体と同じ直径の円スケルトンを表示し、読み込み中の見た目を一致させます。
+                <div className="relative h-[348px] w-[361px] max-w-full md:h-[463px] md:w-[480px]">
+                  <SkeletonBlock className="absolute left-1/2 top-0 aspect-square w-[96.4%] -translate-x-1/2 rounded-full" />
+                </div>
               ) : (
                 <CareerPieChart
                   gradPercent={careerStats.gradPercent}
@@ -343,11 +455,7 @@ export default function CareerClient() {
               )}
             </div>
           </div>
-          {/* モバイルではチャートの下に注釈を置きます。 */}
         </div>
-        <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:hidden">
-          ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
-        </p>
       </section>
 
       {/* 就職先一覧はカテゴリごとにまとめ、Figmaのカード構成に合わせます。 */}
@@ -427,9 +535,6 @@ export default function CareerClient() {
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                <p className="mt-2 text-right text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
-                  など
-                </p>
               </div>
             </div>
           ))
@@ -455,7 +560,7 @@ export default function CareerClient() {
             Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={`job-reason-skel-${index}`}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 md:px-[20px] md:py-[20px]"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 md:px-[20px] md:py-[20px]"
               >
                 <div className="space-y-2">
                   <SkeletonBlock className="h-4 w-full rounded-md" />
@@ -470,10 +575,11 @@ export default function CareerClient() {
           ) : jobDecisionReasons.length > 0 ? (
             <>
               {/* 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。 */}
+              {/* 変更理由: Figma更新に合わせて、コメントカードの塗りを White80 (rgba(255,255,255,0.8)) に統一します。 */}
               {jobDecisionReasons.slice(0, 5).map((reason) => (
               <div
                 key={reason.text}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
               >
                 <p>{reason.text}</p>
                 {reason.labels ? (
@@ -500,7 +606,7 @@ export default function CareerClient() {
                       {jobDecisionReasons.slice(5).map((reason) => (
                         <div
                           key={reason.text}
-                          className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                          className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
                         >
                           <p>{reason.text}</p>
                           {reason.labels ? (
@@ -519,7 +625,7 @@ export default function CareerClient() {
             </>
           ) : (
             <div
-              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+              className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
             >
               公開対象の決め手データがまだありません。
             </div>
@@ -531,10 +637,10 @@ export default function CareerClient() {
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
               // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
-              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.1)] ${
                 showAllJobReasons
-                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
-                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:px-8 md:py-4 md:text-[13px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px] md:text-[15px]"
               }`}
               onClick={() => setShowAllJobReasons((prev) => !prev)}
             >
@@ -549,7 +655,7 @@ export default function CareerClient() {
                 >
                   <path
                     d="M6 12H18"
-                    stroke="#4B5459"
+                    stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                   />
@@ -579,7 +685,7 @@ export default function CareerClient() {
             Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={`grad-reason-skel-${index}`}
-                className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 md:px-[20px] md:py-[20px]"
+                className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 md:px-[20px] md:py-[20px]"
               >
                 <div className="space-y-2">
                   <SkeletonBlock className="h-4 w-full rounded-md" />
@@ -593,14 +699,17 @@ export default function CareerClient() {
           ) : gradReasons.length > 0 ? (
             <>
               {/* 表示件数を5件に制限し、ボタン操作で全件表示に切り替えます。 */}
+              {/* 変更理由: Figma更新に合わせて、進学理由カードの塗りを White80 に揃えます。 */}
               {gradReasons.slice(0, 5).map((reason) => (
                 <div
                   key={reason.text}
-                  className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                  className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
                 >
                   <p>{reason.text}</p>
-                  <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
-                    <span>{reason.course}</span>
+                  <div className="mt-2 flex justify-end text-[13px] font-medium md:text-[15px]">
+                    <span style={{ color: reason.courseColor }}>
+                      {reason.course}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -619,11 +728,13 @@ export default function CareerClient() {
                       {gradReasons.slice(5).map((reason) => (
                         <div
                           key={reason.text}
-                          className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+                          className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
                         >
                           <p>{reason.text}</p>
-                          <div className="mt-2 flex justify-end text-[13px] font-medium text-[#4B5459] md:text-[15px]">
-                            <span>{reason.course}</span>
+                          <div className="mt-2 flex justify-end text-[13px] font-medium md:text-[15px]">
+                            <span style={{ color: reason.courseColor }}>
+                              {reason.course}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -634,7 +745,7 @@ export default function CareerClient() {
             </>
           ) : (
             <div
-              className="rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
+              className="rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-3 py-3 text-[13px] leading-[1.9] tracking-[0.02em] text-[#2E3437] md:px-[20px] md:py-[20px] md:text-[16px]"
             >
               公開対象の進学理由データがまだありません。
             </div>
@@ -646,10 +757,10 @@ export default function CareerClient() {
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
               // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
-              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.1)] ${
                 showAllGradReasons
-                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] md:px-8 md:py-4 md:text-[13px]"
-                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:px-8 md:py-4 md:text-[13px]"
+                  : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px] md:text-[15px]"
               }`}
               onClick={() => setShowAllGradReasons((prev) => !prev)}
             >
@@ -664,7 +775,7 @@ export default function CareerClient() {
                 >
                   <path
                     d="M6 12H18"
-                    stroke="#4B5459"
+                    stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                   />

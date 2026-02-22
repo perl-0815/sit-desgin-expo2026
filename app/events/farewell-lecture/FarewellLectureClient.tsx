@@ -47,6 +47,10 @@ type ApiRoundtable = {
   sessions: ApiRoundtableSession[]
 }
 
+type EnrichedScheduleSlot = ScheduleSlot & {
+  apiSession?: ApiRoundtableSession
+}
+
 // 注意事項の文中リンクはフッターの実問い合わせ先（Googleフォーム）に統一します。
 const contactFormUrl = "https://forms.gle/9pBuxBWgC9YuFo8j8"
 
@@ -152,6 +156,20 @@ const scheduleDays: ScheduleDay[] = [
   },
 ]
 
+async function fetchLatestSessionMap() {
+  try {
+    const response = await fetch("/api/events/roundtables", { cache: "no-store" })
+    if (!response.ok) return null
+
+    const data = (await response.json()) as ApiRoundtable[]
+    if (!Array.isArray(data)) return null
+    return buildSessionMap(data)
+  } catch {
+    // API取得失敗時は既存表示を維持して操作継続できるよう null を返します。
+    return null
+  }
+}
+
 export default function FarewellLectureClient() {
   const router = useRouter()
 
@@ -160,6 +178,12 @@ export default function FarewellLectureClient() {
 
   // DBの残席情報をセッションID単位で保持します。
   const [sessionMap, setSessionMap] = useState<Record<string, ApiRoundtableSession>>({})
+  // 変更理由: API取得前の仮文言（プレースホルダー）を表示せず、読込中はスケルトンへ統一するための状態です。
+  const [isSessionLoading, setIsSessionLoading] = useState(true)
+  // 変更理由: 予約ボタン押下時に満席へ変化したケースを伝えるため、満席モーダルの開閉状態を保持します。
+  const [isFullModalOpen, setIsFullModalOpen] = useState(false)
+  // 変更理由: 二重クリックによる重複リクエストを防ぎ、確認中の枠だけボタン文言を切り替えるための状態です。
+  const [checkingSessionId, setCheckingSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -167,22 +191,13 @@ export default function FarewellLectureClient() {
     // 既存API(/api/events/roundtables)を再利用し、残席表示をDB値へ同期します。
     const loadSessions = async () => {
       try {
-        const response = await fetch("/api/events/roundtables", { cache: "no-store" })
-        if (!response.ok) return
-
-        const data = (await response.json()) as ApiRoundtable[]
-        if (!active || !Array.isArray(data)) return
-
-        const nextMap: Record<string, ApiRoundtableSession> = {}
-        for (const roundtable of data) {
-          if (!Array.isArray(roundtable.sessions)) continue
-          for (const session of roundtable.sessions) {
-            nextMap[session.id] = session
-          }
+        const latestMap = await fetchLatestSessionMap()
+        if (!active || !latestMap) return
+        setSessionMap(latestMap)
+      } finally {
+        if (active) {
+          setIsSessionLoading(false)
         }
-        setSessionMap(nextMap)
-      } catch {
-        // APIが利用不可の場合もUIはフォールバック表示で継続させます。
       }
     }
 
@@ -192,6 +207,26 @@ export default function FarewellLectureClient() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!isFullModalOpen) return
+
+    // 変更理由: モーダル表示中に背面スクロールを止め、誤タップで予約一覧が動く体験を防ぎます。
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsFullModalOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleEscape)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", handleEscape)
+    }
+  }, [isFullModalOpen])
 
   const enrichedDays = useMemo(() => {
     return scheduleDays.map((day) => ({
@@ -206,13 +241,45 @@ export default function FarewellLectureClient() {
     }))
   }, [sessionMap])
 
+  const handleReserveClick = async (slot: EnrichedScheduleSlot) => {
+    if (checkingSessionId) return
+    setCheckingSessionId(slot.sessionId)
+
+    try {
+      // 変更理由: 一覧表示時点から時間差で満席になるケースを拾うため、クリック時に最新状態を再検証します。
+      const latestMap = await fetchLatestSessionMap()
+      if (latestMap) {
+        setSessionMap(latestMap)
+      }
+
+      const latestSlot = latestMap?.[slot.sessionId] ?? slot.apiSession
+      const isLatestFull =
+        !!latestSlot &&
+        (latestSlot.is_full ||
+          (typeof latestSlot.remaining === "number" && latestSlot.remaining <= 0))
+
+      if (isLatestFull) {
+        setIsFullModalOpen(true)
+        return
+      }
+
+      // 変更理由: クリックイベント起点の遷移を維持してポップアップブロックを避けるため、同一タブ遷移でフォームへ移動します。
+      const bookingUrl =
+        latestSlot?.booking_form_url ?? slot.apiSession?.booking_form_url ?? slot.formUrl
+      window.location.assign(bookingUrl)
+    } finally {
+      setCheckingSessionId(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F9F9F9]">
       <GlobalHeader activeId="events" />
 
-      <main className="pb-12 pt-[92px] md:pb-[36px] md:pt-[124px]">
+      <main className="pb-12 pt-[92px] md:pb-[48px] md:pt-[124px]">
         {/* 戻る導線はFigma通りヘッダー直下に固定高さで置き、一覧への復帰操作を分かりやすくします。 */}
-        <div className="mx-auto w-full max-w-[760px] px-4 md:px-0">
+        {/* 変更理由: 研究・作品ページと同じデスクトップ基準幅（1280px内の左右128px余白）に揃え、ページ間で本文カラム幅を統一します。 */}
+        <div className="mx-auto w-full px-4 md:max-w-[1280px] md:px-[128px]">
           <button
             type="button"
             onClick={() => {
@@ -222,14 +289,15 @@ export default function FarewellLectureClient() {
               }
               router.push("/events")
             }}
-            className="inline-flex h-[64px] items-center gap-2 text-[13px] font-medium text-[#6A7378] md:h-[80px] md:gap-3 md:text-[15px]"
+            className="inline-flex h-[80px] items-center gap-2 text-[13px] font-medium text-[#6A7378] md:gap-3 md:text-[15px]"
           >
             <BackChevronIcon />
             <span>戻る</span>
           </button>
         </div>
 
-        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-6 md:px-0 md:pb-9">
+        {/* 変更理由: Figmaの縦リズム（SP 12px / PC 20px）に合わせ、ヒーロー直下の各要素間隔を調整します。 */}
+        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-14">
           <div className="space-y-3 md:space-y-5">
             <img
               src="/image/osekkai.png"
@@ -249,7 +317,7 @@ export default function FarewellLectureClient() {
           </div>
         </section>
 
-        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-6 md:px-0 md:pb-9">
+        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-14">
           {/* 見出し両端の罫線を疑似要素ではなく要素で構成し、SP/PCの見た目差分を安定させます。 */}
           <div className="flex items-center gap-6">
             <span className="h-px flex-1 bg-[#EBEEF0]" />
@@ -280,7 +348,7 @@ export default function FarewellLectureClient() {
           </p>
         </section>
 
-        <section data-reveal className="mx-auto w-full max-w-[760px] px-4 pb-8 md:px-0 md:pb-[48px]">
+        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-[48px]">
           {/* 最新Figmaでは注意事項が予約見出しより前に配置されているため、順序を先に移動します。 */}
           <article className="rounded-[12px] border border-[#EBEEF0] bg-white/80 p-3 md:rounded-[20px] md:p-5">
             <div className="flex items-center gap-2">
@@ -306,13 +374,14 @@ export default function FarewellLectureClient() {
             </ul>
           </article>
 
-          <div className="mt-6 border-b-2 border-[#14BDB1] pb-2 md:mt-8">
+          {/* 変更理由: 予約見出し下線はFigma準拠でブランドカラーの1pxラインに統一します。 */}
+          <div className="mt-6 border-b border-[#D3793D] pb-2 md:mt-8">
             <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
               参加予約・スケジュール
             </h2>
           </div>
 
-          <div className="mt-2 space-y-0.5 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:mt-3 md:text-[16px]">
+          <div className="mt-2 space-y-0.5 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:mt-3 md:text-[14px] md:leading-[1.6]">
             <p>参加をご希望される方は時間を選び・項目を確認の上で、ご予約をお願いします。（Google Formsに遷移します。）</p>
             <p>日にちによって会場や開催時間が異なりますのでご注意ください。</p>
           </div>
@@ -331,16 +400,75 @@ export default function FarewellLectureClient() {
                   </div>
                 </div>
 
-                <div className="mt-2 grid grid-cols-1 gap-4 md:mt-3 md:grid-cols-2 md:gap-14">
+                <div className="mt-2 grid grid-cols-1 gap-4 md:mt-2 md:grid-cols-2 md:gap-14">
                   {day.slots.map((slot) => (
-                    <ScheduleCard key={slot.id} slot={slot} />
+                    <ScheduleCard
+                      key={slot.id}
+                      slot={slot}
+                      isLoading={isSessionLoading}
+                      isChecking={checkingSessionId === slot.sessionId}
+                      onReserveClick={handleReserveClick}
+                    />
                   ))}
                 </div>
               </article>
             ))}
           </div>
         </section>
+
       </main>
+
+      {isFullModalOpen ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[#3D3E42]/60 px-4"
+          role="presentation"
+          onClick={() => setIsFullModalOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="full-modal-title"
+            className="w-full max-w-[675px] rounded-[12px] border border-[#EBEEF0] p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[20px] md:p-6"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.8) 100%), linear-gradient(90deg, #F9F9F9 0%, #F9F9F9 100%)",
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex flex-col gap-2 md:gap-3">
+              <div className="flex items-center gap-1">
+                <AlertInfoIcon />
+                <h3
+                  id="full-modal-title"
+                  className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#2E3437] [font-family:'Noto_Sans_JP',sans-serif] md:text-[24px]"
+                >
+                  ご希望の枠は満席となりました
+                </h3>
+              </div>
+              <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif] md:text-[16px]">
+                <p>誠に申し訳ございません。</p>
+                <p>操作中に定員に達したため、この内容での予約を承ることができませんでした。</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#D3793D] px-8 py-4 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-out hover:[background:linear-gradient(98deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:mt-6 md:gap-3 md:rounded-[12px] md:px-14 md:py-6 md:text-[15px]"
+              onClick={() => {
+                // 変更理由: ユーザー要望に合わせ、ボタン押下時は最新状態を確実に反映するためページ全体を再読込します。
+                window.location.reload()
+              }}
+            >
+              <span>最新の情報に更新する</span>
+              <img
+                src="/icon/reload.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-[14px] w-[14px] shrink-0 self-center object-contain translate-y-[1px] md:h-[18px] md:w-[18px] md:translate-y-0"
+              />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <Footer />
     </div>
@@ -349,17 +477,27 @@ export default function FarewellLectureClient() {
 
 function ScheduleCard({
   slot,
+  isLoading,
+  isChecking,
+  onReserveClick,
 }: {
-  slot: ScheduleSlot & {
-    apiSession?: ApiRoundtableSession
-  }
+  slot: EnrichedScheduleSlot
+  isLoading: boolean
+  isChecking: boolean
+  onReserveClick: (slot: EnrichedScheduleSlot) => void
 }) {
+  if (isLoading) {
+    return <ScheduleCardSkeleton />
+  }
+
   const derived = deriveSlotDisplay(slot)
 
   return (
-    <article className="rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:p-6">
+    // 変更理由: Figmaノード1578:9060（Desktop予約カード）の角丸16px・余白24pxに合わせるため、PC側の24px/24px設定へ統一します。
+    <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
-        <p className="text-[24px] font-bold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+        {/* 変更理由: 予約枠の開始時刻・終了時刻はFigma指定（Body/XL）に統一するため、Noto Sans JP 16px/500/220%/0.64px/#4B5459へ変更。 */}
+        <p className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#4B5459] [font-family:'Noto_Sans_JP',var(--font-noto-sans-jp),sans-serif]">
           {slot.start} - {slot.end}
         </p>
         <div className="text-right">
@@ -367,7 +505,7 @@ function ScheduleCard({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-4 md:mt-5">
+      <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
         <div>
           <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">受付開始</p>
           <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[15px]">{derived.receptionStart}</p>
@@ -382,28 +520,59 @@ function ScheduleCard({
         <button
           type="button"
           disabled
-          className="mt-4 flex h-[38px] w-full items-center justify-center rounded-[4px] bg-[#EBEEF0] px-8 text-[11px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-6 md:h-[44px] md:text-[12px]"
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#EBEEF0] px-8 text-[13px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-9 md:h-[72px] md:rounded-[12px] md:text-[15px]"
         >
           受付終了
         </button>
       ) : (
-        <a
-          href={slot.apiSession?.booking_form_url ?? slot.formUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 flex h-[38px] w-full items-center justify-center rounded-[4px] bg-[#4B5459] px-8 text-[11px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-6 md:h-[44px] md:text-[12px]"
+        <button
+          type="button"
+          disabled={isChecking}
+          onClick={() => onReserveClick(slot)}
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#4B5459] px-8 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-out hover:[background:linear-gradient(98deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#4B5459] hover:[background-blend-mode:plus-lighter] disabled:cursor-not-allowed disabled:bg-[#6A7378] md:mt-9 md:h-[72px] md:rounded-[12px] md:text-[15px]"
         >
-          予約する
-        </a>
+          {isChecking ? "確認中..." : "予約する"}
+        </button>
       )}
     </article>
   )
 }
 
+function ScheduleCardSkeleton() {
+  return (
+    // 変更理由: 実カードと同一のサイズ感を保ち、ローディング時のレイアウトジャンプを防ぐためPCの角丸・余白を一致させます。
+    <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6" aria-hidden="true">
+      <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
+        <SkeletonBlock className="h-9 w-40 rounded-md md:h-11 md:w-52" />
+        <SkeletonBlock className="h-5 w-20 rounded-md" />
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
+        <div>
+          <SkeletonBlock className="h-3 w-12 rounded-md" />
+          <SkeletonBlock className="mt-2 h-5 w-16 rounded-md" />
+        </div>
+        <div>
+          <SkeletonBlock className="h-3 w-8 rounded-md" />
+          <SkeletonBlock className="mt-2 h-5 w-16 rounded-md" />
+        </div>
+      </div>
+
+      <SkeletonBlock className="mt-6 h-[48px] w-full rounded-[8px] md:mt-9 md:h-[72px] md:rounded-[12px]" />
+    </article>
+  )
+}
+
+function SkeletonBlock({ className }: { className: string }) {
+  return (
+    <div className={`relative overflow-hidden bg-[#EBEEF0] ${className}`}>
+      <div className="absolute inset-0 skeleton-shimmer bg-linear-to-r from-transparent via-white/30 to-transparent" />
+    </div>
+  )
+}
+
 function deriveSlotDisplay(
-  slot: ScheduleSlot & {
-    apiSession?: ApiRoundtableSession
-  },
+  slot: EnrichedScheduleSlot,
 ) {
   const fallback = getSlotStatusFromTag(slot.fallbackStatus)
 
@@ -458,6 +627,17 @@ function deriveSlotDisplay(
     receptionStart: receptionStartFromApi ?? slot.receptionStart,
     remainingText: typeof capacity === "number" ? `定員 ${capacity} 組` : null,
   }
+}
+
+function buildSessionMap(roundtables: ApiRoundtable[]) {
+  const nextMap: Record<string, ApiRoundtableSession> = {}
+  for (const roundtable of roundtables) {
+    if (!Array.isArray(roundtable.sessions)) continue
+    for (const session of roundtable.sessions) {
+      nextMap[session.id] = session
+    }
+  }
+  return nextMap
 }
 
 function formatJstTime(value: string | null) {
@@ -534,6 +714,23 @@ function InfoIcon() {
       <circle cx="12" cy="12" r="8.5" stroke="#D3793D" strokeWidth="1.8" />
       <path d="M12 10.4V16" stroke="#D3793D" strokeWidth="1.8" strokeLinecap="round" />
       <circle cx="12" cy="7.6" r="1" fill="#D3793D" />
+    </svg>
+  )
+}
+
+function AlertInfoIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className="md:h-7 md:w-7"
+    >
+      <circle cx="12" cy="12" r="9" stroke="#DA3529" strokeWidth="2" />
+      <path d="M12 10V16" stroke="#DA3529" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="7.2" r="1.3" fill="#DA3529" />
     </svg>
   )
 }

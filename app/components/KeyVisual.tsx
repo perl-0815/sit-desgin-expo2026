@@ -734,12 +734,12 @@ export default function KeyVisual() {
           style={{ zIndex: 10 }}
         >
           <p
-            className="whitespace-nowrap rotate-90 text-center text-[14px] font-medium tracking-[2.1px] [text-shadow:0_0_8px_rgba(106,115,120,0.15)]"
+            className="whitespace-nowrap rotate-90 text-center text-[14px] font-medium tracking-[2.1px] [text-shadow:0_0_8px_rgba(106,115,120,0.1)]"
             style={{ animation: "kv-scroll-pulse 2000ms linear infinite" }}
           >
             SCROLL
           </p>
-          <div className="relative mt-8 h-[60px] w-px overflow-hidden bg-neutral-700 drop-shadow-[0_0_8px_rgba(106,115,120,0.15)]">
+          <div className="relative mt-8 h-[60px] w-px overflow-hidden bg-neutral-700 drop-shadow-[0_0_8px_rgba(106,115,120,0.1)]">
             <div
               className="absolute inset-0 origin-top bg-neutral-50"
               style={{

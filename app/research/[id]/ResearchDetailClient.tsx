@@ -85,10 +85,10 @@ const courseOrder: CourseMeta[] = [
 
 const sliceKeywords = (keywords?: string | null) => {
   if (!keywords) return []
-  // CSVの記入ゆれ（#, 空白, スラッシュなど）で区切られている場合も分割できるようにする。
-  // 例: "#サービスデザイン#カスタマージャーニ＃共創デザイン", "情報デザイン  認知特性  多変量解析"
+  // キーワード内の半角/全角スペース（例: "Internet of things"）は語の一部として扱います。
+  // 区切りはCSV側で明示しやすい記号（カンマ/読点/シャープ/スラッシュ/改行）に限定します。
   return keywords
-    .split(/[,、，#＃/\uFF0F\s\u3000]+/)
+    .split(/[\r\n,、，#＃/\uFF0F]+/)
     .map((keyword) => keyword.trim())
     .filter(Boolean)
     .slice(0, 3)
@@ -557,7 +557,7 @@ export default function ResearchDetailClient({
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
               ) : researchSummary ? (
-                <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+                <p className="whitespace-pre-line text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                   {researchSummary}
                 </p>
               ) : null}
@@ -743,14 +743,15 @@ export default function ResearchDetailClient({
                 }
                 router.push("/research")
               }}
-              className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              // グレー枠のボタンはFigma仕様に合わせ、300msでグレー塗りへ遷移させます。
+              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
             >
               一覧へ戻る
               {/* Figma指定のアイコンに差し替えます。 */}
               <img
                 src="/icon/signal_cellular_alt.svg"
                 alt=""
-                className="h-3 w-3"
+                className="h-3 w-3 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
               />
             </button>
           </div>
