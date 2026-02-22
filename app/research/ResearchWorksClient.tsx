@@ -998,7 +998,7 @@ export default function ResearchWorksClient() {
                     <button
                       type="button"
                       // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
-                      className={`flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+                      className={`flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium shadow-[0_0_8px_rgba(106,115,120,0.1)] ${
                         showAll
                           ? "border border-[#A3ADB2] bg-[#F9F9F9] text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
                           : "text-white transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),var(--course-button-color)] hover:[background-blend-mode:plus-lighter]"

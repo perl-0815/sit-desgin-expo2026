@@ -744,7 +744,7 @@ export default function ResearchDetailClient({
                 router.push("/research")
               }}
               // グレー枠のボタンはFigma仕様に合わせ、300msでグレー塗りへ遷移させます。
-              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
+              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
             >
               一覧へ戻る
               {/* Figma指定のアイコンに差し替えます。 */}

@@ -111,7 +111,7 @@ export default function GlobalHeader({
         } ${className ?? ""}`.trim()}
       >
         <div className={`w-full px-4 pt-2 lg:max-w-[1280px] lg:px-4 lg:pt-[24px] ${hidden ? "pointer-events-none" : "pointer-events-auto"}`}>
-          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.15)] backdrop-blur-[4px] lg:px-5 lg:py-3">
+          <div className="flex items-center justify-between rounded-[12px] border border-[#F9F9F9] bg-white/80 px-3 py-1.5 shadow-[0_0_8px_rgba(106,115,120,0.1)] backdrop-blur-[4px] lg:px-5 lg:py-3">
             <Link
               href="/"
               className="flex h-[48px] items-center lg:h-[56px]"

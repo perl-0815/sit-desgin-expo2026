@@ -194,7 +194,7 @@ export default function ContactClient() {
               <a
                 href={contactFormUrl}
                 // 枠線ボタンはFigmaのマウスオーバー仕様に合わせ、オレンジ塗りへ300msで遷移させます。
-                className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] xl:min-h-[56px] xl:px-[56px] xl:py-[24px]"
+                className="inline-flex items-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] xl:min-h-[56px] xl:px-[56px] xl:py-[24px]"
               >
                 お問い合せフォーム
                 <svg

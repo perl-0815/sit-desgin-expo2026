@@ -570,7 +570,7 @@ export default function CareerClient() {
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
               // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
-              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.1)] ${
                 showAllJobReasons
                   ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:px-8 md:py-4 md:text-[13px]"
                   : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px] md:text-[15px]"
@@ -690,7 +690,7 @@ export default function CareerClient() {
               type="button"
               // 卒業生の進路ページの「もっと見る」ボタン枠線を指定色に統一します。
               // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
-              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
+              className={`inline-flex items-center gap-2 rounded-full shadow-[0_0_8px_rgba(106,115,120,0.1)] ${
                 showAllGradReasons
                   ? "border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:px-8 md:py-4 md:text-[13px]"
                   : "border border-[#D3793D] bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px] md:text-[15px]"

@@ -526,7 +526,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     // コース色ボタンはFigma仕様に合わせ、白グラデーション重ねで300msホバーを適用します。
-                    className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),var(--course-button-color)] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px]"
+                    className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),var(--course-button-color)] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px]"
                     style={
                       {
                         backgroundColor: courseMeta.buttonColor,
@@ -663,7 +663,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                 router.push("/research?tab=works")
               }}
               // グレー枠のボタンはFigma仕様に合わせ、300msでグレー塗りへ遷移させます。
-              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
+              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
             >
               一覧へ戻る
               {/* Figma指定のアイコンに差し替えます。 */}
