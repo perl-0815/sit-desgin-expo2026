@@ -155,44 +155,86 @@ export default function TopPageClient({
   );
   const visiblePreviewItems =
     previewItems.length > 0 ? previewItems : fallbackPreviewItems;
-  // モバイルのスライドは1枚ずつ切り替えるため、現在表示するカードのインデックスを持ちます。
-  const [mobilePreviewIndex, setMobilePreviewIndex] = useState(0);
-  // アニメーションを毎回発火させるため、切り替えごとにキーを更新します。
-  const [mobilePreviewKey, setMobilePreviewKey] = useState(0);
-  // モバイル表示は一定間隔で順番にカードを切り替えます。
+  // 変更理由: 要望に合わせてスライド対象データを常に6件へ正規化し、件数不足時でも同じ周期で循環できるようにします。
+  // 6件を超える場合は先頭6件のみを採用し、スライド総数を固定して表示テンポを安定させます。
+  const slidePreviewItems =
+    visiblePreviewItems.length >= 6
+      ? visiblePreviewItems.slice(0, 6)
+      : Array.from({ length: 6 }).map(
+          (_, index) => visiblePreviewItems[index % visiblePreviewItems.length],
+        );
+  // 変更理由: 「2000ms間隔で2000msスライド」の挙動を制御するため、現在の中央カード位置とアニメーション状態を分離して持ちます。
+  const [previewSlideIndex, setPreviewSlideIndex] = useState(0);
+  const [isPreviewSliding, setIsPreviewSliding] = useState(false);
+  // 変更理由: 要望に合わせて、カードの移動アニメーション時間を3000msに固定します。
+  // この値は切り替えタイマーにも利用し、表示周期と移動時間を一致させます。
+  const previewSlideDurationMs = 3000;
+  // 変更理由: カード寸法を指定値（SP:304x254 / PC:304x273）へ統一し、実装側で明示管理します。
+  // スライド移動量もこの幅を基準に計算して、カードサイズ変更時のズレを防ぎます。
+  const previewCardWidthPx = 304;
+  const previewCardHeightMobilePx = 254;
+  const previewCardHeightDesktopPx = 273;
+  const previewCardGapPx = 24;
+  const previewSlideStepPx = previewCardWidthPx + previewCardGapPx;
+  // 変更理由: 固定pxオフセットだと端末幅ごとに中央位置がずれるため、モバイルは「表示窓の50%」基準で中央カードを配置します。
+  // これにより、ウィンドウ幅が変わっても中央カードが常にセンターへ収まり、左右カードの見え方が安定します。
+  const previewMobileCenteredTranslatePx =
+    previewCardWidthPx * 1.5 + previewCardGapPx;
+  // 変更理由: スライド中は1ステップ分だけ左へ送る必要があるため、中央基準オフセットに移動量を加算して使います。
+  const previewMobileSlidingTranslatePx =
+    previewMobileCenteredTranslatePx + previewSlideStepPx;
+  // 変更理由: デスクトップもウィンドウ幅に依存せず中央配置を維持するため、
+  // モバイルと同様に「表示窓の50%」を基準に中央カード位置を計算します。
+  const previewDesktopCenteredTranslatePx =
+    previewCardWidthPx * 1.5 + previewCardGapPx;
+  // 変更理由: スライド中は1ステップ分だけ左へ移動させるため、中央基準値へ移動量を加えます。
+  const previewDesktopSlidingTranslatePx =
+    previewDesktopCenteredTranslatePx + previewSlideStepPx;
+  // 変更理由: 右→左へ1枚ずつ送るため、常に「前・中央・次」の3枚をトラック上に配置します。
+  const previewTrackItems = [
+    slidePreviewItems[
+      (previewSlideIndex - 1 + slidePreviewItems.length) %
+        slidePreviewItems.length
+    ],
+    slidePreviewItems[previewSlideIndex],
+    slidePreviewItems[(previewSlideIndex + 1) % slidePreviewItems.length],
+  ];
+  // 変更理由: アニメーション開始時に右カード画像の読み込み待ちが見えないよう、
+  // 次に表示される候補（+2, +3枚先）の画像URLを先読み対象として事前取得します。
+  // 同じ画像URLが重複するケースを考慮して一意化し、不要な再取得を避けます。
+  const previewMobilePreloadImageUrls = Array.from(
+    new Set(
+      [2, 3].map(
+        (offset) =>
+          slidePreviewItems[
+            (previewSlideIndex + offset) % slidePreviewItems.length
+          ]?.imageUrl,
+      ),
+    ),
+  ).filter((imageUrl): imageUrl is string => Boolean(imageUrl));
+  // 変更理由: デスクトップを中央基準で表示するため、先頭に「前カード」を1枚置いた8枚トラックへ変更します。
+  // 前後カードを両側に持たせることで、幅が変わっても中央カードを維持しつつシームレスに循環させます。
+  const previewDesktopTrackItems = Array.from({ length: 8 }).map(
+    (_, index) =>
+      slidePreviewItems[
+        (previewSlideIndex - 1 + index + slidePreviewItems.length) %
+          slidePreviewItems.length
+      ],
+  );
+  // 変更理由: setInterval と setTimeout の多重制御だと周回境界でイージングが途切れるため、
+  // 「1周ごとにスライド完了→インデックス更新→次周開始」の直列ループへ変更して滑らかさを維持します。
   useEffect(() => {
-    if (visiblePreviewItems.length <= 1) {
-      return;
-    }
-    // アニメーションの尺(6000ms)と同期させて、切り替えのタイミングを揃えます。
-    const intervalId = window.setInterval(() => {
-      setMobilePreviewIndex((prevIndex) => {
-        const nextIndex = (prevIndex + 1) % visiblePreviewItems.length;
-        return nextIndex;
-      });
-      setMobilePreviewKey((prevKey) => prevKey + 1);
-    }, 6000);
-    return () => window.clearInterval(intervalId);
-  }, [visiblePreviewItems.length]);
+    setIsPreviewSliding(true);
+    const timeoutId = window.setTimeout(() => {
+      setIsPreviewSliding(false);
+      setPreviewSlideIndex(
+        (prevIndex) => (prevIndex + 1) % slidePreviewItems.length,
+      );
+    }, previewSlideDurationMs);
+    return () => window.clearTimeout(timeoutId);
+  }, [previewSlideIndex, previewSlideDurationMs, slidePreviewItems.length]);
   // トップページの各セクションにスクロール時のスライドインを付与します。
   useSectionReveal();
-  // プレビュー件数が減ったときに範囲外にならないよう、表示時に安全なインデックスへ補正します。
-  // Effect内でsetStateしないことで、不要な再レンダーの連鎖を避けます。
-  const safeMobilePreviewIndex =
-    mobilePreviewIndex >= visiblePreviewItems.length ? 0 : mobilePreviewIndex;
-  const mobilePreviewItem =
-    visiblePreviewItems[safeMobilePreviewIndex] ?? visiblePreviewItems[0];
-  // 左右のカードを表示するため、前後のインデックスもここで算出しておきます。
-  const hasMultiplePreviews = visiblePreviewItems.length > 1;
-  // 2件以下だと左右カードが同一になりやすいので、3件以上の時だけ左右カードを出します。
-  const hasSidePreviews = visiblePreviewItems.length > 2;
-  const mobilePrevIndex =
-    (safeMobilePreviewIndex - 1 + visiblePreviewItems.length) %
-    visiblePreviewItems.length;
-  const mobileNextIndex =
-    (safeMobilePreviewIndex + 1) % visiblePreviewItems.length;
-  const mobilePrevItem = visiblePreviewItems[mobilePrevIndex];
-  const mobileNextItem = visiblePreviewItems[mobileNextIndex];
 
   // 駅導線ボタンを押したときは外部遷移せず、準備中案内をモーダルで表示します。
   const handleGuideVideoClick = () => {
@@ -556,109 +598,129 @@ export default function TopPageClient({
           <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
             研究や作品をコース・研究室ごとに閲覧できます。
           </p>
-          {/* モバイルは左右にカードを見せつつ、右から左に流れるフェードで切り替えます。 */}
-          <div className="mt-6 md:hidden">
-            {mobilePreviewItem ? (
-              <div className="top-page-mobile-slide-frame relative overflow-hidden">
-                <div className="flex items-start justify-center gap-3">
-                  {hasSidePreviews ? (
+          {/* 変更理由: 中央1枚だけ見せ、左右カードはフェードマスクで隠しながら右→左に1枚ずつ送る仕様へ変更します。 */}
+          <div className="mt-6 flex justify-center md:mt-8">
+            {/* モバイルはカード幅304px・高さ254pxの固定仕様に合わせます。 */}
+            {/* 変更理由: モバイル表示窓の最大幅を少し広げ、左右カードの覗き込み量を確保します。 */}
+            <div className="relative w-screen max-w-[420px] md:hidden">
+              {/* 変更理由: 次周に右側から入る画像を非表示で先読みし、切り替え開始時のロード遅延を抑えます。 */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0"
+              >
+                {previewMobilePreloadImageUrls.map((imageUrl) => (
+                  <img
+                    key={`mobile-preload-${imageUrl}`}
+                    src={imageUrl}
+                    alt=""
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+                ))}
+              </div>
+              <div className="overflow-hidden">
+                <div
+                  // 変更理由: モバイルカード間の指定マージンを24pxに統一し、PCと同じ基準の余白で見せ方を揃えます。
+                  className="flex gap-6"
+                  style={{
+                    transform: isPreviewSliding
+                      ? `translateX(calc(50% - ${previewMobileSlidingTranslatePx}px))`
+                      : `translateX(calc(50% - ${previewMobileCenteredTranslatePx}px))`,
+                    transition: isPreviewSliding
+                      ? `transform ${previewSlideDurationMs}ms cubic-bezier(0.22, 1, 0.36, 1)`
+                      : "none",
+                  }}
+                >
+                  {previewTrackItems.map((item, index) => (
                     <Link
-                      key={`prev-${mobilePreviewKey}`}
-                      href={mobilePrevItem.href}
-                      className={`group z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
-                        hasMultiplePreviews
-                          ? "animate-[top-page-side-fade_6000ms_ease]"
-                          : ""
-                      }`}
+                      key={`${item.id}-sp-track-${previewSlideIndex}-${index}`}
+                      href={item.href}
+                      className="group block w-[304px] shrink-0 rounded-[4px] bg-[#F9F9F9] shadow-[0_0_8px_0_rgba(106,115,120,0.10)]"
+                      style={{ height: `${previewCardHeightMobilePx}px` }}
                     >
-                      <div className="aspect-video w-full overflow-hidden rounded-[4px]">
+                      <div className="h-[171px] w-full overflow-hidden rounded-[4px]">
                         <img
-                          src={mobilePrevItem.imageUrl}
+                          src={item.imageUrl}
                           alt=""
+                          // 変更理由: 右カード（次に中央へ来るカード）は取得優先度を上げ、開始直後の表示欠けを防ぎます。
+                          fetchPriority={index === 2 ? "high" : "auto"}
+                          loading="eager"
+                          decoding="async"
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <p className="text-[11px] leading-[1.5] text-[#6A7378] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
-                        {mobilePrevItem.title}
-                      </p>
-                    </Link>
-                  ) : null}
-
-                  <Link
-                    key={mobilePreviewKey}
-                    href={mobilePreviewItem.href}
-                    className={`group z-10 flex w-[236px] shrink-0 flex-col gap-2 text-center ${
-                      hasMultiplePreviews
-                        ? "animate-[top-page-slide-fade_6000ms_ease]"
-                        : ""
-                    }`}
-                  >
-                    <div className="aspect-video w-full overflow-hidden rounded-[4px]">
-                      <img
-                        src={mobilePreviewItem.imageUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    {/* 変更理由: 研究・作品ページと同様に、カードのホバー/押下時は文字色を固定オレンジへ切り替えて視覚ルールを統一します。 */}
-                    <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
-                      {mobilePreviewItem.title}
-                    </p>
-                    <p className="text-left text-[12px] text-[#6A7378]">
-                      {mobilePreviewItem.author}
-                    </p>
-                  </Link>
-
-                  {hasSidePreviews ? (
-                    <Link
-                      key={`next-${mobilePreviewKey}`}
-                      href={mobileNextItem.href}
-                      className={`group z-0 flex w-[200px] shrink-0 flex-col gap-2 text-center opacity-40 ${
-                        hasMultiplePreviews
-                          ? "animate-[top-page-side-fade_6000ms_ease]"
-                          : ""
-                      }`}
-                    >
-                      <div className="aspect-video w-full overflow-hidden rounded-[4px]">
-                        <img
-                          src={mobileNextItem.imageUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                      <div className="flex h-[83px] flex-col gap-1 px-2 py-3">
+                        <p className="line-clamp-2 text-[12px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
+                          {item.title}
+                        </p>
+                        <p className="text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                          {item.author}
+                        </p>
                       </div>
-                      <p className="text-[11px] leading-[1.5] text-[#6A7378] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
-                        {mobileNextItem.title}
-                      </p>
                     </Link>
-                  ) : null}
+                  ))}
                 </div>
               </div>
-            ) : null}
-          </div>
-          <div className="mt-8 hidden grid-cols-3 gap-8 md:grid">
-            {/* 研究/作品ページへの導線を統合し、カード全体をクリックできるようにします。 */}
-            {visiblePreviewItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="group flex flex-col gap-2 text-left"
-              >
-                <div className="aspect-video w-full overflow-hidden rounded-[4px]">
-                  <img
-                    src={item.imageUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  // 変更理由: SPは中央カードの可視性を優先し、透明領域を広げてテキストが隠れないようにします。
+                  background:
+                    "linear-gradient(90deg,#F9F9F9 0%,rgba(249,249,249,0) 8%,rgba(249,249,249,0) 92%,#F9F9F9 100%)",
+                }}
+              />
+            </div>
+            {/* 変更理由: 画面縮小時にマスク位置と表示領域がずれないよう、PCは可変幅 + 最大幅制御にします。 */}
+            <div className="relative hidden w-full max-w-[984px] md:block">
+              <div className="overflow-hidden">
+                <div
+                  className="flex gap-6"
+                  style={{
+                    transform: isPreviewSliding
+                      ? `translateX(calc(50% - ${previewDesktopSlidingTranslatePx}px))`
+                      : `translateX(calc(50% - ${previewDesktopCenteredTranslatePx}px))`,
+                    transition: isPreviewSliding
+                      ? `transform ${previewSlideDurationMs}ms cubic-bezier(0.22, 1, 0.36, 1)`
+                      : "none",
+                  }}
+                >
+                  {previewDesktopTrackItems.map((item, index) => (
+                    <Link
+                      key={`${item.id}-pc-track-${previewSlideIndex}-${index}`}
+                      href={item.href}
+                      className="group block w-[304px] shrink-0 rounded-[8px] bg-[#F9F9F9] shadow-[0_0_8px_0_rgba(106,115,120,0.10)]"
+                      style={{ height: `${previewCardHeightDesktopPx}px` }}
+                    >
+                      <div className="h-[171px] w-full overflow-hidden rounded-[4px]">
+                        <img
+                          src={item.imageUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="flex h-[102px] flex-col gap-2 px-3 py-5">
+                        <p className="line-clamp-2 text-[16px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
+                          {item.title}
+                        </p>
+                        <p className="text-[16px] leading-[1.6] tracking-[0.02em] text-[#6A7378]">
+                          {item.author}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-                {/* 変更理由: トップページのカードはコース依存にせず、ホバー/押下時の文字色を共通オレンジで統一します。 */}
-                <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
-                  {item.title}
-                </p>
-                <p className="text-[12px] text-[#6A7378]">
-                  {item.author}
-                </p>
-              </Link>
-            ))}
+              </div>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(90deg,#F9F9F9 5%,rgba(249,249,249,0) 25%,rgba(249,249,249,0) 75%,#F9F9F9 95%)",
+                }}
+              />
+            </div>
           </div>
           <div className="mt-6 flex justify-center">
             <Link
@@ -671,46 +733,6 @@ export default function TopPageClient({
             </Link>
           </div>
         </div>
-        <style jsx global>{`
-          /* モバイルのスライド枠は高さを固定して、フェード中のレイアウト揺れを防ぎます。 */
-          .top-page-mobile-slide-frame {
-            min-height: 220px;
-          }
-          /* モバイルのメインカードは中央で止め、ゆっくり左に流れていく違和感を避けます。 */
-          @keyframes top-page-slide-fade {
-            0% {
-              opacity: 0;
-              transform: translateX(18px);
-            }
-            20% {
-              opacity: 1;
-              transform: translateX(0);
-            }
-            80% {
-              opacity: 1;
-              transform: translateX(0);
-            }
-            100% {
-              opacity: 0;
-              transform: translateX(0);
-            }
-          }
-          /* 左右カードも同じタイミングでフェードさせ、中央と揃えます。 */
-          @keyframes top-page-side-fade {
-            0% {
-              opacity: 0;
-            }
-            20% {
-              opacity: 0.4;
-            }
-            80% {
-              opacity: 0.4;
-            }
-            100% {
-              opacity: 0;
-            }
-          }
-        `}</style>
       </section>
 
       {/* イベント紹介は上下余白を設け、指定画像を背景に使い雰囲気を合わせます。 */}
