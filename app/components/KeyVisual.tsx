@@ -35,6 +35,13 @@ export default function KeyVisual() {
   const initialRevealRafRef = useRef<number | null>(null);
   const hasStartedRevealRef = useRef(false);
   const restoredFromStorageRef = useRef(false);
+  const progressRef = useRef(0);
+  const kvMetricsRef = useRef({
+    offsetTop: 0,
+    offsetHeight: 0,
+    scrollable: 0,
+    maxScroll: 0,
+  });
 
   const startInitialReveal = useCallback((isVertical: boolean) => {
     if (hasStartedRevealRef.current) return;
@@ -96,6 +103,20 @@ export default function KeyVisual() {
     }
   }, [startInitialReveal]);
 
+  const updateKvMetrics = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const offsetTop = el.offsetTop;
+    const offsetHeight = el.offsetHeight;
+    const scrollable = Math.max(offsetHeight - window.innerHeight, 0);
+    kvMetricsRef.current = {
+      offsetTop,
+      offsetHeight,
+      scrollable,
+      maxScroll: offsetTop + scrollable * maxAllowedProgressRef.current,
+    };
+  }, []);
+
   useEffect(() => {
     let restoreRaf: number | null = null;
     const storedCompleted = window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
@@ -132,41 +153,48 @@ export default function KeyVisual() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const el = containerRef.current;
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          const scrollable = el.offsetHeight - window.innerHeight;
-          if (scrollable > 0) {
-            const raw = Math.min(Math.max(-rect.top / scrollable, 0), 1);
-            setProgress(Math.min(raw, maxAllowedProgressRef.current));
+        const { offsetTop, offsetHeight, scrollable, maxScroll } = kvMetricsRef.current;
+        if (scrollable > 0) {
+          const raw = (window.scrollY - offsetTop) / scrollable;
+          const nextProgress = Math.min(
+            Math.min(Math.max(raw, 0), 1),
+            maxAllowedProgressRef.current,
+          );
+          if (Math.abs(nextProgress - progressRef.current) >= 0.001) {
+            const normalized = Math.round(nextProgress * 10000) / 10000;
+            progressRef.current = normalized;
+            setProgress(normalized);
           }
-          if (hasDispatchedCompleteRef.current && rect.bottom <= 0) {
-            savedContentOffsetRef.current = Math.max(0, window.scrollY - el.offsetHeight);
-            setKvEverCompleted(true);
-          }
+        }
+        if (!hasDispatchedCompleteRef.current && window.scrollY > maxScroll) {
+          window.scrollTo(0, maxScroll);
+        }
+        if (
+          hasDispatchedCompleteRef.current &&
+          window.scrollY >= offsetTop + offsetHeight
+        ) {
+          savedContentOffsetRef.current = Math.max(
+            0,
+            window.scrollY - (offsetTop + offsetHeight),
+          );
+          setKvEverCompleted(true);
         }
         ticking = false;
       });
     };
-    const clampScroll = () => {
-      if (hasDispatchedCompleteRef.current) return;
-      const el = containerRef.current;
-      if (!el) return;
-      const scrollable = el.offsetHeight - window.innerHeight;
-      if (scrollable <= 0) return;
-      const maxScroll = el.offsetTop + scrollable * maxAllowedProgressRef.current;
-      if (window.scrollY > maxScroll) {
-        window.scrollTo(0, maxScroll);
-      }
+    const onResize = () => {
+      updateKvMetrics();
+      onScroll();
     };
+    updateKvMetrics();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("scroll", clampScroll);
+    window.addEventListener("resize", onResize);
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("scroll", clampScroll);
+      window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [updateKvMetrics]);
 
   const colorRevealThreshold = 0.15;
   const teRevealThreshold = 0.15;
@@ -262,7 +290,16 @@ export default function KeyVisual() {
     } else {
       maxAllowedProgressRef.current = 1;
     }
+    const { offsetTop, scrollable } = kvMetricsRef.current;
+    kvMetricsRef.current.maxScroll = offsetTop + scrollable * maxAllowedProgressRef.current;
+    if (!hasDispatchedCompleteRef.current && window.scrollY > kvMetricsRef.current.maxScroll) {
+      window.scrollTo(0, kvMetricsRef.current.maxScroll);
+    }
   }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax]);
+
+  useEffect(() => {
+    updateKvMetrics();
+  }, [kvEverCompleted, scrollPages, updateKvMetrics]);
 
   const horizontalLayers = [
     {
@@ -569,6 +606,7 @@ export default function KeyVisual() {
             transform: `translate(-50%, -50%) scale(${scale * sceneZoom})`,
             width: base.w,
             height: base.h,
+            willChange: "transform",
           }}
         >
           <img
