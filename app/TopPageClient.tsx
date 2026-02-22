@@ -360,7 +360,7 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative overflow-hidden bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景色はセクション幅ではなくビューポート幅いっぱいに広げ、Figmaのフルブリード背景を再現します。 */}
         <div
