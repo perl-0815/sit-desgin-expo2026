@@ -408,7 +408,7 @@ export default function TopPageClient({
                     <Link
                       key={`prev-${mobilePreviewKey}`}
                       href={mobilePrevItem.href}
-                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
+                      className={`group z-0 flex w-[200px] shrink-0 flex-col gap-2 opacity-40 ${
                         hasMultiplePreviews
                           ? "animate-[top-page-side-fade_6000ms_ease]"
                           : ""
@@ -421,7 +421,7 @@ export default function TopPageClient({
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <p className="text-[11px] leading-[1.5] text-[#6A7378]">
+                      <p className="text-[11px] leading-[1.5] text-[#6A7378] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                         {mobilePrevItem.title}
                       </p>
                     </Link>
@@ -430,7 +430,7 @@ export default function TopPageClient({
                   <Link
                     key={mobilePreviewKey}
                     href={mobilePreviewItem.href}
-                    className={`z-10 flex w-[236px] shrink-0 flex-col gap-2 text-center ${
+                    className={`group z-10 flex w-[236px] shrink-0 flex-col gap-2 text-center ${
                       hasMultiplePreviews
                         ? "animate-[top-page-slide-fade_6000ms_ease]"
                         : ""
@@ -443,7 +443,8 @@ export default function TopPageClient({
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459]">
+                    {/* 変更理由: 研究・作品ページと同様に、カードのホバー/押下時は文字色を固定オレンジへ切り替えて視覚ルールを統一します。 */}
+                    <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                       {mobilePreviewItem.title}
                     </p>
                     <p className="text-left text-[12px] text-[#6A7378]">
@@ -455,7 +456,7 @@ export default function TopPageClient({
                     <Link
                       key={`next-${mobilePreviewKey}`}
                       href={mobileNextItem.href}
-                      className={`z-0 flex w-[200px] shrink-0 flex-col gap-2 text-center opacity-40 ${
+                      className={`group z-0 flex w-[200px] shrink-0 flex-col gap-2 text-center opacity-40 ${
                         hasMultiplePreviews
                           ? "animate-[top-page-side-fade_6000ms_ease]"
                           : ""
@@ -468,7 +469,7 @@ export default function TopPageClient({
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <p className="text-[11px] leading-[1.5] text-[#6A7378]">
+                      <p className="text-[11px] leading-[1.5] text-[#6A7378] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                         {mobileNextItem.title}
                       </p>
                     </Link>
@@ -483,7 +484,7 @@ export default function TopPageClient({
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex flex-col gap-2 text-left"
+                className="group flex flex-col gap-2 text-left"
               >
                 <div className="aspect-video w-full overflow-hidden rounded-[4px]">
                   <img
@@ -492,17 +493,21 @@ export default function TopPageClient({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459]">
+                {/* 変更理由: トップページのカードはコース依存にせず、ホバー/押下時の文字色を共通オレンジで統一します。 */}
+                <p className="text-left text-[12px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                   {item.title}
                 </p>
-                <p className="text-[12px] text-[#6A7378]">{item.author}</p>
+                <p className="text-[12px] text-[#6A7378]">
+                  {item.author}
+                </p>
               </Link>
             ))}
           </div>
           <div className="mt-6 flex justify-center">
             <Link
               href="/research"
-              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[20px]"
+              // 有色ボタンはFigmaのホバー仕様に合わせ、白グラデーションを重ねて300msで明るく見せます。
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[20px]"
             >
               学生の成果を見る
               <span aria-hidden="true">→</span>
@@ -601,7 +606,8 @@ export default function TopPageClient({
           <div className="mt-6 flex justify-center pb-4 md:pb-0">
             <Link
               href="/events"
-              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[20px]"
+              // 有色ボタンはFigmaのホバー仕様に合わせ、白グラデーションを重ねて300msで明るく見せます。
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[20px]"
             >
               イベントを見る
               <span aria-hidden="true">→</span>
@@ -648,7 +654,8 @@ export default function TopPageClient({
               <div className="mt-6 hidden md:flex md:flex-1 md:items-center md:justify-center">
                 <Link
                   href="/career"
-                  className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+                  // 有色ボタンはFigmaのホバー仕様に合わせ、白グラデーションを重ねて300msで明るく見せます。
+                  className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter]"
                 >
                   進路をもっと詳しく
                   <span aria-hidden="true">→</span>
@@ -668,7 +675,8 @@ export default function TopPageClient({
           <div className="mt-6 flex justify-center md:hidden">
             <Link
               href="/career"
-              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              // 有色ボタンはFigmaのホバー仕様に合わせ、白グラデーションを重ねて300msで明るく見せます。
+              className="flex items-center gap-2 rounded-full bg-[#D3793D] px-8 py-4 text-[13px] font-medium text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter]"
             >
               進路をもっと詳しく
               <span aria-hidden="true">→</span>
@@ -804,20 +812,30 @@ export default function TopPageClient({
                 <button
                   type="button"
                   onClick={handleGuideVideoClick}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   豊洲駅から
                   {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
+                  <img
+                    src="/icon/link.svg"
+                    alt=""
+                    className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  />
                 </button>
                 <button
                   type="button"
                   onClick={handleGuideVideoClick}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
+                  // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
+                  className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px] md:px-[56px] md:py-[24px] md:text-[15px]"
                 >
                   越中島駅から
                   {/* Figma指定のリンクアイコンをボタン内に配置します。 */}
-                  <img src="/icon/link.svg" alt="" className="h-4 w-4" />
+                  <img
+                    src="/icon/link.svg"
+                    alt=""
+                    className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  />
                 </button>
               </div>
             </div>
@@ -860,7 +878,7 @@ export default function TopPageClient({
               type="button"
               onClick={handleCloseGuideVideoModal}
               // 作品ページの「閉じる」ボタン表現（淡いグレーの丸ピル＋マイナス）に揃えてUIの一貫性を保ちます。
-              className="mt-6 inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] md:text-[15px]"
+              className="mt-6 inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
             >
               閉じる
               <svg
@@ -871,7 +889,7 @@ export default function TopPageClient({
               >
                 <path
                   d="M6 12H18"
-                  stroke="#4B5459"
+                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />

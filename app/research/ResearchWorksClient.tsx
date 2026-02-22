@@ -162,9 +162,10 @@ const getCourseMeta = (courseKey: string) => {
 
 const splitKeywords = (keywords?: string | null) => {
   if (!keywords) return []
-  // CSVの記入ゆれに対応するため、#, 空白, スラッシュでも区切る。
+  // キーワード内の半角/全角スペース（例: "Internet of things"）は語の一部として保持します。
+  // 区切りはCSV側で明示できる記号（カンマ/読点/シャープ/スラッシュ/改行）に限定します。
   return keywords
-    .split(/[,、，#＃/\uFF0F\s\u3000]+/)
+    .split(/[\r\n,、，#＃/\uFF0F]+/)
     .map((keyword) => keyword.trim())
     .filter(Boolean)
 }
@@ -744,19 +745,26 @@ export default function ResearchWorksClient() {
                                   {/* 研究一覧はデスクトップで4列・横56pxの間隔に拡張します。 */}
                                   <div className="mt-4 grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4 md:gap-x-14 md:gap-y-6">
                                     {labResearch.map((item) => (
-                                      <Link
-                                        key={item.id}
-                                        href={buildDetailHref(
-                                          `/research/${item.id}`,
-                                          {
+                                        <Link
+                                          key={item.id}
+                                          href={buildDetailHref(
+                                            `/research/${item.id}`,
+                                            {
                                             returnTab: "research",
                                             lab: item.labId ?? null,
                                             focus: `research-${item.id}`,
                                           },
-                                        )}
-                                        id={`research-${item.id}`}
-                                        className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
-                                      >
+                                          )}
+                                          id={`research-${item.id}`}
+                                          className="group flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                                          style={
+                                            // カードのホバー/押下時にコース色へ切り替えるため、CSS変数で色を渡します。
+                                            {
+                                              "--course-card-color":
+                                                courseMeta.buttonColor,
+                                            } as React.CSSProperties
+                                          }
+                                        >
                                         <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                                           {item.imageUrl ? (
                                             <SkeletonLoader
@@ -784,7 +792,7 @@ export default function ResearchWorksClient() {
                                         <div className="space-y-1 text-[12px] md:text-[16px]">
                                           {/* タイトルが3行以上になる場合は2行で省略します。 */}
                                           <p
-                                            className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                                            className="font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[var(--course-card-color)] group-active:text-[var(--course-card-color)] md:text-[16px]"
                                             style={{
                                               display: "-webkit-box",
                                               WebkitBoxOrient: "vertical",
@@ -855,7 +863,13 @@ export default function ResearchWorksClient() {
                         focus: `works-${item.id}`,
                       })}
                       id={`works-${item.id}`}
-                      className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                      className="group flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                      style={
+                        // カードのホバー/押下時にコース色へ切り替えるため、CSS変数で色を渡します。
+                        {
+                          "--course-card-color": courseMeta.buttonColor,
+                        } as React.CSSProperties
+                      }
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                         {item.imageUrl ? (
@@ -882,7 +896,7 @@ export default function ResearchWorksClient() {
                       <div className="space-y-1 text-[12px] md:text-[16px]">
                         {/* タイトルが3行以上になる場合は2行で省略します。 */}
                         <p
-                          className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                          className="font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[var(--course-card-color)] group-active:text-[var(--course-card-color)] md:text-[16px]"
                           style={{
                             display: "-webkit-box",
                             WebkitBoxOrient: "vertical",
@@ -922,7 +936,14 @@ export default function ResearchWorksClient() {
                               focus: `works-${item.id}`,
                             })}
                             id={`works-${item.id}`}
-                            className="flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                            className="group flex flex-col gap-2 scroll-mt-[120px] md:scroll-mt-[140px]"
+                            style={
+                              // カードのホバー/押下時にコース色へ切り替えるため、CSS変数で色を渡します。
+                              {
+                                "--course-card-color":
+                                  courseMeta.buttonColor,
+                              } as React.CSSProperties
+                            }
                           >
                             <div className="relative aspect-video w-full overflow-hidden rounded-[4px] bg-[#EBEEF0]">
                               {item.imageUrl ? (
@@ -949,7 +970,7 @@ export default function ResearchWorksClient() {
                             <div className="space-y-1 text-[12px] md:text-[16px]">
                               {/* タイトルが3行以上になる場合は2行で省略します。 */}
                               <p
-                                className="font-medium leading-[1.5] text-[#4B5459] md:text-[16px]"
+                                className="font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[var(--course-card-color)] group-active:text-[var(--course-card-color)] md:text-[16px]"
                                 style={{
                                   display: "-webkit-box",
                                   WebkitBoxOrient: "vertical",
@@ -979,13 +1000,16 @@ export default function ResearchWorksClient() {
                       // 「閉じる」表示時はFigmaの共通ボタン（淡いグレー・丸ピル）に統一します。
                       className={`flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium shadow-[0_0_8px_rgba(106,115,120,0.15)] ${
                         showAll
-                          ? "border border-[#A3ADB2] bg-[#F9F9F9] text-[#4B5459]"
-                          : "text-white"
+                          ? "border border-[#A3ADB2] bg-[#F9F9F9] text-[#4B5459] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
+                          : "text-white transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),var(--course-button-color)] hover:[background-blend-mode:plus-lighter]"
                       }`}
                       style={
                         showAll
                           ? undefined
-                          : { backgroundColor: courseMeta.buttonColor }
+                          : ({
+                              backgroundColor: courseMeta.buttonColor,
+                              "--course-button-color": courseMeta.buttonColor,
+                            } as React.CSSProperties)
                       }
                       onClick={() => toggleExpandedCourse(course.key)}
                     >
@@ -1000,7 +1024,7 @@ export default function ResearchWorksClient() {
                         >
                           <path
                             d="M6 12H18"
-                            stroke="#4B5459"
+                            stroke="currentColor"
                             strokeWidth="2"
                             strokeLinecap="round"
                           />

@@ -81,9 +81,12 @@ export const metadata: Metadata = {
   // public/icon/favicon.jpg から生成したファビコン/タッチアイコンを参照します。
   // favicon.ico は public 配下に置き、App Router の画像処理を避けます。
   icons: {
+    // 検索結果のサイトアイコン取得で推奨される 48x48 を明示し、クロール時の解釈差分を減らします。
+    shortcut: [{ url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" }],
     icon: [
       { url: "/favicon.ico", sizes: "16x16", type: "image/x-icon" },
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
       { url: "/icon.png", sizes: "512x512", type: "image/png" },
     ],
     apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],

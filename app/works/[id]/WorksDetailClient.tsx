@@ -525,8 +525,14 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                     href={workLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.15)] md:px-[56px] md:py-[24px]"
-                    style={{ backgroundColor: courseMeta.buttonColor }}
+                    // コース色ボタンはFigma仕様に合わせ、白グラデーション重ねで300msホバーを適用します。
+                    className="flex items-center gap-2 rounded-full px-8 py-4 text-[13px] font-medium leading-[1.5] text-white shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background,box-shadow] duration-300 ease-in-out hover:[background:linear-gradient(108.58deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),var(--course-button-color)] hover:[background-blend-mode:plus-lighter] md:px-[56px] md:py-[24px]"
+                    style={
+                      {
+                        backgroundColor: courseMeta.buttonColor,
+                        "--course-button-color": courseMeta.buttonColor,
+                      } as React.CSSProperties
+                    }
                   >
                     この作品の詳細へ
                     <svg
@@ -656,14 +662,15 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                 }
                 router.push("/research?tab=works")
               }}
-              className="flex items-center gap-2 rounded-full border border-[#A3ADB2] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)]"
+              // グレー枠のボタンはFigma仕様に合わせ、300msでグレー塗りへ遷移させます。
+              className="group flex items-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.15)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9]"
             >
               一覧へ戻る
               {/* Figma指定のアイコンに差し替えます。 */}
               <img
                 src="/icon/signal_cellular_alt.svg"
                 alt=""
-                className="h-3 w-3"
+                className="h-3 w-3 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
               />
             </button>
           </div>

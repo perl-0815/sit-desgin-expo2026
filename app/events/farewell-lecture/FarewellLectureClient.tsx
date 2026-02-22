@@ -496,7 +496,8 @@ function ScheduleCard({
     // 変更理由: Figmaノード1578:9060（Desktop予約カード）の角丸16px・余白24pxに合わせるため、PC側の24px/24px設定へ統一します。
     <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
-        <p className="text-[24px] font-bold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+        {/* 変更理由: 予約枠の開始時刻・終了時刻はFigma指定（Body/XL）に統一するため、Noto Sans JP 16px/500/220%/0.64px/#4B5459へ変更。 */}
+        <p className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#4B5459] [font-family:'Noto_Sans_JP',var(--font-noto-sans-jp),sans-serif]">
           {slot.start} - {slot.end}
         </p>
         <div className="text-right">
