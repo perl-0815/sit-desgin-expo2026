@@ -351,29 +351,100 @@ export default function CareerClient() {
         ) : null}
       </div>
 
-      {/* 進路別の割合セクションは円グラフと注釈をまとめて表示します。 */}
+      {/* 変更理由: Figmaの進路グラフセクション(PC/モバイル)の構成に合わせて、見出し・グラフ・内訳カードを再配置します。 */}
       <section
         data-reveal
-        className="px-4 pb-12 pt-12 md:px-[128px] md:py-[96px]"
+        className="px-4 pb-12 pt-12 md:px-[128px] md:pb-[128px] md:pt-[56px]"
       >
-        <div className="md:flex md:items-start md:gap-[64px]">
-          <div className="md:w-[480px]">
-            <div className="border-b border-[#FB9678] pb-1 md:pb-2">
-              <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.02em]">
-                進路別の割合
-              </h2>
+        <div className="flex items-center justify-between border-b-2 border-[#FB9678] py-1 md:py-2">
+          <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+            進路別の割合
+          </h2>
+          {/* 変更理由: Figmaの見出し右側チェックUIを再現し、以降の就職先一覧と同じトグル状態を共有します。 */}
+          <button
+            type="button"
+            className="flex items-center gap-[6px]"
+            aria-pressed={includeGraduate}
+            onClick={() => setIncludeGraduate((prev) => !prev)}
+          >
+            <span className="inline-flex h-6 w-6 items-center justify-center">
+              {includeGraduate ? (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-gradient-to-br from-[#FB9678] to-[#E5A967]">
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    className="h-[18px] w-[18px]"
+                    fill="none"
+                  >
+                    <path
+                      d="M6 12.5L10 16.5L18 8.5"
+                      stroke="#F9F9F9"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              ) : (
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-[6px] bg-[#EBEEF0] p-[2px]">
+                  <span className="h-full w-full rounded-[4px] bg-[#F9F9F9]" />
+                </span>
+              )}
+            </span>
+            <span className="text-[13px] font-medium leading-[1.5] text-[#2E3437] md:text-[18px]">
+              大学院生を含む
+            </span>
+          </button>
+        </div>
+
+        <div className="mt-6 flex flex-col md:grid md:grid-cols-[480px_480px] md:gap-[64px]">
+          {/* 変更理由: Figmaのモバイル版はグラフ直下のカード開始位置が詰まっているため、上余白を12pxに調整します。 */}
+          <div className="order-2 mt-3 md:order-1 md:mt-14">
+            {/* 変更理由: Figmaの左カラム内訳カードに合わせ、人数と割合を2枚カード+未定1枚で表示します。 */}
+            <div className="grid grid-cols-2 gap-3 md:gap-5">
+              <article className="rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-4 py-2 text-center md:rounded-[12px] md:px-6 md:py-3">
+                <p className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#368D30] md:text-[24px]">
+                  進学
+                </p>
+                <p className="text-[13px] font-medium leading-[1.5] text-[#368D30] md:text-[18px]">
+                  (本学大学院：{careerStats.gradCount}名)
+                </p>
+                <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {careerStats.gradPercent.toFixed(1)}
+                  <span className="text-[16px] font-bold text-[#6A7378]">%</span>
+                </p>
+              </article>
+              <article className="rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-4 py-2 text-center md:rounded-[12px] md:px-6 md:py-3">
+                <p className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#D3793D] md:text-[24px]">
+                  就職
+                </p>
+                <p className="text-[13px] font-medium leading-[1.5] text-[#D3793D] md:text-[18px]">
+                  ({careerStats.jobCount}名)
+                </p>
+                <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                  {careerStats.jobPercent.toFixed(1)}
+                  <span className="text-[16px] font-bold text-[#6A7378]">%</span>
+                </p>
+              </article>
             </div>
-            {/* デスクトップでは注釈を見出し直下に配置します。 */}
-            <p className="mt-4 hidden text-[14px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:block">
+            <div className="mt-3 rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] py-3 md:mt-5 md:rounded-[12px] md:py-5">
+              <p className="text-center text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                未定({careerStats.otherCount}名)：{careerStats.otherPercent.toFixed(1)}%
+              </p>
+            </div>
+            <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:mt-5 md:text-[16px]">
               ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
             </p>
           </div>
-          <div className="mt-8 flex justify-center md:mt-0 md:w-[480px] md:justify-start">
+
+          <div className="order-1 flex justify-center md:order-2 md:justify-start">
             <div className="relative">
-              {/* 円グラフ本体は既存コンポーネントを流用して統一します。 */}
+              {/* 円グラフの実寸は維持しつつ、Figma指示に合わせて扇形ラベル内の%表示を非表示化します。 */}
               {loading ? (
-                // 円グラフの実寸と同じサイズでスケルトンを出し、ロード直後の拡大ズレを防ぎます。
-                <SkeletonBlock className="h-[320px] w-[320px] rounded-full md:h-[463px] md:w-[463px]" />
+                // 変更理由: パイチャート本体と同じ直径の円スケルトンを表示し、読み込み中の見た目を一致させます。
+                <div className="relative h-[348px] w-[361px] max-w-full md:h-[463px] md:w-[480px]">
+                  <SkeletonBlock className="absolute left-1/2 top-0 aspect-square w-[96.4%] -translate-x-1/2 rounded-full" />
+                </div>
               ) : (
                 <CareerPieChart
                   gradPercent={careerStats.gradPercent}
@@ -384,11 +455,7 @@ export default function CareerClient() {
               )}
             </div>
           </div>
-          {/* モバイルではチャートの下に注釈を置きます。 */}
         </div>
-        <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:hidden">
-          ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
-        </p>
       </section>
 
       {/* 就職先一覧はカテゴリごとにまとめ、Figmaのカード構成に合わせます。 */}
