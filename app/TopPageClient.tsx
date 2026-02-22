@@ -819,6 +819,10 @@ export default function TopPageClient({
                 <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
                   卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
                 </p>
+                {/* Figma指定に合わせ、PCのみ本文下へ12px注釈を配置して進路データの母集団差分を明示します。 */}
+                <p className="mt-4 hidden text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:block">
+                  ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
+                </p>
               </div>
               {/* PCのみ、残り高さの中央にボタンを配置してFigmaのバランスに合わせます。 */}
               <div className="mt-6 hidden md:flex md:flex-1 md:items-center md:justify-center">
@@ -842,6 +846,10 @@ export default function TopPageClient({
               />
             </div>
           </div>
+          {/* FigmaのSP版は注釈がグラフ下にあるため、モバイルのみ同文言を同タイポグラフィで表示します。 */}
+          <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:hidden">
+            ※卒業・修了研究展に出展する学生の進路の割合です。デザイン工学部全体の進路の割合とは異なる可能性があります。
+          </p>
           <div className="mt-6 flex justify-center md:hidden">
             <Link
               href="/career"
