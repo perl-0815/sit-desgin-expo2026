@@ -1111,14 +1111,14 @@ export default function TopPageClient({
 
 function TopWeekendLimitedEventCard({ event }: { event: WeekendLimitedEvent }) {
   const cardContent = (
-    <article className="flex h-full flex-col gap-3 rounded-[12px] border border-[#EBEEF0] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
+    <article className="group flex h-full flex-col gap-3 rounded-[12px] border border-[#EBEEF0] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
       <img
         src={event.imageSrc}
         alt={event.imageAlt}
         className="aspect-[1920/1080] w-full rounded-[8px] object-cover md:rounded-[12px]"
       />
       <div className="flex flex-col gap-1 md:gap-2">
-        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] transition-colors duration-200 hover:text-[#D3793D] active:text-[#D3793D]">
+        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
           {event.title}
         </h2>
         {/* 本文は2行で打ち切り、カード間の高さ差を抑えて整列を維持します。 */}
