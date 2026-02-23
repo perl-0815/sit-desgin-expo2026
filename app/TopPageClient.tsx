@@ -502,13 +502,13 @@ export default function TopPageClient({
 
           {/* 変更理由: コンセプト本文はFigma文言へ差し替え、PCではBody/XL 24px・白80%・強調語のフォント差を再現します。 */}
           <div className="hidden w-full px-[128px] text-center md:block">
-            <div className="text-[24px] font-medium leading-[2.2] tracking-[0.96px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
+            <div className="text-[24px] font-normal leading-[2.2] tracking-[0.96px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
               <p className="mb-0">
                 学びを深め、社会と向き合い、
               </p>
               <p className="mb-0">
                 <span>自分なりの</span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-[1.5]">
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を積み重ねてきた僕ら。</span>
@@ -517,18 +517,18 @@ export default function TopPageClient({
               <p className="mb-0">あらゆるものが交わるこの場所で、</p>
               <p className="mb-0">
                 <span>あなたはどんな</span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-[1.5]">
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を見つけられるだろうか。</span>
               </p>
               <p className="mb-0 text-[24px]">&nbsp;</p>
-              <p>
-                <span className="text-[16px] tracking-[0.64px]">あなたにとっての </span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] text-[32px] font-bold leading-[1.5]">
+              <p className="mb-0 text-[24px] text-center">
+                <span className="tracking-[0.64px]">あなたにとっての </span>
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   「接点」
                 </span>
-                <span className="text-[16px] tracking-[0.64px]"> が、きっとここにある。</span>
+                <span className="tracking-[0.64px]"> が、きっとここにある。</span>
               </p>
             </div>
           </div>
