@@ -49,6 +49,7 @@ const exhibitionDecorationRightUrl = "/image/decoration/top-decoration2.svg";
 // 研究・作品紹介セクションで使う装飾も同様に `decoration` 配下へ移動済みです。
 const worksDecorationPrimaryUrl = "/image/decoration/top-decoration4.svg";
 const worksDecorationSecondaryUrl = "/image/decoration/top-decoration3.svg";
+const exhibitionInfoDecorationRightUrl = "/image/decoration/top-decoration5.svg";
 // チケット画像は開催ステータス（開催前/開催中/開催終了）ごとに切り替えます。
 // 画像差し替えだけで見た目を更新できるよう、パスを状態別にまとめます。
 // 命名規則は `to-ticket-<status>-<device>.svg` に統一して管理します。
@@ -249,7 +250,7 @@ export default function TopPageClient({
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" hidden={!kvComplete} />
@@ -259,7 +260,19 @@ export default function TopPageClient({
         data-reveal
         className="px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
       >
-        <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:max-w-[1024px] md:p-9">
+        <div className="pointer-events-none absolute -right-50 top-0 -z-1 hidden h-[527px] w-[677px] overflow-hidden md:block">
+          <img
+              alt=""
+              src={exhibitionInfoDecorationRightUrl}
+              className="block h-full w-full"
+            />
+        </div>
+        <div className="relative mx-auto overflow-hidden rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:max-w-[1024px] md:p-9">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-white/80"
+          />
+          <div className="relative z-10">
           {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
           <div className="border-b border-[#FB9678] pb-1 text-center">
             <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
@@ -268,29 +281,29 @@ export default function TopPageClient({
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
             <div className="flex flex-col items-center gap-4">
-              <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+              <p className="text-[20px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
                 3.07
                 <span className="text-[16px] text-[#2C68D3]">(土)</span>
                 <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
                 3.17
                 <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
-              <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
+              <p className="text-[13px] font-medium text-[#404040] md:text-[15px]">
                 芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+              <div className="w-[160px]">
+                <p className="text-[10px] text-[#737373] md:text-[13px]">
                   開催時間
                 </p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                <p className="text-[20px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                   10:00 - 17:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+              <div className="w-[150px]">
+                <p className="text-[10px] text-[#737373] md:text-[13px]">
                   入場料
                 </p>
                 <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
@@ -352,6 +365,7 @@ export default function TopPageClient({
                 </div>
               ) : null}
             </div>
+          </div>
           </div>
         </div>
       </section>
