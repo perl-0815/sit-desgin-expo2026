@@ -916,9 +916,9 @@ export default function TopPageClient({
                 土日
               </p>
               <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-center">
-                平日の研究展示に加え、本部棟5階オープンラボにて体験展示を開催します。
+                平日の研究展示に加え、各種イベントを実施します。
                 <br className="hidden md:block" />
-                体験展示の詳細は
+                実施するイベントの詳細は
                 <Link href="/events" className="text-[#D3793D] underline">
                   こちら
                 </Link>
@@ -947,26 +947,34 @@ export default function TopPageClient({
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                豊洲駅から
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-white/80"
+                />
+                <span className="relative z-10">豊洲駅から</span>
                 <img
                   src="/icon/link.svg"
                   alt=""
-                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
               </button>
               <button
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                越中島駅から
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-white/80"
+                />
+                <span className="relative z-10">越中島駅から</span>
                 <img
                   src="/icon/link.svg"
                   alt=""
-                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
               </button>
             </div>

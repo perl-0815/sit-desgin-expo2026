@@ -78,7 +78,7 @@ export default function CareerPieChart({
       </div>
 
       {/* 変更理由: Figmaに合わせて集計表記を「合計◯◯名」に統一し、右下位置を固定します。 */}
-      <p className="absolute bottom-0 right-0 text-right text-[12px] leading-[1.5] text-[#737373] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif] md:text-[16px]">
+      <p className="absolute bottom-0 right-0 text-right text-[12px] leading-[1.5] font-semibold text-[#737373] [font-family:var(--font-shippori-mincho-b1),'ShipporiMincho-OTF-Bold','Hiragino_Mincho_ProN',serif] md:text-[16px]">
         合計{total}名
       </p>
     </div>
