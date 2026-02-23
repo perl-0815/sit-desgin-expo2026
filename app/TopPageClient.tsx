@@ -258,8 +258,12 @@ export default function TopPageClient({
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
         data-reveal
-        className="px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
+        className="relative px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
       >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#F9F9F9] to-[#FAFAFA]"
+        />
         <div className="pointer-events-none absolute -right-50 top-0 -z-1 hidden h-[527px] w-[677px] overflow-hidden md:block">
           <img
               alt=""
@@ -374,12 +378,12 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景色はセクション幅ではなくビューポート幅いっぱいに広げ、Figmaのフルブリード背景を再現します。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#EBEEF0]"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#fafafa] to-[#f5f5f5]"
         />
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
