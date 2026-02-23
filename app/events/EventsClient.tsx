@@ -89,7 +89,7 @@ function EventCard({ event }: { event: ReservedEvent }) {
       />
 
       <div className="flex flex-col gap-1 md:gap-2">
-        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] transition-colors duration-200 hover:text-[#D3793D] active:text-[#D3793D]">
           {event.title}
         </h2>
         {/* 説明文はFigmaどおり2行で打ち切り、カード高さの揺れを抑えて整列を維持します。 */}
