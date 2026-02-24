@@ -116,7 +116,9 @@ export default async function Home() {
   // 行単位ループをなくして応答時間を短縮します。
   const otherCount = Math.max(total - gradCount - jobCount, 0)
   // 研究・作品のどちらでも同じUIで扱えるよう、共通のプレビュー構造に変換します。
-  const previewFallbackImage = "/image/preview.png"
+  // 変更理由: トップのプレースホルダー画像は初回表示で必ず参照される可能性があるため、
+  // 同等見た目のWebPへ切り替えて転送量を削減します。
+  const previewFallbackImage = "/image/preview.webp"
   const pickImage = (
     original?: string | null,
     thumb?: string | null,

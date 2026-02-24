@@ -29,27 +29,21 @@ const hasCompletedKeyVisualInSession = () => {
 const COMMON_KV_SOURCES = [
   "/key-visual/center-text.svg",
   "/key-visual/center-circle.svg",
-  "/key-visual/te.png",
-  "/key-visual/center-mobile.png",
+  "/key-visual/te.webp",
+  "/key-visual/center-mobile.webp",
 ] as const;
 
-const HORIZONTAL_KV_SOURCES = [
-  "/key-visual/back-horizontal.png",
-  "/key-visual/horizontal/hoka.svg",
-  "/key-visual/horizontal/setu.svg",
-  "/key-visual/horizontal/setu-color.svg",
-  "/key-visual/horizontal/ten.svg",
-  "/key-visual/horizontal/ten-color.svg",
+// 変更理由: 初回表示の待機時間を短縮するため、KVの事前読み込み対象を「初期フレーム表示に必須な素材」のみに限定します。
+// 従来は大型SVGを含む全レイヤーを Promise.all で待っており、回線が遅い環境で表示開始が大幅に遅延していました。
+const HORIZONTAL_KV_CRITICAL_SOURCES = [
+  "/key-visual/back-horizontal.webp",
   ...COMMON_KV_SOURCES,
 ] as const;
 
-const VERTICAL_KV_SOURCES = [
-  "/key-visual/back-vertical.png",
-  "/key-visual/vertical/hoka.svg",
-  "/key-visual/vertical/setu.svg",
-  "/key-visual/vertical/setu-color.svg",
-  "/key-visual/vertical/ten.svg",
-  "/key-visual/vertical/ten-color.svg",
+// 変更理由: モバイル縦レイアウトも同様に、初期に必要な背景と中央要素のみを先読みし、
+// 残りレイヤーは通常読み込みへ委譲して体感表示速度を優先します。
+const VERTICAL_KV_CRITICAL_SOURCES = [
+  "/key-visual/back-vertical.webp",
   ...COMMON_KV_SOURCES,
 ] as const;
 
@@ -151,7 +145,9 @@ export default function KeyVisual() {
     (isVertical: boolean) => {
       if (hasStartedRevealRef.current) return;
       hasStartedRevealRef.current = true;
-      const preloadSources = (isVertical ? VERTICAL_KV_SOURCES : HORIZONTAL_KV_SOURCES) as readonly string[];
+      const preloadSources = (isVertical
+        ? VERTICAL_KV_CRITICAL_SOURCES
+        : HORIZONTAL_KV_CRITICAL_SOURCES) as readonly string[];
 
       let finished = false;
       const finish = () => {
@@ -218,7 +214,9 @@ export default function KeyVisual() {
       const vh = window.innerHeight;
       const isVertical = vw / vh <= 4 / 3;
       const base = isVertical ? verticalBase : horizontalBase;
-      const preloadSources = (isVertical ? VERTICAL_KV_SOURCES : HORIZONTAL_KV_SOURCES) as readonly string[];
+      const preloadSources = (isVertical
+        ? VERTICAL_KV_CRITICAL_SOURCES
+        : HORIZONTAL_KV_CRITICAL_SOURCES) as readonly string[];
       // 変更理由: 再訪時に loaded/complete を先に発火すると、ローダー解除後にKVレイヤーが段階表示されて
       // 「パーツがバラバラに出る」ちらつきが起きるため、必要素材の読み込み完了後に表示を切り替えます。
       preloadKvSources(preloadSources, 2, 120).then(() => {
@@ -592,7 +590,7 @@ export default function KeyVisual() {
         animate: true,
       },
       {
-        src: "/key-visual/te.png",
+        src: "/key-visual/te.webp",
         w: 942,
         h: 964,
         x: 550,
@@ -695,7 +693,7 @@ export default function KeyVisual() {
         animate: true,
       },
       {
-        src: "/key-visual/te.png",
+        src: "/key-visual/te.webp",
         w: 942,
         h: 964,
         x: 700,
@@ -722,8 +720,8 @@ export default function KeyVisual() {
   const sceneVisible = isReturningSession ? true : layoutReady && isVisible;
   const backgroundSrc =
     layout === "vertical"
-      ? "/key-visual/back-vertical.png"
-      : "/key-visual/back-horizontal.png";
+      ? "/key-visual/back-vertical.webp"
+      : "/key-visual/back-horizontal.webp";
   const isMobileMode = layout === "vertical";
 
   useEffect(() => {
@@ -848,7 +846,7 @@ export default function KeyVisual() {
             const isColor = l.src.includes("-color");
             const isCenterText = l.src === "/key-visual/center-text.svg";
             const isCenterCircle = l.src === "/key-visual/center-circle.svg";
-            const isTe = l.src === "/key-visual/te.png";
+            const isTe = l.src === "/key-visual/te.webp";
             const teFollowStrength = layout === "vertical" ? 0.42 : 0.5;
             const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * effectiveZoomProgress), l.y - 100), l.y + 100) : l.y;
             const common = {
@@ -862,8 +860,8 @@ export default function KeyVisual() {
               if (isMobileMode || isReturningSession) {
                 return (
                   <img
-                    key={isMobileMode ? "/key-visual/center-mobile.png" : l.src}
-                    src={isMobileMode ? "/key-visual/center-mobile.png" : l.src}
+                    key={isMobileMode ? "/key-visual/center-mobile.webp" : l.src}
+                    src={isMobileMode ? "/key-visual/center-mobile.webp" : l.src}
                     alt=""
                     aria-hidden="true"
                     width={l.w}

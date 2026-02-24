@@ -41,7 +41,7 @@ type WeekendLimitedEvent = {
 };
 
 // SIT MAPの画像は公開フォルダ内の最新版を参照します。
-const sitMapImageUrl = "/image/sit_map.png";
+const sitMapImageUrl = "/image/sit_map.webp";
 // 装飾画像は `/public/image/decoration` に集約し、用途別に管理しやすくします。
 // トップページの装飾SVGも同ディレクトリ配下へ参照先を統一します。
 const exhibitionDecorationLeftUrl = "/image/decoration/top-decoration1.svg";
@@ -52,26 +52,26 @@ const worksDecorationSecondaryUrl = "/image/decoration/top-decoration3.svg";
 const exhibitionInfoDecorationRightUrl = "/image/decoration/top-decoration5.svg";
 // チケット画像は開催ステータス（開催前/開催中/開催終了）ごとに切り替えます。
 // 画像差し替えだけで見た目を更新できるよう、パスを状態別にまとめます。
-// 命名規則は `to-ticket-<status>-<device>.svg` に統一して管理します。
+// 命名規則は `to-ticket-<status>-<device>.webp` に統一して管理します。
 const topTicketImageUrls = {
   before: {
-    pc: "/image/ticket/to-ticket-before-pc.svg",
-    sp: "/image/ticket/to-ticket-before-sp.svg",
+    pc: "/image/ticket/to-ticket-before-pc.webp",
+    sp: "/image/ticket/to-ticket-before-sp.webp",
   },
   during: {
-    pc: "/image/ticket/to-ticket-during-pc.svg",
-    sp: "/image/ticket/to-ticket-during-sp.svg",
+    pc: "/image/ticket/to-ticket-during-pc.webp",
+    sp: "/image/ticket/to-ticket-during-sp.webp",
   },
   ended: {
-    pc: "/image/ticket/to-ticket-ended-pc.svg",
-    sp: "/image/ticket/to-ticket-ended-sp.svg",
+    pc: "/image/ticket/to-ticket-ended-pc.webp",
+    sp: "/image/ticket/to-ticket-ended-sp.webp",
   },
 } as const;
 // ラベル文言は画像に埋め込まずコード側で管理し、文言変更時に差し替えやすくします。
 const daysUntilTicketLabel = "開催まであと...";
 // コンセプト背景は `public/image/background` に移動したため参照先を合わせます。
 // Next.js の公開パスは `public` を除いた `/image/...` になるため、`background` ディレクトリ名のみ追加します。
-const conceptBackgroundUrl = "/image/background/concept.png";
+const conceptBackgroundUrl = "/image/background/concept.webp";
 // イベント背景も同様に `public/image/background` 配下へ移動済みのため、404回避のため参照先を統一します。
 const eventBackgroundUrl = "/image/background/event_background.png";
 // 土日限定イベントのカード情報はイベントページと揃え、トップ側も同じ内容をカード表示します。
@@ -81,7 +81,7 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
     title: "【高校生向け】 デザイン工学部なんでも相談会-OSEKKAI-",
     description:
       "現役生によるデザイン工学部なんでも相談会です！学部4年生以上が参加しますのでこの機会にたくさん質問してください。",
-    imageSrc: "/image/osekkai.png",
+    imageSrc: "/image/osekkai.webp",
     imageAlt: "OSEKKAIのイベントバナー",
     href: "/events/farewell-lecture",
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
@@ -184,7 +184,7 @@ export default function TopPageClient({
       title:
         "研究または作品タイトルが入ります。研究または作品タイトルが入ります。",
       author: "苗字 名前",
-      imageUrl: "/image/preview.png",
+      imageUrl: "/image/preview.webp",
       href: "/research",
       kind: "research",
     }),
@@ -710,8 +710,9 @@ export default function TopPageClient({
                     key={`mobile-preload-${imageUrl}`}
                     src={imageUrl}
                     alt=""
-                    loading="eager"
-                    fetchPriority="high"
+                    // 変更理由: 非表示の先読み画像を eager/high で取得すると初回のKV・主要画像と帯域競合するため、
+                    // 先読みは lazy/auto に落として初回表示を優先します。
+                    loading="lazy"
                     decoding="async"
                   />
                 ))}
@@ -741,9 +742,10 @@ export default function TopPageClient({
                         <img
                           src={item.imageUrl}
                           alt=""
-                          // 変更理由: 右カード（次に中央へ来るカード）は取得優先度を上げ、開始直後の表示欠けを防ぎます。
-                          fetchPriority={index === 2 ? "high" : "auto"}
-                          loading="eager"
+                          // 変更理由: 初回は中央カードの視認性を最優先し、中央のみ eager/high を維持します。
+                          // それ以外は lazy/auto にして同時フェッチを抑え、初回表示の体感を改善します。
+                          fetchPriority={index === 1 ? "high" : "auto"}
+                          loading={index === 1 ? "eager" : "lazy"}
                           decoding="async"
                           className="h-full w-full object-cover"
                         />
@@ -796,6 +798,11 @@ export default function TopPageClient({
                         <img
                           src={item.imageUrl}
                           alt=""
+                          // 変更理由: PC側もSPと同じ方針で中央カード以外は遅延読み込みにし、
+                          // 初回描画時の不要な同時ダウンロードを削減します。
+                          fetchPriority={index === 1 ? "high" : "auto"}
+                          loading={index === 1 ? "eager" : "lazy"}
+                          decoding="async"
                           className="h-full w-full object-cover"
                         />
                       </div>

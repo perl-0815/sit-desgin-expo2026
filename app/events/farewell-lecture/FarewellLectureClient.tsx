@@ -300,7 +300,8 @@ export default function FarewellLectureClient() {
         <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-14">
           <div className="space-y-3 md:space-y-5">
             <img
-              src="/image/osekkai.png"
+              // 変更理由: ここでも同じバナーを使うためWebPへ揃え、画像配信サイズを圧縮します。
+              src="/image/osekkai.webp"
               alt="【高校生向けイベント】デザイン工学部なんでも相談会 OSEKKAI"
               className="aspect-[1920/1080] w-full rounded-[8px] object-cover md:rounded-[12px]"
             />

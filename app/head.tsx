@@ -1,22 +1,24 @@
 export default function Head() {
   return (
     <>
-      <link rel="preload" as="image" href="/key-visual/horizontal/hoka.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/horizontal/setu.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/horizontal/ten.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/horizontal/setu-color.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/horizontal/ten-color.svg" type="image/svg+xml" />
-      
-      <link rel="preload" as="image" href="/key-visual/vertical/hoka.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/vertical/setu.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/vertical/ten.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/vertical/setu-color.svg" type="image/svg+xml" />
-      <link rel="preload" as="image" href="/key-visual/vertical/ten-color.svg" type="image/svg+xml" />
-      
-      <link rel="preload" as="image" href="/key-visual/back-horizontal.png" type="image/png" />
-      <link rel="preload" as="image" href="/key-visual/back-vertical.png" type="image/png" />
-
+      {/* 変更理由: 初回表示のブロッキングを減らすため、KVのpreloadは初期表示に必須な背景/中央要素のみへ限定します。 */}
+      <link
+        rel="preload"
+        as="image"
+        href="/key-visual/back-horizontal.webp"
+        type="image/webp"
+        media="(min-aspect-ratio: 4/3)"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/key-visual/back-vertical.webp"
+        type="image/webp"
+        media="(max-aspect-ratio: 4/3)"
+      />
       <link rel="preload" as="image" href="/key-visual/center-text.svg" type="image/svg+xml" />
+      <link rel="preload" as="image" href="/key-visual/center-circle.svg" type="image/svg+xml" />
+      <link rel="preload" as="image" href="/key-visual/center-mobile.webp" type="image/webp" />
     </>
   )
 }
