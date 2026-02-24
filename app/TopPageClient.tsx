@@ -1086,23 +1086,21 @@ export default function TopPageClient({
             <button
               type="button"
               onClick={handleCloseGuideVideoModal}
-              // 作品ページの「閉じる」ボタン表現（淡いグレーの丸ピル＋マイナス）に揃えてUIの一貫性を保ちます。
-              className="mt-6 inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
+              // 変更理由: 「閉じる」の意味をより直感的に伝えるため、右側アイコンをマイナスではなく×表示に統一します。
+              className="mt-6 mx-auto flex min-w-[140px] items-center justify-center rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
             >
-              閉じる
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M6 12H18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <span className="inline-flex items-center justify-center gap-2">
+                閉じる
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path d="M7 7L17 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </span>
             </button>
           </div>
         </div>
