@@ -738,7 +738,9 @@ export default function TopPageClient({
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <div className="flex h-[102px] flex-col gap-2 px-3 py-5">
+                      {/* 変更理由: PCカード本文エリアは固定高102pxに対して上下余白が大きく、 */}
+                      {/* タイトル2行分の高さを確保できず1行で切れるため、余白と行間ギャップを詰めて2行表示を維持します。 */}
+                      <div className="flex h-[102px] flex-col gap-1 px-3 py-3">
                         <p className="line-clamp-2 text-[16px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                           {item.title}
                         </p>
@@ -1065,11 +1067,10 @@ export default function TopPageClient({
       </section>
 
       {/* フッターは既存コンポーネントを使用し、SNS導線をまとめます。 */}
-      {/* 変更理由: モバイルでフッター左右に余白が出ないよう、外側ラッパーの横paddingを0にします。 */}
+      {/* 変更理由: デスクトップで `md:max-w-[1280px]` が効くとフッター自体の横幅が制限されるため、 */}
+      {/* ラッパーの最大幅制限を外して常に画面幅いっぱいへ広げます。 */}
       <div className="px-0 pt-12 md:px-0 md:pt-[48px]">
-        <div className="mx-auto w-full md:max-w-[1280px]">
-          <Footer className="w-full" />
-        </div>
+        <Footer className="w-full" />
       </div>
 
       {/* 駅ガイド動画が未完成のため、クリック時はページ遷移ではなく準備中モーダルを表示します。 */}

@@ -430,9 +430,10 @@ export default function ResearchDetailClient({
     <>
       {/* JSXコメントはフラグメント内に配置してパースエラーを防ぎます。 */}
       {/* トップページの見た目に揃えるため、詳細ページの背景を白に統一します。 */}
-      {/* フッターが下端に揃うよう、コンテナに最小高さを追加します。 */}
-      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
-      <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+      <div className="min-h-screen bg-white">
+        {/* フッターが下端に揃うよう、本文コンテナに最小高さを追加します。 */}
+        {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+        <div className="mx-auto flex min-h-screen w-full flex-col md:max-w-[1200px] lg:max-w-[1280px]">
         {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
         {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
         <GlobalHeader activeId="research" />
@@ -758,10 +759,11 @@ export default function ResearchDetailClient({
         </>
       )}
 
-        {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
-        {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
-        <Footer className="w-full md:px-[128px]" />
         </div>
+        </div>
+        {/* 変更理由: max-widthコンテナ内に置くとフッター幅が狭まるため、 */}
+        {/* 本文コンテナの外に出して常に画面幅いっぱいで表示します。 */}
+        <Footer className="w-full" />
       </div>
     </>
   )

@@ -412,9 +412,12 @@ export default function CareerClient() {
   }, [careers])
 
   return (
-    // 短いページでもフッター下に余白が出ないように、最小高さを設定します。
-    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] text-[#2E3437] md:max-w-[1200px] lg:max-w-[1280px]">
+    // 変更理由: フッターを幅制限コンテナの外に出して常に全幅表示にするため、
+    // ページ全体ラッパー（全幅）と本文ラッパー（最大幅あり）を分離します。
+    <div className="min-h-screen bg-[#F9F9F9] text-[#2E3437]">
+      {/* 短いページでも本文末尾が詰まりすぎないように、本文側に最小高さを設定します。 */}
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="career" />
@@ -883,13 +886,12 @@ export default function CareerClient() {
         ) : null}
       </section>
 
-      {/* フッターはトップページ・研究ページと同じ横幅(1280px)で中央揃えにします。 */}
-      {/* 変更理由: モバイルでフッター左右に余白が出ないよう、外側ラッパーの横paddingを0にします。 */}
-      <div className="mt-16 px-0 md:mt-[48px] md:px-0">
-        <div className="mx-auto w-full md:max-w-[1280px]">
-          <Footer className="w-full" />
-        </div>
       </div>
+      </div>
+      {/* 変更理由: 親のmax-width制限下に置くとフッター幅が1280pxで止まるため、 */}
+      {/* 幅制限コンテナの外へ出してビューポート全幅で描画します。 */}
+      <div className="mt-16 px-0 md:mt-[48px] md:px-0">
+        <Footer className="w-full" />
       </div>
     </div>
   )
