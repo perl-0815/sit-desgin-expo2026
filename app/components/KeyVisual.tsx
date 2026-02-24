@@ -208,6 +208,11 @@ export default function KeyVisual() {
       hasStartedRevealRef.current = true;
       hasDispatchedCompleteRef.current = true;
       document.body.dataset.keyvisualComplete = "1";
+      // 変更理由: 再訪時はKVを静的表示として扱い、スクロール/リサイズ監視を一切走らせない要件に合わせるため、
+      // 復元処理の完了を待たずに「再訪セッション」状態へ即時遷移させます。
+      // これにより、下流の監視系 useEffect が初回レンダーから早期 return し、イベント購読が張られません。
+      setIsReturningSession(true);
+      setScrollIndicatorVisible(false);
       // 変更理由: 戻る遷移時はKV演出を再実行せず、現在の見た目を保った静的表示へ即時復元します。
       // これにより重いプリロード・スクロール監視・段階アニメーションの再初期化を回避します。
       const vw = window.innerWidth;
@@ -233,8 +238,6 @@ export default function KeyVisual() {
           setLayoutReady(true);
           setIsVisible(true);
           setKvEverCompleted(true);
-          setIsReturningSession(true);
-          setScrollIndicatorVisible(false);
           markInitialLoaded();
           window.dispatchEvent(new Event("keyvisual:complete"));
         });
@@ -262,6 +265,11 @@ export default function KeyVisual() {
   }, [markInitialLoaded, preloadKvSources, updateScale]);
 
   useEffect(() => {
+    // 変更理由: 初回演出のスクロール完了後は同一セッション内でも静的表示へ移行し、
+    // scroll/resize 監視を即時停止して挙動の安定性を優先するため、再訪モード時は監視を開始しません。
+    if (isReturningSession) {
+      return;
+    }
     if (restoredFromStorageRef.current) {
       return;
     }
@@ -306,10 +314,7 @@ export default function KeyVisual() {
         ) {
           window.scrollTo(0, maxScroll);
         }
-        if (
-          hasDispatchedCompleteRef.current &&
-          window.scrollY >= offsetTop + offsetHeight
-        ) {
+        if (window.scrollY >= offsetTop + offsetHeight) {
           // 変更理由: KV完了時にコンテナ高さが `scrollPages * 100vh` から `100vh` へ縮むため、
           // 旧高さ基準のオフセットをそのまま保持するとモバイルでページ末尾へジャンプしやすくなります。
           // モバイルでは完了後の着地点を「KV直後」に固定し、ドキュメント下端への吸い込みを防ぎます。
@@ -317,6 +322,22 @@ export default function KeyVisual() {
           savedContentOffsetRef.current = isLikelyMobileKv
             ? 0
             : Math.max(0, window.scrollY - (offsetTop + offsetHeight));
+          // 変更理由: ユーザー要望に合わせ、KVスクロール完了時点で再訪モードへ即移行します。
+          // これにより、同一セッション内の「初回完了直後」でも監視を終了でき、1回目の再訪時の不安定さを抑制します。
+          setIsReturningSession(true);
+          setScrollIndicatorVisible(false);
+          // 変更理由: スクロール完了時点で完了フラグ永続化と complete イベント通知を保証し、
+          // ルート遷移直後の復帰でも必ず静的復元ルートへ入るようにします。
+          try {
+            window.sessionStorage.setItem(KV_COMPLETED_STORAGE_KEY, "1");
+          } catch {
+            // セッションストレージが利用不可でも画面内状態の静的化は継続する
+          }
+          if (!hasDispatchedCompleteRef.current) {
+            hasDispatchedCompleteRef.current = true;
+            document.body.dataset.keyvisualComplete = "1";
+            window.dispatchEvent(new Event("keyvisual:complete"));
+          }
           setKvEverCompleted(true);
         }
         ticking = false;
@@ -341,7 +362,7 @@ export default function KeyVisual() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
     };
-  }, [updateKvMetrics, kvEverCompleted]);
+  }, [updateKvMetrics, kvEverCompleted, isReturningSession]);
 
   useEffect(() => {
     if (!layoutReady || !isVisible) return;
@@ -736,7 +757,7 @@ export default function KeyVisual() {
   const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
 
   useEffect(() => {
-    if (isReturningSession) {
+    if (isReturningSession || restoredFromStorageRef.current) {
       return;
     }
     const onScroll = () => {
