@@ -103,7 +103,21 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
+  const [kvLoaded, setKvLoaded] = useState(false);
   const [kvComplete, setKvComplete] = useState(false);
+  useEffect(() => {
+    const storedLoaded =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem("keyvisual:loaded") === "1";
+    if (storedLoaded || document.body.dataset.keyvisualLoaded === "1") {
+      setKvLoaded(true);
+    } else {
+      const onLoaded = () => setKvLoaded(true);
+      window.addEventListener("keyvisual:loaded", onLoaded);
+      return () => window.removeEventListener("keyvisual:loaded", onLoaded);
+    }
+  }, []);
+
   useEffect(() => {
     if (document.body.dataset.keyvisualComplete === "1") {
       setKvComplete(true);
@@ -254,6 +268,19 @@ export default function TopPageClient({
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
+      {!kvLoaded && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#F3F4F6]">
+          <div className="mx-6 w-full max-w-[960px] space-y-6">
+            <div className="h-10 rounded-xl bg-[#E5E7EB] animate-pulse" />
+            <div className="h-[260px] rounded-3xl bg-[#E5E7EB] animate-pulse" />
+            <div className="space-y-3">
+              <div className="h-4 rounded-full bg-[#E5E7EB] animate-pulse" />
+              <div className="h-4 rounded-full bg-[#E5E7EB] animate-pulse" />
+              <div className="h-4 w-2/3 rounded-full bg-[#E5E7EB] animate-pulse" />
+            </div>
+          </div>
+        </div>
+      )}
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" hidden={!kvComplete} />

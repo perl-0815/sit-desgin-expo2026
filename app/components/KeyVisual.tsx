@@ -9,7 +9,34 @@ const TE_FADE_DURATION_MS = 300;
 const FINAL_TO_ZOOM_THRESHOLD = 0.15;
 const ZOOM_SCROLL_PAGES = 3.0;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
+const KV_LOADED_STORAGE_KEY = "keyvisual:loaded";
 
+const COMMON_KV_SOURCES = [
+  "/key-visual/center-text.svg",
+  "/key-visual/center-circle.svg",
+  "/key-visual/te.png",
+  "/key-visual/center-mobile.png",
+] as const;
+
+const HORIZONTAL_KV_SOURCES = [
+  "/key-visual/back-horizontal.png",
+  "/key-visual/horizontal/hoka.svg",
+  "/key-visual/horizontal/setu.svg",
+  "/key-visual/horizontal/setu-color.svg",
+  "/key-visual/horizontal/ten.svg",
+  "/key-visual/horizontal/ten-color.svg",
+  ...COMMON_KV_SOURCES,
+] as const;
+
+const VERTICAL_KV_SOURCES = [
+  "/key-visual/back-vertical.png",
+  "/key-visual/vertical/hoka.svg",
+  "/key-visual/vertical/setu.svg",
+  "/key-visual/vertical/setu-color.svg",
+  "/key-visual/vertical/ten.svg",
+  "/key-visual/vertical/ten-color.svg",
+  ...COMMON_KV_SOURCES,
+] as const;
 
 export default function KeyVisual() {
   const [scale, setScale] = useState(1);
@@ -43,46 +70,61 @@ export default function KeyVisual() {
     maxScroll: 0,
   });
 
-  const startInitialReveal = useCallback((isVertical: boolean) => {
-    if (hasStartedRevealRef.current) return;
-    hasStartedRevealRef.current = true;
-    const preloadSources = isVertical
-      ? [
-          "/key-visual/back-vertical.png",
-          "/key-visual/vertical/hoka.svg",
-          "/key-visual/vertical/setu.svg",
-          "/key-visual/vertical/ten.svg",
-        ]
-      : [
-          "/key-visual/back-horizontal.png",
-          "/key-visual/horizontal/hoka.svg",
-          "/key-visual/horizontal/setu.svg",
-          "/key-visual/horizontal/ten.svg",
-        ];
-    let finished = false;
-    const finish = () => {
-      if (finished) return;
-      finished = true;
-      initialRevealRafRef.current = requestAnimationFrame(() => {
-        setIsVisible(true);
-      });
-    };
-    const timeoutId = window.setTimeout(finish, 1200);
-    Promise.allSettled(
-      preloadSources.map(
-        (src) =>
-          new Promise<void>((resolve) => {
+  const markInitialLoaded = useCallback(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") return;
+    if (document.body.dataset.keyvisualLoaded === "1") return;
+    document.body.dataset.keyvisualLoaded = "1";
+    try {
+      window.sessionStorage.setItem(KV_LOADED_STORAGE_KEY, "1");
+    } catch {
+      // セッションストレージが利用できない場合はフラグの永続化だけ諦める
+    }
+    window.dispatchEvent(new Event("keyvisual:loaded"));
+  }, []);
+
+  const startInitialReveal = useCallback(
+    (isVertical: boolean) => {
+      if (hasStartedRevealRef.current) return;
+      hasStartedRevealRef.current = true;
+      const preloadSources = (isVertical ? VERTICAL_KV_SOURCES : HORIZONTAL_KV_SOURCES) as readonly string[];
+
+      const preloadImageWithRetry = (src: string, maxAttempts: number, retryDelayMs: number) =>
+        new Promise<void>((resolve) => {
+          let attempt = 0;
+          const tryLoad = () => {
+            attempt += 1;
             const img = new Image();
             img.onload = () => resolve();
-            img.onerror = () => resolve();
+            img.onerror = () => {
+              if (attempt < maxAttempts) {
+                window.setTimeout(tryLoad, retryDelayMs);
+              } else {
+                resolve();
+              }
+            };
             img.src = src;
-          }),
-      ),
-    ).then(() => {
-      window.clearTimeout(timeoutId);
-      finish();
-    });
-  }, []);
+          };
+          tryLoad();
+        });
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        initialRevealRafRef.current = requestAnimationFrame(() => {
+          setIsVisible(true);
+          markInitialLoaded();
+        });
+      };
+
+      Promise.all(
+        preloadSources.map((src) => preloadImageWithRetry(src, 3, 300)),
+      ).then(() => {
+        finish();
+      });
+    },
+    [markInitialLoaded],
+  );
 
   const updateScale = useCallback(() => {
     const vw = window.innerWidth;
@@ -130,6 +172,7 @@ export default function KeyVisual() {
         setIsVisible(true);
         setKvEverCompleted(true);
         setScrollIndicatorVisible(false);
+        markInitialLoaded();
       });
     }
 
@@ -145,7 +188,7 @@ export default function KeyVisual() {
       cancelAnimationFrame(initialRaf);
       window.removeEventListener("resize", updateScale);
     };
-  }, [updateScale]);
+  }, [markInitialLoaded, updateScale]);
 
   useEffect(() => {
     let ticking = false;
@@ -508,6 +551,7 @@ export default function KeyVisual() {
     layout === "vertical"
       ? "/key-visual/back-vertical.png"
       : "/key-visual/back-horizontal.png";
+  const isMobileMode = layout === "vertical";
 
   useEffect(() => {
     if (hasDispatchedCompleteRef.current) return;
@@ -621,6 +665,7 @@ export default function KeyVisual() {
           {layers.map((l) => {
             const isColor = l.src.includes("-color");
             const isCenterText = l.src === "/key-visual/center-text.svg";
+            const isCenterCircle = l.src === "/key-visual/center-circle.svg";
             const isTe = l.src === "/key-visual/te.png";
             const teFollowStrength = layout === "vertical" ? 0.42 : 0.5;
             const layerY = isTe ? Math.min(Math.max(l.y * (1 - teFollowStrength * effectiveZoomProgress), l.y - 100), l.y + 100) : l.y;
@@ -632,6 +677,24 @@ export default function KeyVisual() {
             } as const;
 
             if (isCenterText) {
+              if (isMobileMode) {
+                return (
+                  <img
+                    key="/key-visual/center-mobile.png"
+                    src="/key-visual/center-mobile.png"
+                    alt=""
+                    aria-hidden="true"
+                    width={l.w}
+                    height={l.h}
+                    decoding="async"
+                    loading="eager"
+                    fetchPriority="high"
+                    draggable={false}
+                    className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
+                    style={{ ...common, width: l.w, height: l.h }}
+                  />
+                );
+              }
               return (
                 <div
                   key={l.src}
@@ -646,17 +709,21 @@ export default function KeyVisual() {
                     lens={{
                       x: l.w / 2,
                       y: l.h / 2,
-                      radius: Math.min(l.w / 2, l.h / 2) * 1.085,
+                      radius: Math.min(l.w / 2, l.h / 2) * 1.285,
                       refraction: 0.3,
-                      depth: 1.8,
+                      depth: 10.0,
                       dispersion: 0.35,
-                      frost: 40,
+                      frost: 5,
                       spread: 10,
                     }}
                     className="absolute inset-0"
                   />
                 </div>
               );
+            }
+
+            if (isMobileMode && isCenterCircle) {
+              return null;
             }
 
             if (isColor) {
