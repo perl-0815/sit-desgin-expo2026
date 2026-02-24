@@ -269,18 +269,32 @@ export default function TopPageClient({
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
       {!kvLoaded && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#F3F4F6]">
-          <div className="mx-6 w-full max-w-[960px] space-y-6">
-            <div className="h-10 rounded-xl bg-[#E5E7EB] animate-pulse" />
-            <div className="h-[260px] rounded-3xl bg-[#E5E7EB] animate-pulse" />
-            <div className="space-y-3">
-              <div className="h-4 rounded-full bg-[#E5E7EB] animate-pulse" />
-              <div className="h-4 rounded-full bg-[#E5E7EB] animate-pulse" />
-              <div className="h-4 w-2/3 rounded-full bg-[#E5E7EB] animate-pulse" />
-            </div>
-          </div>
+        <div
+          aria-hidden="true"
+          // 変更理由: 個別要素のプレースホルダではなく、ロード完了まで画面全体にスケルトンの波を流す要望に合わせます。
+          // 単一の全画面レイヤーにすることで、端末サイズに依存せず同じ視覚効果を安定して表示できます。
+          className="fixed inset-0 z-[200] overflow-hidden bg-[#ECEFF1]"
+        >
+          <div
+            // 変更理由: 横方向へ移動するハイライト帯を全画面へ敷き、KVロード中であることを直感的に示します。
+            className="absolute inset-0 bg-[linear-gradient(110deg,#E5E7EB_12%,#F3F4F6_34%,#E5E7EB_56%)] bg-[length:220%_100%] animate-[kv-skeleton-wave_1800ms_ease-in-out_infinite]"
+          />
+          <div
+            // 変更理由: フラットな1枚色に見えないよう、淡い面光源を重ねて波アニメーションの視認性を補強します。
+            className="absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(255,255,255,0.28)_0%,rgba(255,255,255,0)_45%),radial-gradient(circle_at_82%_76%,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0)_48%)]"
+          />
         </div>
       )}
+      <style>{`
+        @keyframes kv-skeleton-wave {
+          0% {
+            background-position: 200% 0;
+          }
+          100% {
+            background-position: -20% 0;
+          }
+        }
+      `}</style>
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" hidden={!kvComplete} />

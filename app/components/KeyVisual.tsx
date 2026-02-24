@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import CircularLensEffect from "./CircularLensEffect";
 const horizontalBase = { w: 1280, h: 720 } as const;
 const verticalBase = { w: 1080, h: 1920 } as const;
@@ -8,8 +8,23 @@ const COLOR_FADE_DURATION_MS = 800;
 const TE_FADE_DURATION_MS = 300;
 const FINAL_TO_ZOOM_THRESHOLD = 0.15;
 const ZOOM_SCROLL_PAGES = 3.0;
+// 変更理由: スクロールに追従した演出は維持しつつ、progress更新を微小差分で連打しないよう閾値を定義します。
+// 0.003(約333段階)なら視覚上の連続性を保ちながら再レンダー回数を抑制できます。
+const PROGRESS_UPDATE_EPSILON = 0.003;
+// 変更理由: progressの丸め精度を統一して不要な小数揺れによる再描画を減らします。
+const PROGRESS_ROUND_DIGITS = 3;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 const KV_LOADED_STORAGE_KEY = "keyvisual:loaded";
+
+// 変更理由: 再訪時の軽量モード判定を共通化し、例外時は安全側（未完了扱い）に倒します。
+const hasCompletedKeyVisualInSession = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
 
 const COMMON_KV_SOURCES = [
   "/key-visual/center-text.svg",
@@ -51,6 +66,7 @@ export default function KeyVisual() {
   const [teFadeCompleted, setTeFadeCompleted] = useState(false);
   const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
   const [kvEverCompleted, setKvEverCompleted] = useState(false);
+  const [isReturningSession, setIsReturningSession] = useState(false);
   const [scrollIndicatorVisible, setScrollIndicatorVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedCompleteRef = useRef(false);
@@ -161,19 +177,39 @@ export default function KeyVisual() {
 
   useEffect(() => {
     let restoreRaf: number | null = null;
-    const storedCompleted = window.sessionStorage.getItem(KV_COMPLETED_STORAGE_KEY) === "1";
+    const storedCompleted = hasCompletedKeyVisualInSession();
     if (storedCompleted) {
       restoredFromStorageRef.current = true;
       hasStartedRevealRef.current = true;
       hasDispatchedCompleteRef.current = true;
       document.body.dataset.keyvisualComplete = "1";
+      // 変更理由: 戻る遷移時はKV演出を再実行せず、現在の見た目を保った静的表示へ即時復元します。
+      // これにより重いプリロード・スクロール監視・段階アニメーションの再初期化を回避します。
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isVertical = vw / vh <= 4 / 3;
+      const base = isVertical ? verticalBase : horizontalBase;
       restoreRaf = requestAnimationFrame(() => {
+        setLayout(isVertical ? "vertical" : "horizontal");
+        setScale(
+          isVertical
+            ? Math.min(vw / base.w, vh / base.h)
+            : Math.max(vw / base.w, vh / base.h),
+        );
+        setCoverScale(Math.max(vw / base.w, vh / base.h));
         setLayoutReady(true);
         setIsVisible(true);
         setKvEverCompleted(true);
+        setIsReturningSession(true);
         setScrollIndicatorVisible(false);
-        markInitialLoaded();
       });
+      markInitialLoaded();
+      window.dispatchEvent(new Event("keyvisual:complete"));
+      return () => {
+        if (restoreRaf !== null) {
+          cancelAnimationFrame(restoreRaf);
+        }
+      };
     }
 
     const initialRaf = requestAnimationFrame(updateScale);
@@ -191,6 +227,9 @@ export default function KeyVisual() {
   }, [markInitialLoaded, updateScale]);
 
   useEffect(() => {
+    if (restoredFromStorageRef.current) {
+      return;
+    }
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -203,8 +242,10 @@ export default function KeyVisual() {
             Math.min(Math.max(raw, 0), 1),
             maxAllowedProgressRef.current,
           );
-          if (Math.abs(nextProgress - progressRef.current) >= 0.001) {
-            const normalized = Math.round(nextProgress * 10000) / 10000;
+          if (Math.abs(nextProgress - progressRef.current) >= PROGRESS_UPDATE_EPSILON) {
+            const normalized =
+              Math.round(nextProgress * 10 ** PROGRESS_ROUND_DIGITS) /
+              10 ** PROGRESS_ROUND_DIGITS;
             progressRef.current = normalized;
             setProgress(normalized);
           }
@@ -280,6 +321,7 @@ export default function KeyVisual() {
   const effectiveZoomProgress = kvEverCompleted ? 0 : zoomProgress;
 
   useEffect(() => {
+    if (isReturningSession) return;
     if (progress <= colorRevealThreshold && colorShownProgress !== null) {
       setColorShownProgress(null);
       return;
@@ -287,9 +329,10 @@ export default function KeyVisual() {
     if (colorShownProgress === null && colorRevealed) {
       setColorShownProgress(Math.min(progress, colorShownMax));
     }
-  }, [progress, colorRevealed, colorShownProgress]);
+  }, [progress, colorRevealed, colorShownProgress, colorShownMax, isReturningSession]);
 
   useEffect(() => {
+    if (isReturningSession) return;
     if (!colorRevealed) {
       setColorFadeCompleted(false);
       return;
@@ -298,9 +341,10 @@ export default function KeyVisual() {
       setColorFadeCompleted(true);
     }, COLOR_FADE_DURATION_MS);
     return () => window.clearTimeout(timer);
-  }, [colorRevealed]);
+  }, [colorRevealed, isReturningSession]);
 
   useEffect(() => {
+    if (isReturningSession) return;
     if (!teRevealed) {
       setTeShownProgress(null);
       setTeFadeCompleted(false);
@@ -313,9 +357,10 @@ export default function KeyVisual() {
       setTeFadeCompleted(true);
     }, TE_FADE_DURATION_MS);
     return () => window.clearTimeout(timer);
-  }, [teRevealed, teShownProgress, progress]);
+  }, [teRevealed, teShownProgress, progress, teShownMax, isReturningSession]);
 
   useEffect(() => {
+    if (isReturningSession) return;
     if (!finalRevealed) {
       setFinalShownProgress(null);
       return;
@@ -323,9 +368,10 @@ export default function KeyVisual() {
     if (finalShownProgress === null) {
       setFinalShownProgress(Math.min(progress, finalShownMax));
     }
-  }, [finalRevealed, finalShownProgress, progress]);
+  }, [finalRevealed, finalShownProgress, progress, finalShownMax, isReturningSession]);
 
   useLayoutEffect(() => {
+    if (isReturningSession) return;
     if (!colorFadeCompleted) {
       maxAllowedProgressRef.current = teShownMax + 0.01;
     } else if (!teFadeCompleted) {
@@ -338,211 +384,224 @@ export default function KeyVisual() {
     if (!hasDispatchedCompleteRef.current && window.scrollY > kvMetricsRef.current.maxScroll) {
       window.scrollTo(0, kvMetricsRef.current.maxScroll);
     }
-  }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax]);
+  }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax, isReturningSession]);
 
   useEffect(() => {
+    if (isReturningSession) return;
     updateKvMetrics();
-  }, [kvEverCompleted, scrollPages, updateKvMetrics]);
+  }, [kvEverCompleted, scrollPages, updateKvMetrics, isReturningSession]);
 
-  const horizontalLayers = [
-    {
-      src: "/key-visual/horizontal/hoka.svg",
-      w: 1280,
-      h: 720,
-      x: 618,
-      y: 360,
-      scale: 1,
-      rotate: 0,
-      z: -30,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/setu.svg",
-      w: 509,
-      h: 519,
-      x: -71,
-      y: 158.971,
-      scale: 1,
-      rotate: 0,
-      z: -20,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/setu-color.svg",
-      w: 509,
-      h: 519,
-      x: -71,
-      y: 159.071,
-      scale: 1,
-      rotate: 0,
-      z: -21,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/center-text.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/center-circle.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/ten.svg",
-      w: 521,
-      h: 549,
-      x: 513,
-      y: 360,
-      scale: 1,
-      rotate: 0,
-      z: -9,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/horizontal/ten-color.svg",
-      w: 521,
-      h: 549,
-      x: 513,
-      y: 368,
-      scale: 1.03,
-      rotate: 0,
-      z: -10,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/te.png",
-      w: 942,
-      h: 964,
-      x: 550,
-      y: 721,
-      scale: 0.25,
-      rotate: 0,
-      z: 20,
-      opacity: effectiveTeRevealed ? 1 : 0,
-      animate: true,
-    },
-  ];
+  // 変更理由: 各レンダーでレイヤー配列オブジェクトを再生成すると、スクロール中のJS負荷が増えるため、
+  // 依存する表示状態が変わった時だけ再計算するようメモ化します。
+  const horizontalLayers = useMemo(
+    () => [
+      {
+        src: "/key-visual/horizontal/hoka.svg",
+        w: 1280,
+        h: 720,
+        x: 618,
+        y: 360,
+        scale: 1,
+        rotate: 0,
+        z: -30,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/horizontal/setu.svg",
+        w: 509,
+        h: 519,
+        x: -71,
+        y: 158.971,
+        scale: 1,
+        rotate: 0,
+        z: -20,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/horizontal/setu-color.svg",
+        w: 509,
+        h: 519,
+        x: -71,
+        y: 159.071,
+        scale: 1,
+        rotate: 0,
+        z: -21,
+        opacity: effectiveColorRevealed ? 1 : 0,
+        animate: true,
+      },
+      {
+        src: "/key-visual/center-text.svg",
+        w: 179,
+        h: 179,
+        x: 89.5,
+        y: 89.5,
+        scale: 1,
+        rotate: 0,
+        z: -5,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/center-circle.svg",
+        w: 179,
+        h: 179,
+        x: 89.5,
+        y: 89.5,
+        scale: 1,
+        rotate: 0,
+        z: -5,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/horizontal/ten.svg",
+        w: 521,
+        h: 549,
+        x: 513,
+        y: 360,
+        scale: 1,
+        rotate: 0,
+        z: -9,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/horizontal/ten-color.svg",
+        w: 521,
+        h: 549,
+        x: 513,
+        y: 368,
+        scale: 1.03,
+        rotate: 0,
+        z: -10,
+        opacity: effectiveColorRevealed ? 1 : 0,
+        animate: true,
+      },
+      {
+        src: "/key-visual/te.png",
+        w: 942,
+        h: 964,
+        x: 550,
+        y: 721,
+        scale: 0.25,
+        rotate: 0,
+        z: 20,
+        opacity: effectiveTeRevealed ? 1 : 0,
+        animate: true,
+      },
+    ],
+    [effectiveColorRevealed, effectiveTeRevealed],
+  );
 
-  const verticalLayers = [
-    {
-      src: "/key-visual/vertical/hoka.svg",
-      w: 1080,
-      h: 1920,
-      x: 540,
-      y: 960,
-      scale: 1,
-      rotate: 0,
-      z: -30,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/setu.svg",
-      w: 649,
-      h: 648,
-      x: 203,
-      y: -119,
-      scale: 0.98,
-      rotate: 0,
-      z: -20,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/setu-color.svg",
-      w: 649,
-      h: 648,
-      x: 203,
-      y: -126,
-      scale: 1,
-      rotate: 0,
-      z: -21,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/center-text.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1.69,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/center-circle.svg",
-      w: 179,
-      h: 179,
-      x: 89.5,
-      y: 89.5,
-      scale: 1.69,
-      rotate: 0,
-      z: -5,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/ten.svg",
-      w: 600,
-      h: 651,
-      x: 439,
-      y: 775,
-      scale: 1,
-      rotate: 0,
-      z: -9,
-      opacity: 1,
-      animate: false,
-    },
-    {
-      src: "/key-visual/vertical/ten-color.svg",
-      w: 600,
-      h: 651,
-      x: 439,
-      y: 794,
-      scale: 1,
-      rotate: 0,
-      z: -10,
-      opacity: effectiveColorRevealed ? 1 : 0,
-      animate: true,
-    },
-    {
-      src: "/key-visual/te.png",
-      w: 942,
-      h: 964,
-      x: 700,
-      y: 1090,
-      scale: 0.75,
-      rotate: 0,
-      z: 20,
-      opacity: effectiveTeRevealed ? 1 : 0,
-      animate: true,
-    },
-  ];
+  // 変更理由: 縦レイアウト側も同じくメモ化し、スクロール中のオブジェクト生成コストを削減します。
+  const verticalLayers = useMemo(
+    () => [
+      {
+        src: "/key-visual/vertical/hoka.svg",
+        w: 1080,
+        h: 1920,
+        x: 540,
+        y: 960,
+        scale: 1,
+        rotate: 0,
+        z: -30,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/vertical/setu.svg",
+        w: 649,
+        h: 648,
+        x: 203,
+        y: -119,
+        scale: 0.98,
+        rotate: 0,
+        z: -20,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/vertical/setu-color.svg",
+        w: 649,
+        h: 648,
+        x: 203,
+        y: -126,
+        scale: 1,
+        rotate: 0,
+        z: -21,
+        opacity: effectiveColorRevealed ? 1 : 0,
+        animate: true,
+      },
+      {
+        src: "/key-visual/center-text.svg",
+        w: 179,
+        h: 179,
+        x: 89.5,
+        y: 89.5,
+        scale: 1.69,
+        rotate: 0,
+        z: -5,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/center-circle.svg",
+        w: 179,
+        h: 179,
+        x: 89.5,
+        y: 89.5,
+        scale: 1.69,
+        rotate: 0,
+        z: -5,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/vertical/ten.svg",
+        w: 600,
+        h: 651,
+        x: 439,
+        y: 775,
+        scale: 1,
+        rotate: 0,
+        z: -9,
+        opacity: 1,
+        animate: false,
+      },
+      {
+        src: "/key-visual/vertical/ten-color.svg",
+        w: 600,
+        h: 651,
+        x: 439,
+        y: 794,
+        scale: 1,
+        rotate: 0,
+        z: -10,
+        opacity: effectiveColorRevealed ? 1 : 0,
+        animate: true,
+      },
+      {
+        src: "/key-visual/te.png",
+        w: 942,
+        h: 964,
+        x: 700,
+        y: 1090,
+        scale: 0.75,
+        rotate: 0,
+        z: 20,
+        opacity: effectiveTeRevealed ? 1 : 0,
+        animate: true,
+      },
+    ],
+    [effectiveColorRevealed, effectiveTeRevealed],
+  );
 
-  const layers = layout === "vertical" ? verticalLayers : horizontalLayers;
+  const layers = useMemo(
+    () => (layout === "vertical" ? verticalLayers : horizontalLayers),
+    [layout, verticalLayers, horizontalLayers],
+  );
   const sceneZoomTarget = layout === "vertical" ? 4.1 : 3.2;
   const sceneZoom = 1 + (sceneZoomTarget - 1) * effectiveZoomProgress;
   const whiteFadeOpacity = Math.min(effectiveZoomProgress * 1.2, 1);
@@ -565,6 +624,9 @@ export default function KeyVisual() {
   const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
 
   useEffect(() => {
+    if (isReturningSession) {
+      return;
+    }
     const onScroll = () => {
       setScrollIndicatorVisible(false);
       if (scrollIndicatorTimerRef.current !== null) {
@@ -583,7 +645,7 @@ export default function KeyVisual() {
         window.clearTimeout(scrollIndicatorTimerRef.current);
       }
     };
-  }, []);
+  }, [isReturningSession]);
 
   useEffect(() => {
     if (kvComplete) {
@@ -677,18 +739,19 @@ export default function KeyVisual() {
             } as const;
 
             if (isCenterText) {
-              if (isMobileMode) {
+              if (isMobileMode || isReturningSession) {
                 return (
                   <img
-                    key="/key-visual/center-mobile.png"
-                    src="/key-visual/center-mobile.png"
+                    key={isMobileMode ? "/key-visual/center-mobile.png" : l.src}
+                    src={isMobileMode ? "/key-visual/center-mobile.png" : l.src}
                     alt=""
                     aria-hidden="true"
                     width={l.w}
                     height={l.h}
                     decoding="async"
-                    loading="eager"
-                    fetchPriority="high"
+                    // 変更理由: 再訪時はWebGLレンズ描画を省略し、静的画像で見た目を保ったままGPU負荷を下げます。
+                    // 変更理由: クリティカル画像以外の eager/high を外し、同時フェッチ集中による帯域競合を抑えます。
+                    loading="auto"
                     draggable={false}
                     className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                     style={{ ...common, width: l.w, height: l.h }}
@@ -746,8 +809,8 @@ export default function KeyVisual() {
                     width={l.w}
                     height={l.h}
                     decoding="async"
-                    loading="eager"
-                    fetchPriority="high"
+                    // 変更理由: カラーレイヤーは初期描画の必須要素ではないため優先度を通常化します。
+                    loading="auto"
                     draggable={false}
                     className="block h-full w-full"
                   />
@@ -783,8 +846,8 @@ export default function KeyVisual() {
                 width={l.w}
                 height={l.h}
                 decoding="async"
-                loading="eager"
-                fetchPriority="high"
+                // 変更理由: eager/high を多重指定するとネットワーク競合が起きやすいため、通常優先度へ揃えます。
+                loading="auto"
                 draggable={false}
                 className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                 style={common}
