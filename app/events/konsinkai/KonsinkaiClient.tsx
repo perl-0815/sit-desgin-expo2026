@@ -92,7 +92,7 @@ export default function KonsinkaiClient() {
           </p>
 
           <p className="mt-6 text-[15px] leading-loose tracking-[0.04em] text-[#4B5459] md:mt-8 md:text-[18px]">
-            参加を希望される場合は以下の申し込みフォームから必要事項を記入してください。（Google Formsに遷移します。）
+            参加を希望される場合は以下の申し込みフォームから必要事項を記入してください。（Googleフォームに遷移します。）
           </p>
 
           <p className="mt-2 text-[13px] leading-normal text-[#6A7378] md:text-[15px]">
@@ -108,12 +108,9 @@ export default function KonsinkaiClient() {
               href={formUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:px-[56px] md:py-[20px]"
+              // 駅動画ボタンと同一仕様に揃え、通常は白塗り＋オレンジ枠、hoverでオレンジ塗りへ遷移させます。
+              className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#FFFFFF] px-8 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:px-[56px] md:py-[20px]"
             >
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-white/80"
-              />
               <span className="relative z-10">申し込みフォーム</span>
               <img
                 src="/icon/link.svg"

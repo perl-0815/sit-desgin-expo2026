@@ -497,23 +497,26 @@ function ScheduleCard({
     // 変更理由: Figmaノード1578:9060（Desktop予約カード）の角丸16px・余白24pxに合わせるため、PC側の24px/24px設定へ統一します。
     <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
-        {/* 変更理由: 予約枠の開始時刻・終了時刻はFigma指定（Body/XL）に統一するため、Noto Sans JP 16px/500/220%/0.64px/#4B5459へ変更。 */}
-        <p className="text-[30px] font-bold leading-[2.2] tracking-[0.64px] text-[#404040] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+        {/* 変更理由: Figma(1578:9096 / 1578:9222)の時間表示はShippori Minchoの太字(800)指定のため、font-extraboldへ合わせます。 */}
+        <p className="text-[24px] font-extrabold leading-[1.5] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
           {slot.start} - {slot.end}
         </p>
         <div className="text-right">
-          <p className={`text-[13px] font-medium leading-[1.5] md:text-[15px] ${derived.statusTextColor}`}>{derived.statusLabel}</p>
+          {/* 変更理由: ステータスはLabel/M(13px)固定のため、mdで15pxへ拡大する指定を削除します。 */}
+          <p className={`text-[13px] font-medium leading-[1.5] ${derived.statusTextColor}`}>{derived.statusLabel}</p>
         </div>
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
         <div>
-          <p className="text-[10px] leading-[1.5] text-[#737373] md:text-[12px]">受付開始</p>
-          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[24px]">{derived.receptionStart}</p>
+          {/* 変更理由: ラベルはLabel/S(10px)・#6A7378指定のため、色とレスポンシブ拡大をFigma準拠へ統一します。 */}
+          <p className="text-[10px] font-normal leading-[1.5] text-[#6A7378] [font-family:'Noto_Sans_JP',sans-serif]">受付開始</p>
+          {/* 変更理由: 値はBody/XL(16px/line-height 2.2/tracking 0.64px)固定のため、13px/24px切替を廃止します。 */}
+          <p className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">{derived.receptionStart}</p>
         </div>
         <div>
-          <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">開始</p>
-          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[24px]">{slot.start}</p>
+          <p className="text-[10px] font-normal leading-[1.5] text-[#6A7378] [font-family:'Noto_Sans_JP',sans-serif]">開始</p>
+          <p className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#4B5459] [font-family:'Noto_Sans_JP',sans-serif]">{slot.start}</p>
         </div>
       </div>
 
@@ -521,7 +524,7 @@ function ScheduleCard({
         <button
           type="button"
           disabled
-          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#EBEEF0] px-8 text-[13px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-9 md:h-[72px] md:rounded-[12px] md:text-[15px]"
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#EBEEF0] px-8 text-[13px] font-medium leading-[1.5] text-[#A3ADB2] shadow-[0_0_8px_rgba(106,115,120,0.1)] md:mt-9 md:h-[72px] md:rounded-[12px]"
         >
           受付終了
         </button>
@@ -530,7 +533,7 @@ function ScheduleCard({
           type="button"
           disabled={isChecking}
           onClick={() => onReserveClick(slot)}
-          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#4B5459] px-8 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-out hover:[background:linear-gradient(98deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#4B5459] hover:[background-blend-mode:plus-lighter] disabled:cursor-not-allowed disabled:bg-[#6A7378] md:mt-9 md:h-[72px] md:rounded-[12px] md:text-[15px]"
+          className="mt-6 flex h-[48px] w-full items-center justify-center rounded-[8px] bg-[#4B5459] px-8 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-out hover:[background:linear-gradient(98deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#4B5459] hover:[background-blend-mode:plus-lighter] disabled:cursor-not-allowed disabled:bg-[#6A7378] md:mt-9 md:h-[72px] md:rounded-[12px]"
         >
           {isChecking ? "確認中..." : "予約する"}
         </button>

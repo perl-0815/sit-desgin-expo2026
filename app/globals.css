@@ -85,3 +85,72 @@ body.page-reveal-ready [data-reveal].is-visible {
     transform: translate(-50%, -20px);
   }
 }
+
+@media (min-width: 768px) {
+  /*
+    PC版の角Rトークンを統一するための上書きです。
+    モバイル版（768px未満）は既存クラス値をそのまま使い、見た目を変えません。
+    デザイン指定: XS=8, S=12, M=20, L=24, XL=32, max=9999
+    既存実装でトークン外だった値のみ、PCで近いトークンへ寄せます。
+  */
+
+  /* 4px / 6px はPCではXS(8px)へ統一します。 */
+  .rounded-\[4px\],
+  .rounded-\[6px\],
+  .rounded-md {
+    border-radius: 8px;
+  }
+
+  /* 16px はPCではM(20px)へ統一します。 */
+  .rounded-\[16px\],
+  .rounded-2xl,
+  .md\:rounded-\[16px\] {
+    border-radius: 20px;
+  }
+
+  /*
+    変更理由:
+    デザイン調整により、PC版のタイポトークンサイズを以下へ更新します。
+    - Body/M: 15px -> 17px
+    - Body/S: 14px -> 16px
+    - Label/M: 15px -> 18px
+    - Label/S: 12px -> 14px
+    - Label/Eng: 16px -> 20px, 12px -> 16px
+    モバイル版は既存値を維持するため、PCブレークポイント内だけで上書きします。
+  */
+
+  /* Body/M (本文15px・行間2.0) はPCで17pxへ。 */
+  [class*="text-[15px]"][class*="leading-[2]"] {
+    font-size: 17px;
+  }
+
+  /* Body/S (本文14px・行間1.6) はPCで16pxへ。 */
+  [class*="text-[14px]"][class*="leading-[1.6]"] {
+    font-size: 16px;
+  }
+
+  /* Label/M (ラベル15px・行間1.5) はPCで18pxへ。 */
+  [class*="text-[15px]"][class*="leading-[1.5]"] {
+    font-size: 18px;
+  }
+
+  /* Label/S (ラベル12px・行間1.6) はPCで14pxへ。 */
+  [class*="text-[12px]"][class*="leading-[1.6]"] {
+    font-size: 14px;
+  }
+
+  /*
+    Label/Eng は英字専用(roboto系)として扱い、本文トークンへの影響を避けます。
+    - 16px -> 20px
+    - 12px -> 16px
+  */
+  [class*="font-roboto"][class*="text-[16px]"],
+  [class*="font-roboto"][class*="md:text-[16px]"] {
+    font-size: 20px;
+  }
+
+  [class*="font-roboto"][class*="text-[12px]"],
+  [class*="font-roboto"][class*="md:text-[12px]"] {
+    font-size: 16px;
+  }
+}

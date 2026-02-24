@@ -771,13 +771,15 @@ export default function KeyVisual() {
           className={`pointer-events-none absolute bottom-8 right-8 flex flex-col items-center text-neutral-700 transition-opacity ease-in [font-family:var(--font-roboto),'Hiragino_Kaku_Gothic_ProN',sans-serif] ${isVisible && scrollIndicatorVisible && !kvComplete ? "opacity-100 duration-1000" : "opacity-0 duration-500"}`}
           style={{ zIndex: 10 }}
         >
+          {/* Figma(1578:9939)に合わせ、PC版のみ文字サイズと配置(30x89)を揃えます。モバイルは既存の見た目を維持します。 */}
           <p
-            className="whitespace-nowrap rotate-90 text-center text-[14px] font-medium tracking-[2.1px] [text-shadow:0_0_8px_rgba(106,115,120,0.1)]"
+            className="whitespace-nowrap rotate-90 text-center text-[14px] font-medium tracking-[2.1px] [text-shadow:0_0_8px_rgba(106,115,120,0.1)] md:flex md:h-[89px] md:w-[30px] md:items-center md:justify-center md:text-[20px] md:leading-[1.5] md:tracking-[3px]"
             style={{ animation: "kv-scroll-pulse 2000ms linear infinite" }}
           >
             SCROLL
           </p>
-          <div className="relative mt-8 h-[60px] w-px overflow-hidden bg-neutral-700 drop-shadow-[0_0_8px_rgba(106,115,120,0.1)]">
+          {/* モバイル版は既存アニメーションを残し、PC版の調整影響を切り離します。 */}
+          <div className="relative mt-8 h-[60px] w-px overflow-hidden bg-neutral-700 drop-shadow-[0_0_8px_rgba(106,115,120,0.1)] md:hidden">
             <div
               className="absolute inset-0 origin-top bg-neutral-50"
               style={{
@@ -790,6 +792,11 @@ export default function KeyVisual() {
                 animation: "kv-scroll-bar-dark-fill 2000ms linear infinite",
               }}
             />
+          </div>
+          {/* PC版はFigmaのLine(100px)仕様に合わせ、固定線+流れる線(-100px→-20px→60px)を再現します。 */}
+          <div className="relative hidden h-[100px] w-[22px] overflow-hidden drop-shadow-[0_0_8px_rgba(106,115,120,0.1)] md:block">
+            <div className="absolute left-1/2 top-0 h-[100px] w-px -translate-x-1/2 bg-neutral-700" />
+            <div className="kv-scroll-indicator-line absolute left-1/2 top-0 h-[100px] w-px bg-neutral-50" />
           </div>
         </div>
         <style>{`

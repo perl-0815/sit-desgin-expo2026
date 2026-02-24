@@ -105,7 +105,7 @@ export default function ContactClient() {
 
         {/* リード文はFigma通りに左寄せし、行間を広めに設定します。 */}
         <div className="px-4 pt-6 md:px-[128px] md:pt-3">
-          <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
+          <p className="text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px]">
             卒展に関するご質問などがありましたら、こちらからご連絡をお願いします。
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function ContactClient() {
               >
                 {copyStatus === "idle" ? (
                   <>
-                    <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                    <span className="text-center text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459]">
                       {contactEmail}
                     </span>
                     <svg
@@ -161,7 +161,7 @@ export default function ContactClient() {
                   </>
                 ) : (
                   // コピー結果の文言はメール欄内に表示し、3秒後に戻します。
-                  <span className="text-center text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459]">
+                  <span className="text-center text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459]">
                     {copyStatus === "success"
                       ? "コピーしました！"
                       : "コピーに失敗しました。"}

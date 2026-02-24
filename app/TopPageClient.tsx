@@ -93,6 +93,9 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
       "2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。",
     imageSrc: "/image/event-image.png",
     imageAlt: "退職される先生の最終講義と懇親会",
+    // 変更理由: トップページの懇親会カードを押した際、イベント一覧ではなく懇親会詳細ページへ直接遷移させるためリンク先を明示します。
+    href: "/events/konsinkai",
+    ariaLabel: "退職される先生の最終講義と懇親会ページへ",
   },
 ];
 
@@ -277,40 +280,44 @@ export default function TopPageClient({
             className="pointer-events-none absolute inset-0 bg-white/80"
           />
           <div className="relative z-10">
-          {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
+          {/* 変更理由: Figma(1228:14130 / 1228:14545)では見出しがPC/SPとも20px固定のため、ブレークポイント差分をなくして一致させます。 */}
           <div className="border-b border-[#FB9678] pb-1 text-center">
-            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
+            <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
               開催情報
             </p>
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
-            <div className="flex flex-col items-center gap-4">
-              <p className="text-[20px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+            {/* 変更理由: 追加要望に合わせ、モバイルはgap-1でさらに詰め、md以上は前回調整のgap-2を維持して視認性を保ちます。 */}
+            <div className="flex flex-col items-center gap-1 md:gap-2">
+              {/* 変更理由: 日付行はFigmaでPC/SPとも本文24px・曜日16pxのため、可変サイズを廃止して固定します。 */}
+              <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                 3.07
                 <span className="text-[16px] text-[#2C68D3]">(土)</span>
                 <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
                 3.17
                 <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
-              <p className="text-[13px] font-medium text-[#404040] md:text-[15px]">
+              {/* 変更理由: 会場テキストはLabel/M(13px) + natural/500(#6A7378)指定のため、色とサイズを統一します。 */}
+              <p className="text-[13px] font-medium text-[#6A7378]">
                 芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
               <div className="w-[160px]">
-                <p className="text-[10px] text-[#737373] md:text-[13px]">
+                {/* 変更理由: ラベルはFigmaでPC/SPとも13px・#6A7378のため、モバイルのみ小さくなる指定を削除します。 */}
+                <p className="text-[13px] text-[#6A7378]">
                   開催時間
                 </p>
-                <p className="text-[20px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+                <p className="text-[24px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                   10:00 - 17:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
               <div className="w-[150px]">
-                <p className="text-[10px] text-[#737373] md:text-[13px]">
+                <p className="text-[13px] text-[#6A7378]">
                   入場料
                 </p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                <p className="text-[24px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                   無料
                 </p>
               </div>
@@ -612,7 +619,7 @@ export default function TopPageClient({
             </p>
           </div>
           {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
-          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
+          <p className="mt-4 text-[15px] leading-[2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2] md:tracking-[0.04em]">
             研究や作品をコース・研究室ごとに閲覧できます。
           </p>
           {/* 変更理由: 中央1枚だけ見せ、左右カードはフェードマスクで隠しながら右→左に1枚ずつ送る仕様へ変更します。 */}
@@ -636,7 +643,8 @@ export default function TopPageClient({
                   />
                 ))}
               </div>
-              <div className="overflow-hidden">
+              {/* 研究作品カードの下側シャドウが表示窓で切れないよう、表示窓に下余白を追加して描画領域を確保します。 */}
+              <div className="overflow-hidden pb-2">
                 <div
                   // 変更理由: モバイルカード間の指定マージンを24pxに統一し、PCと同じ基準の余白で見せ方を揃えます。
                   className="flex gap-6"
@@ -691,7 +699,8 @@ export default function TopPageClient({
             </div>
             {/* 変更理由: 画面縮小時にマスク位置と表示領域がずれないよう、PCは可変幅 + 最大幅制御にします。 */}
             <div className="relative hidden w-full max-w-[984px] md:block">
-              <div className="overflow-hidden">
+              {/* PC側も同様に、カード下シャドウの見切れを防ぐため表示窓の下余白を確保します。 */}
+              <div className="overflow-hidden pb-2">
                 <div
                   className="flex gap-6"
                   style={{
@@ -776,7 +785,7 @@ export default function TopPageClient({
             </p>
           </div>
           {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
-          <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
+          <p className="mt-4 text-[15px] leading-[2] text-[#4B5459] md:text-center md:text-[16px] md:leading-[2] md:tracking-[0.04em]">
             卒業生と直接コミュニケーションをとることができる座談会や、体験展示イベントを予定しています。
           </p>
           {/* 土日限定イベントはイベントページと同じカード構成に揃え、トップでも概要を確認できるようにします。 */}
@@ -833,7 +842,7 @@ export default function TopPageClient({
                   </p>
                 </div>
                 {/* タイトル下の本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
-                <p className="mt-4 text-[15px] leading-[2.2] text-[#4B5459] md:text-[16px] md:leading-[2.2] md:tracking-[0.04em]">
+                <p className="mt-4 text-[15px] leading-[2] text-[#4B5459] md:text-[16px] md:leading-[2] md:tracking-[0.04em]">
                   卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
                 </p>
                 {/* Figma指定に合わせ、PCのみ本文下へ12px注釈を配置して進路データの母集団差分を明示します。 */}
@@ -942,17 +951,14 @@ export default function TopPageClient({
               （Youtubeに遷移します。）
             </p>
             {/* SP/PCともに2ボタンを横並びにし、Figmaの線ボタン見た目を維持します。 */}
+            {/* 駅動画ボタンは白塗り(デフォルト)→オレンジ塗り(hover)を明確にするため、重ね白レイヤーを使わず背景色遷移のみで表現します。 */}
             <div className="mt-4 flex items-center gap-4 md:justify-center md:gap-6 md:px-12">
               <button
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#FFFFFF] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-white/80"
-                />
                 <span className="relative z-10">豊洲駅から</span>
                 <img
                   src="/icon/link.svg"
@@ -964,12 +970,8 @@ export default function TopPageClient({
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#FFFFFF] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-white/80"
-                />
                 <span className="relative z-10">越中島駅から</span>
                 <img
                   src="/icon/link.svg"
@@ -1084,23 +1086,21 @@ export default function TopPageClient({
             <button
               type="button"
               onClick={handleCloseGuideVideoModal}
-              // 作品ページの「閉じる」ボタン表現（淡いグレーの丸ピル＋マイナス）に揃えてUIの一貫性を保ちます。
-              className="mt-6 inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
+              // 変更理由: 「閉じる」の意味をより直感的に伝えるため、右側アイコンをマイナスではなく×表示に統一します。
+              className="mt-6 mx-auto flex min-w-[140px] items-center justify-center rounded-full border border-[#A3ADB2] bg-[#F9F9F9] px-8 py-3 text-[14px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#4B5459] hover:text-[#F9F9F9] md:text-[15px]"
             >
-              閉じる
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M6 12H18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <span className="inline-flex items-center justify-center gap-2">
+                閉じる
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path d="M7 7L17 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M17 7L7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </span>
             </button>
           </div>
         </div>
