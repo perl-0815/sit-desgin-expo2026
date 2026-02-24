@@ -557,7 +557,7 @@ export default function ResearchDetailClient({
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
               ) : researchSummary ? (
-                <p className="whitespace-pre-line text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+                <p className="whitespace-pre-line text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                   {researchSummary}
                 </p>
               ) : null}
@@ -633,7 +633,7 @@ export default function ResearchDetailClient({
                         </p>
                       ) : null}
                       {careerDescription ? (
-                        <p className="mt-4 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+                        <p className="mt-4 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                           {careerDescription}
                         </p>
                       ) : null}
@@ -683,7 +683,7 @@ export default function ResearchDetailClient({
                           {item.question}
                         </p>
                         {/* Q&A本文はBodyLに合わせ、サイズと行間を一段上げます。 */}
-                        <p className="mt-2 text-[15px] leading-[2.2] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
+                        <p className="mt-2 text-[15px] leading-[2] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
                           {item.answer}
                         </p>
                       </div>

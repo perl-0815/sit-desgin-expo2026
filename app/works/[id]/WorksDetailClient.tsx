@@ -484,7 +484,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                   <SkeletonBlock className="h-4 w-10/12 rounded-md" />
                 </div>
               ) : workSummary ? (
-                <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+                <p className="text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                   {workSummary}
                 </p>
               ) : null}
@@ -602,7 +602,7 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
                         </p>
                       ) : null}
                       {careerDescription ? (
-                        <p className="mt-4 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+                        <p className="mt-4 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
                           {careerDescription}
                         </p>
                       ) : null}

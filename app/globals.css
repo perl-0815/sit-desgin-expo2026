@@ -85,3 +85,26 @@ body.page-reveal-ready [data-reveal].is-visible {
     transform: translate(-50%, -20px);
   }
 }
+
+@media (min-width: 768px) {
+  /*
+    PC版の角Rトークンを統一するための上書きです。
+    モバイル版（768px未満）は既存クラス値をそのまま使い、見た目を変えません。
+    デザイン指定: XS=8, S=12, M=20, L=24, XL=32, max=9999
+    既存実装でトークン外だった値のみ、PCで近いトークンへ寄せます。
+  */
+
+  /* 4px / 6px はPCではXS(8px)へ統一します。 */
+  .rounded-\[4px\],
+  .rounded-\[6px\],
+  .rounded-md {
+    border-radius: 8px;
+  }
+
+  /* 16px はPCではM(20px)へ統一します。 */
+  .rounded-\[16px\],
+  .rounded-2xl,
+  .md\:rounded-\[16px\] {
+    border-radius: 20px;
+  }
+}

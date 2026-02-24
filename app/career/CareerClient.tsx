@@ -349,7 +349,7 @@ export default function CareerClient() {
 
       {/* リード文はFigmaの行間と字間を再現して読みやすく整えます。 */}
       <div className="px-4 pt-6 md:px-[128px] md:pt-[24px]">
-        <p className="text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
+        <p className="text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:text-[18px] md:tracking-[0.04em]">
           卒業生のほとんどは本学大学院への進学、もしくは就職をしています。就職をする学生は、多くがデザイナーやエンジニアとして活躍予定です。
         </p>
         {error ? (
@@ -537,7 +537,7 @@ export default function CareerClient() {
                   %
                 </span>
               </p>
-              <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2.2] tracking-[0.04em] text-[#4B5459] md:px-[20px] md:py-[20px] md:text-[18px] md:tracking-[0.04em]">
+              <div className="mt-2 rounded-[12px] border border-[#EBEEF0] bg-[#EBEEF0] px-3 py-3 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:px-[20px] md:py-[20px] md:text-[18px] md:tracking-[0.04em]">
                 <ul className="list-disc pl-6">
                   {category.items.map((item) => (
                     <li key={item}>{item}</li>
