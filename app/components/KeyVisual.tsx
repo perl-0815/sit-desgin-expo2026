@@ -273,6 +273,7 @@ export default function KeyVisual() {
       ticking = true;
       requestAnimationFrame(() => {
         const { offsetTop, offsetHeight, scrollable, maxScroll } = kvMetricsRef.current;
+        const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
         if (scrollable > 0) {
           const raw = (window.scrollY - offsetTop) / scrollable;
           const nextProgress = Math.min(
@@ -281,7 +282,6 @@ export default function KeyVisual() {
           );
           // 変更理由: モバイルKVは慣性スクロールで進捗が前後に揺れやすく、
           // しきい値付近でレイヤー表示が点滅しやすいため、進捗を単調増加で安定化します。
-          const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
           const stabilizedProgress = isLikelyMobileKv
             ? Math.max(progressRef.current, nextProgress)
             : nextProgress;
@@ -293,7 +293,13 @@ export default function KeyVisual() {
             setProgress(normalized);
           }
         }
-        if (!hasDispatchedCompleteRef.current && window.scrollY > maxScroll) {
+        // 変更理由: 高速フリック時の `scrollTo` 補正はモバイルで視覚的ジャンプを生みやすいため、
+        // モバイルKVでは強制補正を無効化し、自然スクロールを優先してちらつきを抑えます。
+        if (
+          !isLikelyMobileKv &&
+          !hasDispatchedCompleteRef.current &&
+          window.scrollY > maxScroll
+        ) {
           window.scrollTo(0, maxScroll);
         }
         if (
@@ -462,6 +468,7 @@ export default function KeyVisual() {
 
   useLayoutEffect(() => {
     if (isReturningSession) return;
+    const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
     if (!colorFadeCompleted) {
       maxAllowedProgressRef.current = teShownMax + 0.01;
     } else if (!teFadeCompleted) {
@@ -471,7 +478,13 @@ export default function KeyVisual() {
     }
     const { offsetTop, scrollable } = kvMetricsRef.current;
     kvMetricsRef.current.maxScroll = offsetTop + scrollable * maxAllowedProgressRef.current;
-    if (!hasDispatchedCompleteRef.current && window.scrollY > kvMetricsRef.current.maxScroll) {
+    // 変更理由: モバイルでの閾値更新時に同期スクロール補正をかけると瞬間的なチラつきが出るため、
+    // この補正もPCのみに限定します。
+    if (
+      !isLikelyMobileKv &&
+      !hasDispatchedCompleteRef.current &&
+      window.scrollY > kvMetricsRef.current.maxScroll
+    ) {
       window.scrollTo(0, kvMetricsRef.current.maxScroll);
     }
   }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax, isReturningSession]);
