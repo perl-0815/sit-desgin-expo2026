@@ -15,6 +15,7 @@ const PROGRESS_UPDATE_EPSILON = 0.003;
 const PROGRESS_ROUND_DIGITS = 3;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 const KV_LOADED_STORAGE_KEY = "keyvisual:loaded";
+const MOBILE_KV_STATIC_IMAGE_SRC = "/key-visual/kv-sp.png";
 
 // 変更理由: 再訪時の軽量モード判定を共通化し、例外時は安全側（未完了扱い）に倒します。
 const hasCompletedKeyVisualInSession = () => {
@@ -61,6 +62,7 @@ export default function KeyVisual() {
   const [finalShownProgress, setFinalShownProgress] = useState<number | null>(null);
   const [kvEverCompleted, setKvEverCompleted] = useState(false);
   const [isReturningSession, setIsReturningSession] = useState(false);
+  const [isMobileKvStaticImageReady, setIsMobileKvStaticImageReady] = useState(false);
   const [scrollIndicatorVisible, setScrollIndicatorVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasDispatchedCompleteRef = useRef(false);
@@ -744,6 +746,34 @@ export default function KeyVisual() {
       ? "/key-visual/back-vertical.webp"
       : "/key-visual/back-horizontal.webp";
   const isMobileMode = layout === "vertical";
+  const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
+  const shouldUseMobileKvStaticImage =
+    isMobileMode && kvComplete && isMobileKvStaticImageReady;
+
+  useEffect(() => {
+    // 変更理由: モバイルはアニメーション完了後に中央KVを1枚画像へ置き換える仕様のため、
+    // 置換タイミングで白抜けしないよう、先行して `kv-sp.png` を非同期先読みします。
+    if (!isMobileMode) {
+      setIsMobileKvStaticImageReady(false);
+      return;
+    }
+    let cancelled = false;
+    const image = new Image();
+    image.decoding = "async";
+    const markReady = () => {
+      if (cancelled) return;
+      setIsMobileKvStaticImageReady(true);
+    };
+    image.onload = markReady;
+    image.onerror = markReady;
+    image.src = MOBILE_KV_STATIC_IMAGE_SRC;
+    if (image.complete) {
+      markReady();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [isMobileMode]);
 
   useEffect(() => {
     if (hasDispatchedCompleteRef.current) return;
@@ -753,8 +783,6 @@ export default function KeyVisual() {
     document.body.dataset.keyvisualComplete = "1";
     window.dispatchEvent(new Event("keyvisual:complete"));
   }, [finalRevealed, whiteFadeOpacity]);
-
-  const kvComplete = kvEverCompleted || (finalRevealed && whiteFadeOpacity >= 1);
 
   useEffect(() => {
     if (isReturningSession || restoredFromStorageRef.current) {
@@ -798,6 +826,32 @@ export default function KeyVisual() {
     const kvBottom = el.offsetTop + el.offsetHeight;
     window.scrollTo(0, kvBottom + savedContentOffsetRef.current);
   }, [kvEverCompleted]);
+
+  useEffect(() => {
+    // 変更理由: 初回演出完了後はスクロール監視を停止したままにしつつ、
+    // ウィンドウ幅変更（端末回転・レスポンシブ切替）時だけはKVの縦横レイアウトを正しく追従させるため、
+    // 再訪モードでは最小限の resize 監視のみを許可します。
+    if (!isReturningSession) return;
+    const syncStaticLayoutByViewport = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isVertical = vw / vh <= 4 / 3;
+      const base = isVertical ? verticalBase : horizontalBase;
+      setLayout(isVertical ? "vertical" : "horizontal");
+      setScale(
+        isVertical
+          ? Math.min(vw / base.w, vh / base.h)
+          : Math.max(vw / base.w, vh / base.h),
+      );
+      setCoverScale(Math.max(vw / base.w, vh / base.h));
+      setLayoutReady(true);
+    };
+    syncStaticLayoutByViewport();
+    window.addEventListener("resize", syncStaticLayoutByViewport);
+    return () => {
+      window.removeEventListener("resize", syncStaticLayoutByViewport);
+    };
+  }, [isReturningSession]);
 
   return (
     <div ref={containerRef} style={{ height: kvEverCompleted ? "100vh" : `${scrollPages * 100}vh`, overflowAnchor: "none" as const }}>
@@ -863,7 +917,23 @@ export default function KeyVisual() {
             className="absolute inset-0 h-full w-full bg-repeat"
             style={{ zIndex: -100 }}
           />
-          {layers.map((l) => {
+          {shouldUseMobileKvStaticImage ? (
+            <img
+              key={MOBILE_KV_STATIC_IMAGE_SRC}
+              src={MOBILE_KV_STATIC_IMAGE_SRC}
+              alt=""
+              aria-hidden="true"
+              width={base.w}
+              height={base.h}
+              decoding="async"
+              loading="eager"
+              draggable={false}
+              // 変更理由: ユーザー要望に合わせ、モバイルKVの完了後は中央の複数レイヤー描画を停止し、
+              // `kv-sp.png` 1枚へ置換してGPU負荷と描画揺れを抑えます。
+              // 背景側の隙間埋め描画は上段レイヤーを残しているため、従来どおり維持されます。
+              className="absolute left-0 top-0 block h-full w-full select-none"
+            />
+          ) : layers.map((l) => {
             const isColor = l.src.includes("-color");
             const isCenterText = l.src === "/key-visual/center-text.svg";
             const isCenterCircle = l.src === "/key-visual/center-circle.svg";
