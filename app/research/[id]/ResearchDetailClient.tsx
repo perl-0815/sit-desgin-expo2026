@@ -627,7 +627,7 @@ export default function ResearchDetailClient({
                           {careerIndustry}
                         </p>
                       ) : null}
-                      {careerCategory ? (
+                      {careerCategory && careerCategory !== "就職" ? (
                         <p className="mt-1 text-[13px] font-medium text-[#6A7378] md:text-[15px]">
                           {careerCategory}
                         </p>

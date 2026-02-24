@@ -78,7 +78,7 @@ const scheduleDays: ScheduleDay[] = [
     dateMain: "3月8日",
     weekdayLabel: "(日)",
     weekdayColor: "sun",
-    location: "本部棟7階 オープンラボ",
+    location: "本部棟6階 オープンラボ",
     slots: [
       {
         id: "0308-1",
@@ -317,7 +317,7 @@ export default function FarewellLectureClient() {
           </div>
         </section>
 
-        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-14">
+        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-12">
           {/* 見出し両端の罫線を疑似要素ではなく要素で構成し、SP/PCの見た目差分を安定させます。 */}
           <div className="flex items-center gap-6">
             <span className="h-px flex-1 bg-[#EBEEF0]" />
@@ -343,12 +343,10 @@ export default function FarewellLectureClient() {
             ))}
           </div>
 
-          <p className="mt-6 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:mt-9 md:text-[18px]">
+          <p className="my-6 text-[15px] leading-[2] tracking-[0.04em] text-[#4B5459] md:my-9 md:text-[18px]">
             大学生活への不安や勉強のコツなど、どんなに些細なことでも構いません。卒展開催に合わせたこの機会にぜひ、リアルな声を聴きに来てください！
           </p>
-        </section>
 
-        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-[48px]">
           {/* 最新Figmaでは注意事項が予約見出しより前に配置されているため、順序を先に移動します。 */}
           <article className="rounded-[12px] border border-[#EBEEF0] bg-white/80 p-3 md:rounded-[20px] md:p-5">
             <div className="flex items-center gap-2">
@@ -373,16 +371,19 @@ export default function FarewellLectureClient() {
               </li>
             </ul>
           </article>
+        </section>
 
+        <section data-reveal className="mx-auto w-full px-4 pb-8 md:max-w-[1280px] md:px-[128px] md:pb-[48px]">
+          
           {/* 変更理由: 予約見出し下線はFigma準拠でブランドカラーの1pxラインに統一します。 */}
-          <div className="mt-6 border-b border-[#D3793D] pb-2 md:mt-8">
+          <div className="border-b border-[#D3793D] pb-2">
             <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
               参加予約・スケジュール
             </h2>
           </div>
 
           <div className="mt-2 space-y-0.5 text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378] md:mt-3 md:text-[14px] md:leading-[1.6]">
-            <p>参加をご希望される方は時間を選び・項目を確認の上で、ご予約をお願いします。（Google Formsに遷移します。）</p>
+            <p>参加をご希望される方は時間を選び・項目を確認の上で、ご予約をお願いします。（Googleフォームに遷移します。）</p>
             <p>日にちによって会場や開催時間が異なりますのでご注意ください。</p>
           </div>
 
@@ -497,7 +498,7 @@ function ScheduleCard({
     <article className="rounded-[16px] bg-white/80 p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:rounded-[16px] md:p-6">
       <div className="flex items-center justify-between border-b border-[#EBEEF0] pb-1">
         {/* 変更理由: 予約枠の開始時刻・終了時刻はFigma指定（Body/XL）に統一するため、Noto Sans JP 16px/500/220%/0.64px/#4B5459へ変更。 */}
-        <p className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#4B5459] [font-family:'Noto_Sans_JP',var(--font-noto-sans-jp),sans-serif]">
+        <p className="text-[30px] font-bold leading-[2.2] tracking-[0.64px] text-[#404040] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
           {slot.start} - {slot.end}
         </p>
         <div className="text-right">
@@ -507,12 +508,12 @@ function ScheduleCard({
 
       <div className="mt-6 grid grid-cols-2 gap-4 md:mt-9">
         <div>
-          <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">受付開始</p>
-          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[15px]">{derived.receptionStart}</p>
+          <p className="text-[10px] leading-[1.5] text-[#737373] md:text-[12px]">受付開始</p>
+          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[24px]">{derived.receptionStart}</p>
         </div>
         <div>
           <p className="text-[10px] leading-[1.5] text-[#6A7378] md:text-[12px]">開始</p>
-          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[15px]">{slot.start}</p>
+          <p className="text-[13px] font-medium leading-[1.5] text-[#4B5459] md:text-[24px]">{slot.start}</p>
         </div>
       </div>
 

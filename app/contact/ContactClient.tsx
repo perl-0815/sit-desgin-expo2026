@@ -81,9 +81,10 @@ export default function ContactClient() {
   };
 
   return (
-    // フッターが下端に揃うように、ページ全体の最小高さを確保します。
-    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    <div className="min-h-screen bg-[#F9F9F9]">
+      {/* フッターが下端に揃うように、ページ全体の最小高さを確保します。 */}
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col bg-neutral-50 md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="contact" />
@@ -230,8 +231,9 @@ export default function ContactClient() {
           </section>
         </div>
       </div>
-
+      </div>
       <Footer />
     </div>
+
   );
 }

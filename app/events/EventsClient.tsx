@@ -30,12 +30,14 @@ const reservedEvents: ReservedEvent[] = [
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },
   {
-    id: "farewell-lecture",
+    id: "konsinkai",
     title: "退職される先生の最終講義と懇親会",
     description:
       "2025年度をもって芝浦工業大学を退職される、島田明先生・吉武良治先生の最終講義および懇親会を実施します。",
     imageSrc: "/image/event-image.png",
     imageAlt: "退職される先生の最終講義と懇親会",
+    href: "/events/konsinkai",
+    ariaLabel: "退職される先生の最終講義と懇親会ページへ",
   },
 ]
 
@@ -51,7 +53,7 @@ export default function EventsClient() {
       <main className="pb-12 pt-[92px] md:pb-0 md:pt-[144px]">
         <section
           data-reveal
-          className="mx-auto w-full max-w-[1280px] px-4 py-6 md:px-[128px] md:py-9"
+          className="mx-auto w-full px-4 py-6 md:px-[128px] md:py-9"
         >
           {/* 変更理由: Figmaの見出し仕様に合わせ、イベントラベルを固定表示します。 */}
           <div className="flex items-center gap-[10px]">
@@ -64,7 +66,7 @@ export default function EventsClient() {
 
         <section
           data-reveal
-          className="mx-auto w-full max-w-[1280px] px-4 pb-12 pt-0 md:px-[128px] md:pb-[128px] md:pt-0"
+          className="mx-auto w-full px-4 pb-12 pt-0 md:px-[128px] md:pb-[128px] md:pt-0"
         >
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-9">
             {reservedEvents.map((event) => (
@@ -81,7 +83,7 @@ export default function EventsClient() {
 
 function EventCard({ event }: { event: ReservedEvent }) {
   const cardContent = (
-    <article className="flex h-full flex-col gap-3 rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
+    <article className="group flex h-full flex-col gap-3 rounded-[12px] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
       <img
         src={event.imageSrc}
         alt={event.imageAlt}
@@ -89,7 +91,7 @@ function EventCard({ event }: { event: ReservedEvent }) {
       />
 
       <div className="flex flex-col gap-1 md:gap-2">
-        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
           {event.title}
         </h2>
         {/* 説明文はFigmaどおり2行で打ち切り、カード高さの揺れを抑えて整列を維持します。 */}

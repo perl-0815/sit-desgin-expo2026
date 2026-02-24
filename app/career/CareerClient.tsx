@@ -183,13 +183,17 @@ export default function CareerClient() {
   }, [])
 
   const careerStats = useMemo(() => {
-    // 非公開を除外したデータで進路別の割合を算出します。
-    const total = careers.length
+    const filtered = careers.filter((career) => {
+      if (includeGraduate) return true
+      const studentNo = normalizeText(career.student?.student_no)
+      return !studentNo.startsWith("cy20")
+    })
+    const total = filtered.length
     let gradCount = 0
     let jobCount = 0
     let otherCount = 0
 
-    careers.forEach((career) => {
+    filtered.forEach((career) => {
       const category = normalizeText(career.category)
       if (category.includes("大学院")) {
         gradCount += 1
@@ -212,7 +216,7 @@ export default function CareerClient() {
       jobPercent: toPercent(jobCount),
       otherPercent: toPercent(otherCount),
     }
-  }, [careers])
+  }, [careers, includeGraduate])
 
   const jobCategories = useMemo((): JobCategory[] => {
     // 就職者のみを抽出し、カテゴリごとの割合と主要就職先をまとめます。
@@ -264,9 +268,13 @@ export default function CareerClient() {
   }, [careers, includeGraduate])
 
   const jobDecisionReasons = useMemo((): ReasonCard[] => {
-    // 就職者の「決め手」は decision_reason から取得し、対応する職種・業界ラベルを付与します。
     const reasons = careers
-      .filter((career) => normalizeText(career.category).includes("就職"))
+      .filter((career) => {
+        if (!normalizeText(career.category).includes("就職")) return false
+        if (includeGraduate) return true
+        const studentNo = normalizeText(career.student?.student_no)
+        return !studentNo.startsWith("cy20")
+      })
       .map((career) => ({
         text: normalizeText(career.decision_reason),
         labels: buildJobLabels(career),
@@ -285,7 +293,7 @@ export default function CareerClient() {
     })
 
     return results
-  }, [careers])
+  }, [careers, includeGraduate])
 
   const gradReasons = useMemo((): GradReasonCard[] => {
     // 大学院進学の理由は extra_notes を優先し、なければ decision_reason を補助に使います。

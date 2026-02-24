@@ -49,6 +49,7 @@ const exhibitionDecorationRightUrl = "/image/decoration/top-decoration2.svg";
 // 研究・作品紹介セクションで使う装飾も同様に `decoration` 配下へ移動済みです。
 const worksDecorationPrimaryUrl = "/image/decoration/top-decoration4.svg";
 const worksDecorationSecondaryUrl = "/image/decoration/top-decoration3.svg";
+const exhibitionInfoDecorationRightUrl = "/image/decoration/top-decoration5.svg";
 // チケット画像は開催ステータス（開催前/開催中/開催終了）ごとに切り替えます。
 // 画像差し替えだけで見た目を更新できるよう、パスを状態別にまとめます。
 // 命名規則は `to-ticket-<status>-<device>.svg` に統一して管理します。
@@ -249,7 +250,7 @@ export default function TopPageClient({
   return (
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9] md:max-w-[1280px]">
+    <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="top" hidden={!kvComplete} />
@@ -257,9 +258,25 @@ export default function TopPageClient({
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
         data-reveal
-        className="px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
+        className="relative px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
       >
-        <div className="mx-auto rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:max-w-[1024px] md:p-9">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#F9F9F9] to-[#FAFAFA]"
+        />
+        <div className="pointer-events-none absolute -right-50 top-0 -z-1 hidden h-[527px] w-[677px] overflow-hidden md:block">
+          <img
+              alt=""
+              src={exhibitionInfoDecorationRightUrl}
+              className="block h-full w-full"
+            />
+        </div>
+        <div className="relative mx-auto overflow-hidden rounded-[24px] bg-[#F9F9F9] p-6 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:max-w-[1024px] md:p-9">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-white/80"
+          />
+          <div className="relative z-10">
           {/* モバイル・デスクトップともに見出しを中央寄せにして視線が散らないようにします。 */}
           <div className="border-b border-[#FB9678] pb-1 text-center">
             <p className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] md:tracking-[0.04em]">
@@ -268,29 +285,29 @@ export default function TopPageClient({
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
             <div className="flex flex-col items-center gap-4">
-              <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
+              <p className="text-[20px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[32px]">
                 3.07
                 <span className="text-[16px] text-[#2C68D3]">(土)</span>
                 <span className="mx-1 text-[24px] text-[#A3ADB2]">-</span>
                 3.17
                 <span className="text-[16px] text-[#6A7378]">(火)</span>
               </p>
-              <p className="text-[13px] font-medium text-[#6A7378] md:text-[15px]">
+              <p className="text-[13px] font-medium text-[#404040] md:text-[15px]">
                 芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
             <div className="flex items-center gap-4 text-center">
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+              <div className="w-[160px]">
+                <p className="text-[10px] text-[#737373] md:text-[13px]">
                   開催時間
                 </p>
-                <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
+                <p className="text-[20px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                   10:00 - 17:00
                 </p>
               </div>
               <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
-              <div className="w-[124px]">
-                <p className="text-[10px] text-[#9BA3A7] md:text-[12px]">
+              <div className="w-[150px]">
+                <p className="text-[10px] text-[#737373] md:text-[13px]">
                   入場料
                 </p>
                 <p className="text-[16px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
@@ -353,6 +370,7 @@ export default function TopPageClient({
               ) : null}
             </div>
           </div>
+          </div>
         </div>
       </section>
 
@@ -360,12 +378,12 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative bg-linear-to-b from-[#F9F9F9] to-[#EBEEF0] px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景色はセクション幅ではなくビューポート幅いっぱいに広げ、Figmaのフルブリード背景を再現します。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#EBEEF0]"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#fafafa] to-[#f5f5f5]"
         />
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
@@ -484,13 +502,13 @@ export default function TopPageClient({
 
           {/* 変更理由: コンセプト本文はFigma文言へ差し替え、PCではBody/XL 24px・白80%・強調語のフォント差を再現します。 */}
           <div className="hidden w-full px-[128px] text-center md:block">
-            <div className="text-[24px] font-medium leading-[2.2] tracking-[0.96px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
+            <div className="text-[24px] font-normal leading-[2.2] tracking-[0.96px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
               <p className="mb-0">
                 学びを深め、社会と向き合い、
               </p>
               <p className="mb-0">
                 <span>自分なりの</span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-[1.5]">
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を積み重ねてきた僕ら。</span>
@@ -499,18 +517,18 @@ export default function TopPageClient({
               <p className="mb-0">あらゆるものが交わるこの場所で、</p>
               <p className="mb-0">
                 <span>あなたはどんな</span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-bold leading-[1.5]">
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を見つけられるだろうか。</span>
               </p>
               <p className="mb-0 text-[24px]">&nbsp;</p>
-              <p>
-                <span className="text-[16px] tracking-[0.64px]">あなたにとっての </span>
-                <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] text-[32px] font-bold leading-[1.5]">
+              <p className="mb-0 text-[24px] text-center">
+                <span className="tracking-[0.64px]">あなたにとっての </span>
+                <span className="text-[28px] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] font-semibold leading-[1.5]">
                   「接点」
                 </span>
-                <span className="text-[16px] tracking-[0.64px]"> が、きっとここにある。</span>
+                <span className="tracking-[0.64px]"> が、きっとここにある。</span>
               </p>
             </div>
           </div>
@@ -898,9 +916,9 @@ export default function TopPageClient({
                 土日
               </p>
               <p className="mt-1 text-[13px] leading-[1.9] tracking-[0.02em] text-[#4B5459] md:text-center">
-                平日の研究展示に加え、本部棟5階オープンラボにて体験展示を開催します。
+                平日の研究展示に加え、各種イベントを実施します。
                 <br className="hidden md:block" />
-                体験展示の詳細は
+                実施するイベントの詳細は
                 <Link href="/events" className="text-[#D3793D] underline">
                   こちら
                 </Link>
@@ -929,26 +947,34 @@ export default function TopPageClient({
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                豊洲駅から
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-white/80"
+                />
+                <span className="relative z-10">豊洲駅から</span>
                 <img
                   src="/icon/link.svg"
                   alt=""
-                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
               </button>
               <button
                 type="button"
                 onClick={handleGuideVideoClick}
                 // 枠線ボタンはFigma仕様に合わせ、300msのイースイン・イースアウトで塗りと文字色を反転します。
-                className="group flex flex-1 items-center justify-center gap-2 rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
+                className="group relative flex flex-1 items-center justify-center gap-2 overflow-hidden rounded-full border border-[#FB9678] bg-[#F9F9F9] px-6 py-4 text-[13px] font-medium text-[#4B5459] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background-color,color,border-color] duration-300 ease-in-out hover:bg-[#D3793D] hover:text-[#F9F9F9] md:max-w-[352px]"
               >
-                越中島駅から
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-white/80"
+                />
+                <span className="relative z-10">越中島駅から</span>
                 <img
                   src="/icon/link.svg"
                   alt=""
-                  className="h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
+                  className="relative z-10 h-4 w-4 transition-[filter] duration-300 ease-in-out group-hover:brightness-0 group-hover:invert"
                 />
               </button>
             </div>
@@ -1085,14 +1111,14 @@ export default function TopPageClient({
 
 function TopWeekendLimitedEventCard({ event }: { event: WeekendLimitedEvent }) {
   const cardContent = (
-    <article className="flex h-full flex-col gap-3 rounded-[12px] border border-[#EBEEF0] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
+    <article className="group flex h-full flex-col gap-3 rounded-[12px] border border-[#EBEEF0] bg-white/80 p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:gap-5 md:rounded-[20px] md:p-6">
       <img
         src={event.imageSrc}
         alt={event.imageAlt}
         className="aspect-[1920/1080] w-full rounded-[8px] object-cover md:rounded-[12px]"
       />
       <div className="flex flex-col gap-1 md:gap-2">
-        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
+        <h2 className="text-[20px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
           {event.title}
         </h2>
         {/* 本文は2行で打ち切り、カード間の高さ差を抑えて整列を維持します。 */}
