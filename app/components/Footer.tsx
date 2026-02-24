@@ -17,8 +17,9 @@ export default function Footer({ className }: FooterProps) {
     // フッターを常に下端に寄せるため、親がflex-colの場合に効くmt-autoを付与します。
     <footer className={`${className ?? ""} mt-auto`.trim()}>
       {/* トップページの指示に合わせ、フッターの角丸は外してフラットな形状にします。 */}
-      {/* どのページのコンテナ内でもウィンドウ幅いっぱいに広がるよう調整します。 */}
-      <div className="relative left-1/2 right-1/2 w-screen -mx-[50vw] overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-0 py-12 text-center text-white md:px-4">
+      {/* 変更理由: `w-screen(100vw)` はデスクトップでスクロールバー幅を含んでしまい、 */}
+      {/* 右側に数pxの横はみ出しを起こすため、通常フローの `w-full` に統一します。 */}
+      <div className="relative w-full overflow-hidden bg-gradient-to-br from-[#FB9678] to-[#E5A967] px-0 py-12 text-center text-white md:px-4">
         {/* 背景グラデーションの上にテクスチャ画像を重ね、Figmaの質感を再現します。 */}
         <div
           aria-hidden="true"

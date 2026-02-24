@@ -139,6 +139,16 @@ export default function CareerClient() {
   const [careers, setCareers] = useState<Career[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 変更理由: 読み込み完了後に割合をカウントアップ表示するため、表示用の進捗値を別stateで管理します。
+  const [animatedSummaryPercent, setAnimatedSummaryPercent] = useState({
+    grad: 0,
+    job: 0,
+    other: 0,
+  })
+  // 変更理由: 「主な就職先」カテゴリごとの割合も同じタイミングで増加表示するため、タイトルをキーに保持します。
+  const [animatedJobCategoryPercent, setAnimatedJobCategoryPercent] = useState<
+    Record<string, number>
+  >({})
   // 主な就職先のフィルタ: 大学院生（cy20XXX）を含めるかどうかを切り替えます。
   const [includeGraduate, setIncludeGraduate] = useState(true)
   // 「もっと見る」制御: 就職先の決め手/大学院進学の理由で5件超えた場合に展開します。
@@ -266,6 +276,81 @@ export default function CareerClient() {
 
     return categories
   }, [careers, includeGraduate])
+
+  useEffect(() => {
+    let rafId = 0
+
+    // 変更理由: ローディング中はスケルトン表示のため、カウントアップ表示値を0に戻して表示の一貫性を保ちます。
+    if (loading) {
+      rafId = window.requestAnimationFrame(() => {
+        setAnimatedSummaryPercent({ grad: 0, job: 0, other: 0 })
+        setAnimatedJobCategoryPercent({})
+      })
+      return () => {
+        window.cancelAnimationFrame(rafId)
+      }
+    }
+
+    // 変更理由: OSで視差軽減が有効な環境では即時反映とし、不要なアニメーションを抑制します。
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      rafId = window.requestAnimationFrame(() => {
+        setAnimatedSummaryPercent({
+          grad: careerStats.gradPercent,
+          job: careerStats.jobPercent,
+          other: careerStats.otherPercent,
+        })
+        setAnimatedJobCategoryPercent(
+          Object.fromEntries(
+            jobCategories.map((category) => [category.title, category.percentage]),
+          ),
+        )
+      })
+      return () => {
+        window.cancelAnimationFrame(rafId)
+      }
+    }
+
+    const durationMs = 900
+    const startAt = performance.now()
+
+    const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
+
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - startAt) / durationMs)
+      const eased = easeOutCubic(progress)
+
+      setAnimatedSummaryPercent({
+        grad: careerStats.gradPercent * eased,
+        job: careerStats.jobPercent * eased,
+        other: careerStats.otherPercent * eased,
+      })
+
+      setAnimatedJobCategoryPercent(
+        Object.fromEntries(
+          jobCategories.map((category) => [
+            category.title,
+            category.percentage * eased,
+          ]),
+        ),
+      )
+
+      if (progress < 1) {
+        rafId = window.requestAnimationFrame(tick)
+      }
+    }
+
+    rafId = window.requestAnimationFrame(tick)
+
+    return () => {
+      window.cancelAnimationFrame(rafId)
+    }
+  }, [
+    loading,
+    careerStats.gradPercent,
+    careerStats.jobPercent,
+    careerStats.otherPercent,
+    jobCategories,
+  ])
 
   const jobDecisionReasons = useMemo((): ReasonCard[] => {
     const reasons = careers
@@ -418,7 +503,7 @@ export default function CareerClient() {
                   (本学大学院：{careerStats.gradCount}名)
                 </p>
                 <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  {careerStats.gradPercent.toFixed(1)}
+                  {animatedSummaryPercent.grad.toFixed(1)}
                   <span className="text-[16px] font-bold text-[#6A7378]">%</span>
                 </p>
               </article>
@@ -430,14 +515,14 @@ export default function CareerClient() {
                   ({careerStats.jobCount}名)
                 </p>
                 <p className="text-[48px] font-extrabold leading-[1.5] tracking-[0.02em] text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
-                  {careerStats.jobPercent.toFixed(1)}
+                  {animatedSummaryPercent.job.toFixed(1)}
                   <span className="text-[16px] font-bold text-[#6A7378]">%</span>
                 </p>
               </article>
             </div>
             <div className="mt-3 rounded-[8px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] py-3 md:mt-5 md:rounded-[12px] md:py-5">
               <p className="text-center text-[12px] leading-[1.6] tracking-[0.02em] text-[#4B5459] md:text-[16px]">
-                未定({careerStats.otherCount}名)：{careerStats.otherPercent.toFixed(1)}%
+                未定({careerStats.otherCount}名)：{animatedSummaryPercent.other.toFixed(1)}%
               </p>
             </div>
             <p className="mt-4 text-[12px] leading-[1.6] tracking-[0.02em] text-[#6A7378] md:mt-5 md:text-[16px]">
@@ -455,9 +540,9 @@ export default function CareerClient() {
                 </div>
               ) : (
                 <CareerPieChart
-                  gradPercent={careerStats.gradPercent}
-                  jobPercent={careerStats.jobPercent}
-                  otherPercent={careerStats.otherPercent}
+                  gradPercent={animatedSummaryPercent.grad}
+                  jobPercent={animatedSummaryPercent.job}
+                  otherPercent={animatedSummaryPercent.other}
                   total={careerStats.total}
                 />
               )}
@@ -531,7 +616,7 @@ export default function CareerClient() {
               <p className="text-[16px] font-medium text-[#2E3437] md:text-[20px]">
                 <span className="leading-[1.5]">{category.title}　</span>
                 <span className="text-[24px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
-                  {category.percentage.toFixed(1)}
+                  {(animatedJobCategoryPercent[category.title] ?? 0).toFixed(1)}
                 </span>
                 <span className="text-[16px] font-bold text-[#D3793D] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[20px]">
                   %
@@ -799,7 +884,8 @@ export default function CareerClient() {
       </section>
 
       {/* フッターはトップページ・研究ページと同じ横幅(1280px)で中央揃えにします。 */}
-      <div className="mt-16 px-4 md:mt-[48px] md:px-0">
+      {/* 変更理由: モバイルでフッター左右に余白が出ないよう、外側ラッパーの横paddingを0にします。 */}
+      <div className="mt-16 px-0 md:mt-[48px] md:px-0">
         <div className="mx-auto w-full md:max-w-[1280px]">
           <Footer className="w-full" />
         </div>

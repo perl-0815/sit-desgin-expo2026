@@ -1055,7 +1055,8 @@ export default function ResearchWorksClient() {
 
       {/* フッターは他ページでも使えるよう共通コンポーネントとして読み込みます。 */}
       {/* フッターはデスクトップで横幅1280pxに揃えて中央配置します。 */}
-      <div className="mt-16 px-4 md:mt-[48px] md:px-0">
+      {/* 変更理由: モバイルでフッター左右に余白が出ないよう、外側ラッパーの横paddingを0にします。 */}
+      <div className="mt-16 px-0 md:mt-[48px] md:px-0">
         <div className="mx-auto w-full md:max-w-[1280px]">
           <Footer className="w-full" />
         </div>
