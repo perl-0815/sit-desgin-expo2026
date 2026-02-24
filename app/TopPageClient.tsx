@@ -261,11 +261,15 @@ export default function TopPageClient({
       {/* 開催情報カードはFigmaの角丸・影・配色をそのまま移植します。 */}
       <section
         data-reveal
-        className="relative px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
+        // 変更理由: 右側の装飾を意図的に親外へ配置しているため、横方向だけはセクション内でクリップし、
+        // ルート要素の `overflow-x: hidden` に依存せず横スクロール発生を防ぎます。
+        className="relative overflow-x-clip px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#F9F9F9] to-[#FAFAFA]"
+          // 変更理由: `100vw` はスクロールバー幅を含んで横はみ出しの原因になるため、
+          // 動的ビューポート幅基準の `100dvw` を使ってデスクトップの横スクロール発生を抑制します。
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2 bg-linear-to-b from-[#F9F9F9] to-[#FAFAFA]"
         />
         <div className="pointer-events-none absolute -right-50 top-0 -z-1 hidden h-[527px] w-[677px] overflow-hidden md:block">
           <img
@@ -302,22 +306,27 @@ export default function TopPageClient({
                 芝浦工業大学 豊洲キャンパス 交流プラザ
               </p>
             </div>
-            <div className="flex items-center gap-4 text-center">
-              <div className="w-[160px]">
+            {/* 変更理由: モバイルの狭い端末では固定幅(160px+150px+gap)が親幅を超えやすく、 */}
+            {/* 「開催時間」の数値が潰れて見切れるため、SPは可変2カラム・PCは従来固定幅にします。 */}
+            <div className="flex w-full max-w-[360px] items-center gap-2 text-center md:gap-4">
+              {/* 変更理由: 「開催時間」は文字量が多く中央線へ干渉しやすいため、SPでは左カラムを広めに配分します。 */}
+              <div className="min-w-0 basis-[58%] px-1 md:w-[160px] md:basis-auto md:flex-none md:px-0">
                 {/* 変更理由: ラベルはFigmaでPC/SPとも13px・#6A7378のため、モバイルのみ小さくなる指定を削除します。 */}
                 <p className="text-[13px] text-[#6A7378]">
                   開催時間
                 </p>
-                <p className="text-[24px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                {/* 変更理由: 端末幅が狭いときだけ自動で縮小し、埋もれを防ぎつつ通常端末では24px表示を維持します。 */}
+                {/* 変更理由: 中央線にぶつかりそうな端末では最小14pxまで縮小し、線との重なりを防ぎます。 */}
+                <p className="whitespace-nowrap text-[clamp(14px,6.4vw,24px)] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                   10:00 - 17:00
                 </p>
               </div>
-              <div className="h-[31.5px] w-px bg-[#DDE1E4]" />
-              <div className="w-[150px]">
+              <div className="h-[31.5px] w-px shrink-0 bg-[#DDE1E4]" />
+              <div className="min-w-0 basis-[42%] px-1 md:w-[150px] md:basis-auto md:flex-none md:px-0">
                 <p className="text-[13px] text-[#6A7378]">
                   入場料
                 </p>
-                <p className="text-[24px] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
+                <p className="whitespace-nowrap text-[clamp(16px,6vw,24px)] font-extrabold text-[#4B5459] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
                   無料
                 </p>
               </div>
@@ -385,12 +394,12 @@ export default function TopPageClient({
       {/* モバイルで各セクションの下余白を広げて読みやすさを確保します（下方向のみ増やす）。 */}
       <section
         data-reveal
-        className="relative px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
+        className="relative overflow-x-clip px-4 pb-20 pt-12 md:px-8 lg:px-[128px] md:py-[96px]"
       >
         {/* 背景色はセクション幅ではなくビューポート幅いっぱいに広げ、Figmaのフルブリード背景を再現します。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-linear-to-b from-[#fafafa] to-[#f5f5f5]"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2 bg-linear-to-b from-[#fafafa] to-[#f5f5f5]"
         />
         {/* 左上装飾は一枚SVGに置き換え、Figmaの配置と見た目を固定化します。 */}
         <div className="pointer-events-none absolute left-0 top-0 hidden h-[389px] w-[550px] overflow-hidden md:block">
@@ -453,25 +462,27 @@ export default function TopPageClient({
           </div>
 
           {/* 変更理由: SP本文はBody/XL(16px)の改行構成に合わせ、PCと異なる行分割を維持します。 */}
-          <div className="px-4 pt-4 md:hidden">
-            <div className="text-center text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#6A7378] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">芝浦工業大学デザイン工学部の学生による、</p>
-              <p className="mb-0">それぞれの研究を展示する場です。</p>
+          <div className="pt-4 md:hidden">
+            {/* 変更理由: セクション側の余白に加えて本文にも横余白を入れると有効幅が狭くなり、端末によって意図しない折り返しが発生するため、 */}
+            {/* 本文ボックスは中央寄せ+十分な幅にして、デザイン指定の改行位置を維持しやすくします。 */}
+            <div className="mx-auto w-full max-w-[360px] text-center text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[#6A7378] [font-family:'Noto_Sans_JP',sans-serif]">
+              <p className="mb-0 whitespace-nowrap">芝浦工業大学デザイン工学部の学生による、</p>
+              <p className="mb-0 whitespace-nowrap">それぞれの研究を展示する場です。</p>
               <p className="mb-0 text-[16px]">&nbsp;</p>
-              <p className="mb-0">ここには、プロダクト・システム・UXなど、</p>
-              <p className="mb-0">
+              <p className="mb-0 whitespace-nowrap">ここには、プロダクト・システム・UXなど、</p>
+              <p className="mb-0 whitespace-nowrap">
                 デザイン工学という広い領域における
               </p>
-              <p className="mb-0">多様な研究が集まります。</p>
+              <p className="mb-0 whitespace-nowrap">多様な研究が集まります。</p>
               <p className="mb-0 text-[16px]">&nbsp;</p>
-              <p className="mb-0">具体的な物として展示されるものもあれば、</p>
-              <p className="mb-0">形のないシステムやアプリの提案、</p>
-              <p className="mb-0">あるいは思考や概念など、</p>
-              <p className="mb-0">さまざまな研究があります。</p>
+              <p className="mb-0 whitespace-nowrap">具体的な物として展示されるものもあれば、</p>
+              <p className="mb-0 whitespace-nowrap">形のないシステムやアプリの提案、</p>
+              <p className="mb-0 whitespace-nowrap">あるいは思考や概念など、</p>
+              <p className="mb-0 whitespace-nowrap">さまざまな研究があります。</p>
               <p className="mb-0 text-[16px]">&nbsp;</p>
-              <p className="mb-0">学生一人ひとりが積み上げてきた</p>
-              <p className="mb-0">探求の軌跡を、</p>
-              <p>
+              <p className="mb-0 whitespace-nowrap">学生一人ひとりが積み上げてきた</p>
+              <p className="mb-0 whitespace-nowrap">探求の軌跡を、</p>
+              <p className="whitespace-nowrap">
                 ありのままに展示する空間です。
               </p>
             </div>
@@ -484,11 +495,11 @@ export default function TopPageClient({
       <section
         data-reveal
         // Figmaノード(PC:1228:14205=923px / SP:1228:14602=638px)に合わせてCONCEPTセクション高を固定します。
-        className="relative isolate mt-0 h-[638px] px-4 py-12 md:mt-0 md:h-[923px] md:px-8 lg:px-[128px] md:py-[128px]"
+        className="relative isolate mt-0 h-[638px] overflow-x-clip px-4 py-12 md:mt-0 md:h-[923px] md:px-8 lg:px-[128px] md:py-[128px]"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2"
         >
           {/* 背景画像はウィンドウ幅いっぱいへ広げ、中央トリミングでFigmaの見え方を維持します。 */}
           <img
@@ -542,39 +553,40 @@ export default function TopPageClient({
 
           {/* 変更理由: SP本文は16pxベースにしつつ、“カタチ”と「接点」をDisplay/Mへ切り替えます。 */}
           <div className="w-full text-center md:hidden">
-            <div className="text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
-              <p className="mb-0">
+            {/* 変更理由: 端末幅差で意図しない位置に折り返さないよう、本文表示幅を中央寄せのmax幅に固定し、行内折り返しを抑制します。 */}
+            <div className="mx-auto w-full max-w-[360px] text-[16px] font-medium leading-[2.2] tracking-[0.64px] text-[rgba(255,255,255,0.8)] [font-family:'Noto_Sans_JP',sans-serif]">
+              <p className="mb-0 whitespace-nowrap">
                 学びを深め、社会と向き合い、
               </p>
-              <p className="mb-0">
+              <p className="mb-0 whitespace-nowrap">
                 <span>自分なりの</span>
                 <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] text-[24px] font-bold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を</span>
               </p>
-              <p className="mb-0">
+              <p className="mb-0 whitespace-nowrap">
                 積み重ねてきた僕ら。
               </p>
               <p className="mb-0 text-[16px]">&nbsp;</p>
-              <p className="mb-0">あらゆるものが交わるこの場所で、</p>
-              <p className="mb-0">
+              <p className="mb-0 whitespace-nowrap">あらゆるものが交わるこの場所で、</p>
+              <p className="mb-0 whitespace-nowrap">
                 <span>あなたはどんな</span>
                 <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] text-[24px] font-bold leading-[1.5]">
                   “カタチ”
                 </span>
                 <span>を</span>
               </p>
-              <p className="mb-0">見つけられるだろうか。</p>
+              <p className="mb-0 whitespace-nowrap">見つけられるだろうか。</p>
               <p className="mb-0 text-[16px]">&nbsp;</p>
-              <p className="mb-0">
+              <p className="mb-0 whitespace-nowrap">
                 <span>あなたにとっての </span>
                 <span className="[font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] text-[24px] font-bold leading-[1.5]">
                   「接点」
                 </span>
                 <span> が、</span>
               </p>
-              <p>
+              <p className="whitespace-nowrap">
                 きっとここにある。
               </p>
             </div>
@@ -626,7 +638,7 @@ export default function TopPageClient({
           <div className="mt-6 flex justify-center md:mt-8">
             {/* モバイルはカード幅304px・高さ254pxの固定仕様に合わせます。 */}
             {/* 変更理由: モバイル表示窓の最大幅を少し広げ、左右カードの覗き込み量を確保します。 */}
-            <div className="relative w-screen max-w-[420px] md:hidden">
+            <div className="relative w-[100dvw] max-w-[420px] md:hidden">
               {/* 変更理由: 次周に右側から入る画像を非表示で先読みし、切り替え開始時のロード遅延を抑えます。 */}
               <div
                 aria-hidden="true"
@@ -726,7 +738,9 @@ export default function TopPageClient({
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <div className="flex h-[102px] flex-col gap-2 px-3 py-5">
+                      {/* 変更理由: PCカード本文エリアは固定高102pxに対して上下余白が大きく、 */}
+                      {/* タイトル2行分の高さを確保できず1行で切れるため、余白と行間ギャップを詰めて2行表示を維持します。 */}
+                      <div className="flex h-[102px] flex-col gap-1 px-3 py-3">
                         <p className="line-clamp-2 text-[16px] font-medium leading-[1.5] text-[#4B5459] transition-colors duration-200 group-hover:text-[#D3793D] group-active:text-[#D3793D]">
                           {item.title}
                         </p>
@@ -766,12 +780,12 @@ export default function TopPageClient({
       <section
         data-reveal
         // Figmaノード(PC:1228:14268=1040px / SP:1228:14631=1098.125px)に合わせてイベントセクション高を固定します。
-        className="relative isolate h-[1098.125px] px-4 py-12 md:h-[1040px] md:px-8 lg:px-[128px] md:py-[128px]"
+        className="relative isolate h-[1098.125px] overflow-x-clip px-4 py-12 md:h-[1040px] md:px-8 lg:px-[128px] md:py-[128px]"
       >
         {/* 土日限定イベントの背景もフルブリードにし、左右の余白で画像が途切れないようにします。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-screen -translate-x-1/2 bg-[#EBEEF0]"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2 bg-[#EBEEF0]"
           style={{
             backgroundImage: `url('${eventBackgroundUrl}')`,
             backgroundSize: "cover",
@@ -1053,10 +1067,10 @@ export default function TopPageClient({
       </section>
 
       {/* フッターは既存コンポーネントを使用し、SNS導線をまとめます。 */}
-      <div className="px-4 pt-12 md:px-0 md:pt-[48px]">
-        <div className="mx-auto w-full md:max-w-[1280px]">
-          <Footer className="w-full" />
-        </div>
+      {/* 変更理由: デスクトップで `md:max-w-[1280px]` が効くとフッター自体の横幅が制限されるため、 */}
+      {/* ラッパーの最大幅制限を外して常に画面幅いっぱいへ広げます。 */}
+      <div className="px-0 pt-12 md:px-0 md:pt-[48px]">
+        <Footer className="w-full" />
       </div>
 
       {/* 駅ガイド動画が未完成のため、クリック時はページ遷移ではなく準備中モーダルを表示します。 */}

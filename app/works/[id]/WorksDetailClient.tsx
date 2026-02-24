@@ -378,10 +378,12 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
   }, [searchParams])
 
   return (
-    // 他ページと合わせるため、詳細ページの背景を白に統一します。
-    // フッターが下端に張り付くよう、コンテナに最小高さを設定します。
-    // モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
-    <div className="mx-auto flex min-h-screen w-full flex-col bg-white md:max-w-[1200px] lg:max-w-[1280px]">
+    // 変更理由: フッターを最大幅コンテナの外へ出して全幅表示にするため、
+    // 全幅ラッパーと本文コンテナ（最大幅あり）を分離します。
+    <div className="min-h-screen bg-white">
+      {/* フッターが下端に張り付くよう、本文コンテナに最小高さを設定します。 */}
+      {/* モバイルは画面幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。 */}
+      <div className="mx-auto flex min-h-screen w-full flex-col md:max-w-[1200px] lg:max-w-[1280px]">
       {/* デスクトップは横幅のみ広げ、シングルカラムの構成は維持します。 */}
       {/* 全ページ共通のヘッダーを配置し、スクロール中も固定表示します。 */}
       <GlobalHeader activeId="works" />
@@ -677,10 +679,11 @@ export default function WorksDetailClient({ id }: WorksDetailClientProps) {
         </>
       )}
 
-      {/* デスクトップのフッターは左右128pxの余白に合わせます。 */}
-      {/* フッターはモバイルで全幅表示にするため、左右余白はmd以上に限定します。 */}
-      <Footer className="w-full md:px-[128px]" />
       </div>
+      </div>
+      {/* 変更理由: 本文のmax-width制限下に置くとフッター幅が狭くなるため、 */}
+      {/* フッターはコンテナ外に移して常に画面幅いっぱいで描画します。 */}
+      <Footer className="w-full" />
     </div>
   )
 }
