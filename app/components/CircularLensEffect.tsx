@@ -318,11 +318,27 @@ export default function CircularLensEffect({
     if (image.complete) {
       render()
     }
-    window.addEventListener("resize", render)
+
+    let resizeRaf: number | null = null
+
+    const handleResize = () => {
+      if (resizeRaf !== null) {
+        return
+      }
+      resizeRaf = window.requestAnimationFrame(() => {
+        resizeRaf = null
+        render()
+      })
+    }
+
+    window.addEventListener("resize", handleResize)
 
     return () => {
       isDisposed = true
-      window.removeEventListener("resize", render)
+      if (resizeRaf !== null) {
+        window.cancelAnimationFrame(resizeRaf)
+      }
+      window.removeEventListener("resize", handleResize)
       gl.deleteTexture(texture)
       gl.deleteBuffer(positionBuffer)
       gl.deleteProgram(program)
