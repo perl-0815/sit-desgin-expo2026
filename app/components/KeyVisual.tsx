@@ -751,7 +751,7 @@ export default function KeyVisual() {
                     decoding="async"
                     // 変更理由: 再訪時はWebGLレンズ描画を省略し、静的画像で見た目を保ったままGPU負荷を下げます。
                     // 変更理由: クリティカル画像以外の eager/high を外し、同時フェッチ集中による帯域競合を抑えます。
-                    loading="auto"
+                    loading="lazy"
                     draggable={false}
                     className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                     style={{ ...common, width: l.w, height: l.h }}
@@ -810,7 +810,7 @@ export default function KeyVisual() {
                     height={l.h}
                     decoding="async"
                     // 変更理由: カラーレイヤーは初期描画の必須要素ではないため優先度を通常化します。
-                    loading="auto"
+                    loading="lazy"
                     draggable={false}
                     className="block h-full w-full"
                   />
@@ -847,7 +847,7 @@ export default function KeyVisual() {
                 height={l.h}
                 decoding="async"
                 // 変更理由: eager/high を多重指定するとネットワーク競合が起きやすいため、通常優先度へ揃えます。
-                loading="auto"
+                loading="lazy"
                 draggable={false}
                 className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                 style={common}
