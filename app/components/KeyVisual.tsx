@@ -267,6 +267,12 @@ export default function KeyVisual() {
     if (restoredFromStorageRef.current) {
       return;
     }
+    // 変更理由: KV完了後までスクロール監視を継続すると、下層セクションからKVへ戻る際にも
+    // progress再計算でレイヤー再描画が発生し、モバイルでちらつきやすくなります。
+    // 完了後は見た目が固定状態のため、監視を解除して描画を安定化します。
+    if (kvEverCompleted) {
+      return;
+    }
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -306,10 +312,13 @@ export default function KeyVisual() {
           hasDispatchedCompleteRef.current &&
           window.scrollY >= offsetTop + offsetHeight
         ) {
-          savedContentOffsetRef.current = Math.max(
-            0,
-            window.scrollY - (offsetTop + offsetHeight),
-          );
+          // 変更理由: KV完了時にコンテナ高さが `scrollPages * 100vh` から `100vh` へ縮むため、
+          // 旧高さ基準のオフセットをそのまま保持するとモバイルでページ末尾へジャンプしやすくなります。
+          // モバイルでは完了後の着地点を「KV直後」に固定し、ドキュメント下端への吸い込みを防ぎます。
+          const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
+          savedContentOffsetRef.current = isLikelyMobileKv
+            ? 0
+            : Math.max(0, window.scrollY - (offsetTop + offsetHeight));
           setKvEverCompleted(true);
         }
         ticking = false;
@@ -334,7 +343,7 @@ export default function KeyVisual() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
     };
-  }, [updateKvMetrics]);
+  }, [updateKvMetrics, kvEverCompleted]);
 
   useEffect(() => {
     if (!layoutReady || !isVisible) return;
@@ -762,10 +771,8 @@ export default function KeyVisual() {
     if (!kvEverCompleted) return;
     if (restoredFromStorageRef.current) return;
     if (scrollAdjustedRef.current) return;
-    // 変更理由: モバイルは `100vh` 変動の影響を受けやすく、KV終了直後の scrollTo 補正で
-    // かえって大きなジャンプが発生するため、補正を行わず自然スクロールを維持します。
-    const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
-    if (isLikelyMobileKv) return;
+    // 変更理由: モバイルで補正を完全無効化すると、KV高さ縮小後にブラウザ側の自動クランプで
+    // ページ最下部へ飛ぶケースがあるため、完了直後に明示的に「KV直後」へ位置合わせします。
     scrollAdjustedRef.current = true;
     const el = containerRef.current;
     if (!el) return;
