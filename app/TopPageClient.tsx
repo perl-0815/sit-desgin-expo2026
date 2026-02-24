@@ -287,8 +287,8 @@ export default function TopPageClient({
             </p>
           </div>
           <div className="mt-4 flex flex-col items-center gap-4 text-center md:mt-8 md:gap-6">
-            {/* 変更理由: ユーザー要望に合わせ、開催日時の行と会場名の行の間隔を詰めて視線移動を短くします。 */}
-            <div className="flex flex-col items-center gap-2">
+            {/* 変更理由: 追加要望に合わせ、モバイルはgap-1でさらに詰め、md以上は前回調整のgap-2を維持して視認性を保ちます。 */}
+            <div className="flex flex-col items-center gap-1 md:gap-2">
               {/* 変更理由: 日付行はFigmaでPC/SPとも本文24px・曜日16pxのため、可変サイズを廃止して固定します。 */}
               <p className="text-[24px] font-extrabold text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif]">
                 3.07
