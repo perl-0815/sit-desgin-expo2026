@@ -109,10 +109,9 @@ export default function TopPageClient({
     useState(false);
   const [kvComplete, setKvComplete] = useState(false);
   useEffect(() => {
-    const storedRendered =
-      typeof window !== "undefined" &&
-      window.sessionStorage.getItem("keyvisual:rendered") === "1";
-    if (storedRendered || document.body.dataset.keyvisualRendered === "1") {
+    // 変更理由: 再訪時も前回セッションの保存値で即解除せず、
+    // その表示サイクルでの `keyvisual:rendered` 発火を待つため、sessionStorage は参照しません。
+    if (document.body.dataset.keyvisualRendered === "1") {
       setKvRendered(true);
     } else {
       const onRendered = () => setKvRendered(true);

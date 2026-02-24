@@ -15,7 +15,6 @@ const PROGRESS_UPDATE_EPSILON = 0.003;
 const PROGRESS_ROUND_DIGITS = 3;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 const KV_LOADED_STORAGE_KEY = "keyvisual:loaded";
-const KV_RENDERED_STORAGE_KEY = "keyvisual:rendered";
 
 // 変更理由: 再訪時の軽量モード判定を共通化し、例外時は安全側（未完了扱い）に倒します。
 const hasCompletedKeyVisualInSession = () => {
@@ -105,12 +104,16 @@ export default function KeyVisual() {
     if (hasDispatchedRenderedRef.current) return;
     hasDispatchedRenderedRef.current = true;
     document.body.dataset.keyvisualRendered = "1";
-    try {
-      window.sessionStorage.setItem(KV_RENDERED_STORAGE_KEY, "1");
-    } catch {
-      // セッションストレージが利用できない場合はフラグの永続化だけ諦める
-    }
     window.dispatchEvent(new Event("keyvisual:rendered"));
+  }, []);
+
+  useLayoutEffect(() => {
+    // 変更理由: 再訪時もその表示サイクルでの描画完了を待てるよう、
+    // 前回の rendered 状態を毎マウントで初期化します。
+    hasDispatchedRenderedRef.current = false;
+    if (typeof document !== "undefined") {
+      delete document.body.dataset.keyvisualRendered;
+    }
   }, []);
 
   const preloadKvSources = useCallback(
@@ -307,6 +310,13 @@ export default function KeyVisual() {
       });
     };
     const onResize = () => {
+      // 変更理由: モバイルではブラウザUI(アドレスバー)の伸縮で `resize` が頻発し、
+      // KVスクロール中に maxScroll が揺れて `scrollTo` 補正が発火すると「スクロールが飛ぶ」体感になります。
+      // KV未完了中のモバイルではメトリクス再計算を抑止し、終端判定の安定性を優先します。
+      const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
+      if (isLikelyMobileKv && !hasDispatchedCompleteRef.current) {
+        return;
+      }
       updateKvMetrics();
       onScroll();
     };
@@ -739,6 +749,10 @@ export default function KeyVisual() {
     if (!kvEverCompleted) return;
     if (restoredFromStorageRef.current) return;
     if (scrollAdjustedRef.current) return;
+    // 変更理由: モバイルは `100vh` 変動の影響を受けやすく、KV終了直後の scrollTo 補正で
+    // かえって大きなジャンプが発生するため、補正を行わず自然スクロールを維持します。
+    const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
+    if (isLikelyMobileKv) return;
     scrollAdjustedRef.current = true;
     const el = containerRef.current;
     if (!el) return;
