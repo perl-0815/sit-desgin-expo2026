@@ -103,18 +103,21 @@ export default function TopPageClient({
   careerStats,
   previewItems,
 }: TopPageClientProps) {
-  const [kvLoaded, setKvLoaded] = useState(false);
+  const [kvRendered, setKvRendered] = useState(false);
+  const [showKvLoadingOverlay, setShowKvLoadingOverlay] = useState(true);
+  const [isKvLoadingOverlayFading, setIsKvLoadingOverlayFading] =
+    useState(false);
   const [kvComplete, setKvComplete] = useState(false);
   useEffect(() => {
-    const storedLoaded =
+    const storedRendered =
       typeof window !== "undefined" &&
-      window.sessionStorage.getItem("keyvisual:loaded") === "1";
-    if (storedLoaded || document.body.dataset.keyvisualLoaded === "1") {
-      setKvLoaded(true);
+      window.sessionStorage.getItem("keyvisual:rendered") === "1";
+    if (storedRendered || document.body.dataset.keyvisualRendered === "1") {
+      setKvRendered(true);
     } else {
-      const onLoaded = () => setKvLoaded(true);
-      window.addEventListener("keyvisual:loaded", onLoaded);
-      return () => window.removeEventListener("keyvisual:loaded", onLoaded);
+      const onRendered = () => setKvRendered(true);
+      window.addEventListener("keyvisual:rendered", onRendered);
+      return () => window.removeEventListener("keyvisual:rendered", onRendered);
     }
   }, []);
 
@@ -127,6 +130,22 @@ export default function TopPageClient({
     window.addEventListener("keyvisual:complete", handler);
     return () => window.removeEventListener("keyvisual:complete", handler);
   }, []);
+
+  useEffect(() => {
+    // 変更理由: keyvisual:loaded 時点では画像デコードと描画が完了していないケースがあり、
+    // ローダーを先に外すとKVパーツが段階的に見えてちらつくため、
+    // keyvisual:rendered（描画完了）を待ってから解除します。
+    if (!kvRendered) {
+      setShowKvLoadingOverlay(true);
+      setIsKvLoadingOverlayFading(false);
+      return;
+    }
+    setIsKvLoadingOverlayFading(true);
+    const hideTimeoutId = window.setTimeout(() => {
+      setShowKvLoadingOverlay(false);
+    }, 220);
+    return () => window.clearTimeout(hideTimeoutId);
+  }, [kvRendered]);
 
   const [isGuideVideoModalOpen, setIsGuideVideoModalOpen] = useState(false);
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
@@ -268,12 +287,14 @@ export default function TopPageClient({
     // 画面が短いときでもフッターが下端に揃うよう、最小高さを確保します。
     // モバイルは横幅いっぱいに広げるため、最大幅の制限はmd以上に限定します。
     <div className="mx-auto flex min-h-screen w-full flex-col bg-[#F9F9F9]">
-      {!kvLoaded && (
+      {showKvLoadingOverlay && (
         <div
           aria-hidden="true"
           // 変更理由: 個別要素のプレースホルダではなく、ロード完了まで画面全体にスケルトンの波を流す要望に合わせます。
           // 単一の全画面レイヤーにすることで、端末サイズに依存せず同じ視覚効果を安定して表示できます。
-          className="fixed inset-0 z-[200] overflow-hidden bg-[#ECEFF1]"
+          className={`fixed inset-0 z-[200] overflow-hidden bg-[#ECEFF1] transition-opacity duration-200 ease-out ${
+            isKvLoadingOverlayFading ? "opacity-0" : "opacity-100"
+          }`}
         >
           <div
             // 変更理由: 横方向へ移動するハイライト帯を全画面へ敷き、KVロード中であることを直感的に示します。

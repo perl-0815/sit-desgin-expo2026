@@ -15,6 +15,7 @@ const PROGRESS_UPDATE_EPSILON = 0.003;
 const PROGRESS_ROUND_DIGITS = 3;
 const KV_COMPLETED_STORAGE_KEY = "keyvisual:completed";
 const KV_LOADED_STORAGE_KEY = "keyvisual:loaded";
+const KV_RENDERED_STORAGE_KEY = "keyvisual:rendered";
 
 // 変更理由: 再訪時の軽量モード判定を共通化し、例外時は安全側（未完了扱い）に倒します。
 const hasCompletedKeyVisualInSession = () => {
@@ -78,6 +79,7 @@ export default function KeyVisual() {
   const initialRevealRafRef = useRef<number | null>(null);
   const hasStartedRevealRef = useRef(false);
   const restoredFromStorageRef = useRef(false);
+  const hasDispatchedRenderedRef = useRef(false);
   const progressRef = useRef(0);
   const kvMetricsRef = useRef({
     offsetTop: 0,
@@ -98,30 +100,55 @@ export default function KeyVisual() {
     window.dispatchEvent(new Event("keyvisual:loaded"));
   }, []);
 
+  const markKvRendered = useCallback(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") return;
+    if (hasDispatchedRenderedRef.current) return;
+    hasDispatchedRenderedRef.current = true;
+    document.body.dataset.keyvisualRendered = "1";
+    try {
+      window.sessionStorage.setItem(KV_RENDERED_STORAGE_KEY, "1");
+    } catch {
+      // セッションストレージが利用できない場合はフラグの永続化だけ諦める
+    }
+    window.dispatchEvent(new Event("keyvisual:rendered"));
+  }, []);
+
+  const preloadKvSources = useCallback(
+    (
+      sources: readonly string[],
+      maxAttempts = 3,
+      retryDelayMs = 300,
+    ) =>
+      Promise.all(
+        sources.map(
+          (src) =>
+            new Promise<void>((resolve) => {
+              let attempt = 0;
+              const tryLoad = () => {
+                attempt += 1;
+                const img = new Image();
+                img.onload = () => resolve();
+                img.onerror = () => {
+                  if (attempt < maxAttempts) {
+                    window.setTimeout(tryLoad, retryDelayMs);
+                  } else {
+                    resolve();
+                  }
+                };
+                img.src = src;
+              };
+              tryLoad();
+            }),
+        ),
+      ),
+    [],
+  );
+
   const startInitialReveal = useCallback(
     (isVertical: boolean) => {
       if (hasStartedRevealRef.current) return;
       hasStartedRevealRef.current = true;
       const preloadSources = (isVertical ? VERTICAL_KV_SOURCES : HORIZONTAL_KV_SOURCES) as readonly string[];
-
-      const preloadImageWithRetry = (src: string, maxAttempts: number, retryDelayMs: number) =>
-        new Promise<void>((resolve) => {
-          let attempt = 0;
-          const tryLoad = () => {
-            attempt += 1;
-            const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => {
-              if (attempt < maxAttempts) {
-                window.setTimeout(tryLoad, retryDelayMs);
-              } else {
-                resolve();
-              }
-            };
-            img.src = src;
-          };
-          tryLoad();
-        });
 
       let finished = false;
       const finish = () => {
@@ -133,13 +160,11 @@ export default function KeyVisual() {
         });
       };
 
-      Promise.all(
-        preloadSources.map((src) => preloadImageWithRetry(src, 3, 300)),
-      ).then(() => {
+      preloadKvSources(preloadSources, 3, 300).then(() => {
         finish();
       });
     },
-    [markInitialLoaded],
+    [markInitialLoaded, preloadKvSources],
   );
 
   const updateScale = useCallback(() => {
@@ -175,8 +200,9 @@ export default function KeyVisual() {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let restoreRaf: number | null = null;
+    let cancelled = false;
     const storedCompleted = hasCompletedKeyVisualInSession();
     if (storedCompleted) {
       restoredFromStorageRef.current = true;
@@ -189,23 +215,31 @@ export default function KeyVisual() {
       const vh = window.innerHeight;
       const isVertical = vw / vh <= 4 / 3;
       const base = isVertical ? verticalBase : horizontalBase;
-      restoreRaf = requestAnimationFrame(() => {
-        setLayout(isVertical ? "vertical" : "horizontal");
-        setScale(
-          isVertical
-            ? Math.min(vw / base.w, vh / base.h)
-            : Math.max(vw / base.w, vh / base.h),
-        );
-        setCoverScale(Math.max(vw / base.w, vh / base.h));
-        setLayoutReady(true);
-        setIsVisible(true);
-        setKvEverCompleted(true);
-        setIsReturningSession(true);
-        setScrollIndicatorVisible(false);
+      const preloadSources = (isVertical ? VERTICAL_KV_SOURCES : HORIZONTAL_KV_SOURCES) as readonly string[];
+      // 変更理由: 再訪時に loaded/complete を先に発火すると、ローダー解除後にKVレイヤーが段階表示されて
+      // 「パーツがバラバラに出る」ちらつきが起きるため、必要素材の読み込み完了後に表示を切り替えます。
+      preloadKvSources(preloadSources, 2, 120).then(() => {
+        if (cancelled) return;
+        restoreRaf = requestAnimationFrame(() => {
+          if (cancelled) return;
+          setLayout(isVertical ? "vertical" : "horizontal");
+          setScale(
+            isVertical
+              ? Math.min(vw / base.w, vh / base.h)
+              : Math.max(vw / base.w, vh / base.h),
+          );
+          setCoverScale(Math.max(vw / base.w, vh / base.h));
+          setLayoutReady(true);
+          setIsVisible(true);
+          setKvEverCompleted(true);
+          setIsReturningSession(true);
+          setScrollIndicatorVisible(false);
+          markInitialLoaded();
+          window.dispatchEvent(new Event("keyvisual:complete"));
+        });
       });
-      markInitialLoaded();
-      window.dispatchEvent(new Event("keyvisual:complete"));
       return () => {
+        cancelled = true;
         if (restoreRaf !== null) {
           cancelAnimationFrame(restoreRaf);
         }
@@ -224,7 +258,7 @@ export default function KeyVisual() {
       cancelAnimationFrame(initialRaf);
       window.removeEventListener("resize", updateScale);
     };
-  }, [markInitialLoaded, updateScale]);
+  }, [markInitialLoaded, preloadKvSources, updateScale]);
 
   useEffect(() => {
     if (restoredFromStorageRef.current) {
@@ -242,9 +276,15 @@ export default function KeyVisual() {
             Math.min(Math.max(raw, 0), 1),
             maxAllowedProgressRef.current,
           );
-          if (Math.abs(nextProgress - progressRef.current) >= PROGRESS_UPDATE_EPSILON) {
+          // 変更理由: モバイルKVは慣性スクロールで進捗が前後に揺れやすく、
+          // しきい値付近でレイヤー表示が点滅しやすいため、進捗を単調増加で安定化します。
+          const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
+          const stabilizedProgress = isLikelyMobileKv
+            ? Math.max(progressRef.current, nextProgress)
+            : nextProgress;
+          if (Math.abs(stabilizedProgress - progressRef.current) >= PROGRESS_UPDATE_EPSILON) {
             const normalized =
-              Math.round(nextProgress * 10 ** PROGRESS_ROUND_DIGITS) /
+              Math.round(stabilizedProgress * 10 ** PROGRESS_ROUND_DIGITS) /
               10 ** PROGRESS_ROUND_DIGITS;
             progressRef.current = normalized;
             setProgress(normalized);
@@ -279,6 +319,46 @@ export default function KeyVisual() {
       window.removeEventListener("resize", onResize);
     };
   }, [updateKvMetrics]);
+
+  useEffect(() => {
+    if (!layoutReady || !isVisible) return;
+    if (hasDispatchedRenderedRef.current) return;
+    let cancelled = false;
+
+    const waitForKvImagesRendered = async () => {
+      const root = containerRef.current;
+      if (!root) return;
+      const images = Array.from(root.querySelectorAll("img"));
+      await Promise.all(
+        images.map(async (image) => {
+          if (!image.complete) {
+            await new Promise<void>((resolve) => {
+              const done = () => resolve();
+              image.addEventListener("load", done, { once: true });
+              image.addEventListener("error", done, { once: true });
+            });
+          }
+          if (typeof image.decode === "function") {
+            try {
+              await image.decode();
+            } catch {
+              // decode失敗時はload/error結果を優先し、処理は継続します。
+            }
+          }
+        }),
+      );
+      if (cancelled) return;
+      requestAnimationFrame(() => {
+        if (cancelled) return;
+        markKvRendered();
+      });
+    };
+
+    waitForKvImagesRendered();
+    return () => {
+      cancelled = true;
+    };
+  }, [isVisible, layoutReady, layout, markKvRendered]);
 
   const colorRevealThreshold = 0.15;
   const teRevealThreshold = 0.15;
@@ -606,6 +686,8 @@ export default function KeyVisual() {
   const sceneZoom = 1 + (sceneZoomTarget - 1) * effectiveZoomProgress;
   const whiteFadeOpacity = Math.min(effectiveZoomProgress * 1.2, 1);
   const base = layout === "vertical" ? verticalBase : horizontalBase;
+  // 変更理由: 戻る遷移時は復元描画を最優先し、フェードの初期1フレームで発生するちらつきを抑えます。
+  const sceneVisible = isReturningSession ? true : layoutReady && isVisible;
   const backgroundSrc =
     layout === "vertical"
       ? "/key-visual/back-vertical.png"
@@ -670,8 +752,10 @@ export default function KeyVisual() {
         {layout === "vertical" && (
           <div
             aria-hidden="true"
-            className={`absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in ${
-              layoutReady && isVisible ? "opacity-100" : "opacity-0"
+            className={`absolute inset-0 overflow-hidden ${
+              isReturningSession ? "" : "transition-opacity duration-1000 ease-in"
+            } ${
+              sceneVisible ? "opacity-100" : "opacity-0"
             }`}
             style={{ zIndex: -1 }}
           >
@@ -705,8 +789,10 @@ export default function KeyVisual() {
           </div>
         )}
         <div
-          className={`absolute left-1/2 top-1/2 origin-center transition-opacity duration-1000 ease-in ${
-            layoutReady && isVisible ? "opacity-100" : "opacity-0"
+          className={`absolute left-1/2 top-1/2 origin-center ${
+            isReturningSession ? "" : "transition-opacity duration-1000 ease-in"
+          } ${
+            sceneVisible ? "opacity-100" : "opacity-0"
           }`}
           style={{
             transform: `translate(-50%, -50%) scale(${scale * sceneZoom})`,
@@ -751,7 +837,9 @@ export default function KeyVisual() {
                     decoding="async"
                     // 変更理由: 再訪時はWebGLレンズ描画を省略し、静的画像で見た目を保ったままGPU負荷を下げます。
                     // 変更理由: クリティカル画像以外の eager/high を外し、同時フェッチ集中による帯域競合を抑えます。
-                    loading="lazy"
+                    // 変更理由: KV表示領域は常時ビューポート内のため eager で読み込み、
+                    // 戻る遷移時のレイヤー遅延表示によるちらつきを抑えます。
+                    loading="eager"
                     draggable={false}
                     className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                     style={{ ...common, width: l.w, height: l.h }}
@@ -810,7 +898,8 @@ export default function KeyVisual() {
                     height={l.h}
                     decoding="async"
                     // 変更理由: カラーレイヤーは初期描画の必須要素ではないため優先度を通常化します。
-                    loading="lazy"
+                    // 変更理由: カラーレイヤーも視覚上は初期から必要になるため eager に統一します。
+                    loading="eager"
                     draggable={false}
                     className="block h-full w-full"
                   />
@@ -847,7 +936,8 @@ export default function KeyVisual() {
                 height={l.h}
                 decoding="async"
                 // 変更理由: eager/high を多重指定するとネットワーク競合が起きやすいため、通常優先度へ揃えます。
-                loading="lazy"
+                // 変更理由: 主レイヤーは遅延読み込みのメリットが小さいため eager で表示欠けを防ぎます。
+                loading="eager"
                 draggable={false}
                 className="absolute left-1/2 top-1/2 block -translate-x-1/2 -translate-y-1/2 select-none"
                 style={common}
