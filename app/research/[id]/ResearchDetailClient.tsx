@@ -213,7 +213,7 @@ export default function ResearchDetailClient({
   const router = useRouter()
   const searchParams = useSearchParams()
   const [labs, setLabs] = useState<Lab[]>([])
-  const [researchList, setResearchList] = useState<Research[]>([])
+  const [research, setResearch] = useState<Research | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [studentCareers, setStudentCareers] = useState<Career[]>([])
@@ -230,7 +230,10 @@ export default function ResearchDetailClient({
 
         const [labsRes, researchRes] = await Promise.all([
           fetch("/api/labs"),
-          fetch("/api/research?include=student"),
+          // 変更理由: 詳細ページ遷移のたびに研究全件を取得すると、
+          // 往復操作時のメモリ使用量と通信量が増えて不安定になりやすいため、
+          // 対象IDの研究データのみを取得して負荷を下げます。
+          fetch(`/api/research/${encodeURIComponent(id)}`),
         ])
 
         if (!labsRes.ok || !researchRes.ok) {
@@ -245,7 +248,7 @@ export default function ResearchDetailClient({
         if (!active) return
 
         setLabs(labsData)
-        setResearchList(researchData)
+        setResearch(researchData)
       } catch (fetchError) {
         if (!active) return
         const message =
@@ -253,6 +256,9 @@ export default function ResearchDetailClient({
             ? fetchError.message
             : "Failed to fetch detail data."
         setError(message)
+        // 変更理由: 取得失敗時に前回表示データが残ると誤表示になるため、
+        // エラー時は対象研究を明示的に未設定へ戻して表示状態を一定に保ちます。
+        setResearch(null)
       } finally {
         if (active) setLoading(false)
       }
@@ -263,20 +269,11 @@ export default function ResearchDetailClient({
     return () => {
       active = false
     }
-  }, [])
+  }, [id])
 
   const labById = useMemo(() => {
     return new Map(labs.map((lab) => [lab.id, lab]))
   }, [labs])
-
-  const research = useMemo(() => {
-    // CSV由来のIDに空白が混入している場合でも一致するように正規化する
-    const normalizedId = id.trim()
-    return (
-      researchList.find((item) => (item.id ?? "").trim() === normalizedId) ??
-      null
-    )
-  }, [researchList, id])
 
   const student = research?.student
   // 進路情報取得/表示の判定に使うため、学生IDを1箇所で確定させます。

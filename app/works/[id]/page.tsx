@@ -67,6 +67,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     path: `/works/${resolvedParams.id}`,
+    // 変更理由: 作品詳細は個人名と紐づく公開情報を含むため、
+    // 氏名検索での露出を防ぐ目的で常時 noindex/nofollow を設定します。
+    robots: {
+      index: false,
+      follow: false,
+    },
   })
 }
 
