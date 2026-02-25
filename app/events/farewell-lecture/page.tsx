@@ -10,6 +10,9 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "高校生向けデザイン工学部なんでも相談会 OSEKKAI の開催日程・会場・予約情報を掲載しています。",
   path: "/events/farewell-lecture",
+  // 変更理由: このページをSNS共有した際はイベント固有の告知ビジュアルを表示したいため、
+  // 共通OG画像ではなく OSEKKAI 専用画像を明示指定します。
+  imageUrl: "/image/osekkai.webp",
 })
 
 export default function FarewellLecturePage() {

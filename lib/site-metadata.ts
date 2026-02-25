@@ -8,7 +8,10 @@ export const siteDescription =
   "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。"
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sit-design-expo2026.jp"
-export const socialPreviewImageUrl = `${siteUrl}/image/preview.png?v=20260212a`
+// 変更理由: 共通OG画像の実ファイルは preview.webp なのに preview.png を参照していたため、
+// 一部SNSで画像取得に失敗してファビコンへフォールバックされていました。
+// 実在する preview.webp を既定OG画像として明示し、全ページで安定してプレビュー画像が出るようにします。
+export const socialPreviewImageUrl = `${siteUrl}/image/preview.webp?v=20260225a`
 
 type BuildPageMetadataOptions = {
   title: string
@@ -27,6 +30,16 @@ const trimDescription = (value: string, maxLength = 140) => {
     : `${normalized.slice(0, maxLength - 1)}…`
 }
 
+const detectImageMimeType = (imageUrl: string) => {
+  const normalized = imageUrl.toLowerCase()
+  // 変更理由: OGP画像にWebP/JPEGを使うページでも type を正しく出せるようにし、
+  // 実ファイル拡張子とメタ情報の不一致を防ぎます。
+  if (normalized.includes(".webp")) return "image/webp"
+  if (normalized.includes(".png")) return "image/png"
+  if (normalized.includes(".jpg") || normalized.includes(".jpeg")) return "image/jpeg"
+  return undefined
+}
+
 export function buildPageMetadata({
   title,
   description,
@@ -38,6 +51,7 @@ export function buildPageMetadata({
   const absoluteUrl = `${siteUrl}${normalizedPath}`
   const normalizedDescription = trimDescription(description)
   const selectedImageUrl = imageUrl?.trim() || socialPreviewImageUrl
+  const selectedImageType = detectImageMimeType(selectedImageUrl)
 
   return {
     title,
@@ -57,7 +71,7 @@ export function buildPageMetadata({
           url: selectedImageUrl,
           width: 1200,
           height: 630,
-          type: "image/png",
+          ...(selectedImageType ? { type: selectedImageType } : {}),
           alt: `${title} | ${siteName}`,
         },
       ],
@@ -71,4 +85,3 @@ export function buildPageMetadata({
     ...(robots ? { robots } : {}),
   }
 }
-

@@ -105,7 +105,8 @@ export const metadata: Metadata = {
         url: socialPreviewImageUrl,
         width: 1200,
         height: 630,
-        type: "image/png",
+        // 変更理由: 既定OG画像を preview.webp に統一したため、MIMEタイプも実体に合わせます。
+        type: "image/webp",
         alt: "芝浦工業大学デザイン工学部卒業展示2026 キービジュアル",
       },
     ],
