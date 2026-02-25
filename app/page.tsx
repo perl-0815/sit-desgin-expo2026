@@ -44,8 +44,8 @@ export default async function Home() {
   // App Router の再検証で十分に追従できるよう、5分の再検証に設定します。
 
   // 進路データは公開対象のみ集計し、トップページのグラフに反映します。
-  // 変更理由: 匿名公開の進路も画面表示の対象外とする運用に合わせ、
-  // 集計でも「非公開」と「匿名公開」を除外して表示との不整合を防ぎます。
+  // 変更理由: 進路ページと表示方針を揃え、匿名公開の進路はグラフ集計に含めます。
+  // そのためトップページでは「非公開」のみ除外し、「匿名公開」は集計対象に残します。
   // Prismaの戻り値がビルド時にany扱いになるのを防ぐため、必要最小限の型を明示します。
   // 変更理由: 進路集計のために全行を取得すると戻る遷移のサーバー負荷が増えるため、
   // DB 側で count 集計し、アプリ側の走査コストを削減します。
@@ -55,9 +55,7 @@ export default async function Home() {
     prisma.career.count({
       where: {
         NOT: {
-          visibility: {
-            in: ["非公開", "匿名公開"],
-          },
+          visibility: "非公開",
         },
         category: { contains: "大学院" },
       },
@@ -65,9 +63,7 @@ export default async function Home() {
     prisma.career.count({
       where: {
         NOT: {
-          visibility: {
-            in: ["非公開", "匿名公開"],
-          },
+          visibility: "非公開",
         },
         category: { contains: "就職" },
       },
@@ -75,9 +71,7 @@ export default async function Home() {
     prisma.career.count({
       where: {
         NOT: {
-          visibility: {
-            in: ["非公開", "匿名公開"],
-          },
+          visibility: "非公開",
         },
       },
     }),
