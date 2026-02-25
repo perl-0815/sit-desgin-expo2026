@@ -72,6 +72,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title,
     description,
     path: `/research/${resolvedParams.id}`,
+    // 変更理由: 研究詳細は個人を特定できる情報（氏名・研究内容）を含むため、
+    // 検索エンジンのインデックス対象から常時除外し、氏名検索でヒットしない運用に統一します。
+    robots: {
+      index: false,
+      follow: false,
+    },
   })
 }
 

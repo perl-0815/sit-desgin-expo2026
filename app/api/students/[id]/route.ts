@@ -29,12 +29,16 @@ const buildInclude = (
   visibility: string | null,
 ) => {
   if (!include.careers) return include
-  // 公開ページ向けの表示制御に合わせて、必要なときだけ非公開の進路を除外します。
+  // 公開ページ向けの表示制御に合わせて、必要なときだけ公開対象外の進路を除外します。
+  // 変更理由: 匿名公開の進路は個別ページに表示しない方針のため、
+  // 「非公開」と「匿名公開」を同時に除外します。
   const careerWhere =
     visibility === "public"
       ? {
           NOT: {
-            visibility: "非公開",
+            visibility: {
+              in: ["非公開", "匿名公開"],
+            },
           },
         }
       : undefined

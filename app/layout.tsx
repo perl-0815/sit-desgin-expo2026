@@ -76,7 +76,8 @@ export const metadata: Metadata = {
     google: "38bezo3YKUbqrvz3JRP7MgObcY_OxeDkTmbiB73eG7U",
   },
   alternates: {
-    canonical: "/",
+    // 変更理由: ルートページの canonical も絶対URLに揃え、クローラ間の解釈差分を防ぎます。
+    canonical: siteUrl,
   },
   // public/icon/favicon.jpg から生成したファビコン/タッチアイコンを参照します。
   // favicon.ico は public 配下に置き、App Router の画像処理を避けます。
@@ -105,6 +106,7 @@ export const metadata: Metadata = {
         url: socialPreviewImageUrl,
         width: 1200,
         height: 630,
+        // 変更理由: OGP互換性を優先して既定画像をPNGに統一したため、MIMEタイプも一致させます。
         type: "image/png",
         alt: "芝浦工業大学デザイン工学部卒業展示2026 キービジュアル",
       },

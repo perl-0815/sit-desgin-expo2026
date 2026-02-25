@@ -165,8 +165,13 @@ export default function CareerClient() {
       try {
         setLoading(true)
         setError(null)
-        // 非公開データを除外するため、公開指定付きでキャリアAPIを取得します。
-        const res = await fetch("/api/careers?visibility=public&include=student")
+        // 進路ページのグラフでは「匿名公開」を公開対象に含めるため、
+        // 専用の visibility 指定で「非公開」のみ除外して取得します。
+        // 研究詳細ページ側は従来どおり visibility=public を使うため、
+        // 匿名公開を引き続き非表示にできます。
+        const res = await fetch(
+          "/api/careers?visibility=public_include_anonymous&include=student",
+        )
         if (!res.ok) {
           throw new Error("Failed to fetch career data.")
         }
@@ -381,15 +386,15 @@ export default function CareerClient() {
   }, [careers, includeGraduate])
 
   const gradReasons = useMemo((): GradReasonCard[] => {
-    // 大学院進学の理由は extra_notes を優先し、なければ decision_reason を補助に使います。
+    // 変更理由: 「本学大学院進学の理由」はフォームの理由回答（decision_reason）のみを掲載対象とし、
+    // 補足メモ（extra_notes）は表示しない運用に統一するため、テキストは decision_reason のみ採用します。
+    // コース表示は既存仕様どおり維持します。
     const reasons = careers
       .filter((career) => normalizeText(career.category).includes("大学院"))
       .map((career): GradReasonCard => {
         const course = buildCourseLabel(career)
         return {
-          text:
-            normalizeText(career.extra_notes) ||
-            normalizeText(career.decision_reason),
+          text: normalizeText(career.decision_reason),
           course,
           courseColor: resolveCourseLabelColor(course),
         }
@@ -648,7 +653,7 @@ export default function CareerClient() {
       >
         <div className="border-b border-[#FB9678] pb-1">
           <h2 className="text-[20px] font-extrabold tracking-[0.02em] text-[#2E3437] [font-family:var(--font-shippori-mincho-b1),'Hiragino_Mincho_ProN',serif] md:text-[24px]">
-            就職先の決めて
+            就職先の決め手
           </h2>
         </div>
         <div className="mt-4 space-y-4 md:mt-6">

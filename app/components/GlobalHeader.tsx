@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import NavigationMenu from "./NavigationMenu";
@@ -37,11 +38,18 @@ export default function GlobalHeader({
   className,
   hidden = false,
 }: GlobalHeaderProps) {
+  const pathname = usePathname()
   // モバイルメニューの開閉アニメーションを正確に制御するため、
   // 表示有無だけでなく opening/open/closing/closed の4状態で管理します。
   const [mobileMenuPhase, setMobileMenuPhase] = useState<
     "closed" | "opening" | "open" | "closing"
   >("closed")
+  // 変更理由: CSSのgroup-hoverのみだと、ページ遷移が高速に連続した際に
+  // 稀にホバー見た目が残留するケースがあるため、PCナビは明示的なhover状態で管理します。
+  const [hoveredDesktopItem, setHoveredDesktopItem] = useState<{
+    id: string
+    pathname: string
+  } | null>(null)
 
   const isMobileMenuMounted = mobileMenuPhase !== "closed"
   // 開始フレームでは閉じた見た目を保持し、次フレームでopenへ遷移させて確実にトランジションを発火させます。
@@ -125,9 +133,19 @@ export default function GlobalHeader({
             </Link>
             {/* デスクトップ版はFigma通りの横並びメニューを表示し、ハンバーガーはモバイルのみ残します。 */}
             <div className="hidden items-center gap-6 lg:flex">
-              <nav className="flex items-center">
+              <nav
+                className="flex items-center"
+                // 変更理由: ナビゲーション領域の外へカーソルが出た時点でhover見た目を解除し、
+                // 高速移動時の残留表示を防ぎます。
+                onMouseLeave={() => setHoveredDesktopItem(null)}
+              >
                 {desktopMenuItems.map((item, index) => {
                   const isActive = item.id === activeId;
+                  // 変更理由: ルート遷移後に前ページのhover状態が見た目へ影響しないよう、
+                  // hover情報を「発生時のpathname」とセットで評価します。
+                  const isHovered =
+                    hoveredDesktopItem?.id === item.id &&
+                    hoveredDesktopItem?.pathname === pathname
                   return (
                     <Link
                       key={item.id}
@@ -137,6 +155,15 @@ export default function GlobalHeader({
                           ? "border-r border-[#EBEEF0] pr-6"
                           : ""
                       }`}
+                      onMouseEnter={() =>
+                        setHoveredDesktopItem({ id: item.id, pathname })
+                      }
+                      onMouseLeave={() =>
+                        setHoveredDesktopItem((prev) =>
+                          prev?.id === item.id ? null : prev,
+                        )
+                      }
+                      onClick={() => setHoveredDesktopItem(null)}
                     >
                       {/* 
                         Figma準拠で active / inactive / mouseover を再現するため、
@@ -145,7 +172,7 @@ export default function GlobalHeader({
                       */}
                       <span
                         className={`h-2.5 w-2.5 rounded-full transition-opacity duration-300 ease-in-out ${
-                          isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          isActive || isHovered ? "opacity-100" : "opacity-0"
                         }`}
                         style={{
                           // 指定SVGの円と同じ見た目になるよう、左上→右下の線形グラデーションを直接指定します。

@@ -1,10 +1,13 @@
-import { unstable_noStore as noStore } from "next/cache"
 import { randomInt } from "node:crypto"
 
 import { prisma } from "@/lib/prisma"
 
 import TopPageClient from "./TopPageClient"
 import KeyVisual from "./components/KeyVisual"
+
+// 変更理由: 戻る遷移でトップページを毎回フル再計算しないようにしつつ、
+// 最新情報の反映遅延を抑えるため5分ごとに再検証します。
+export const revalidate = 300
 
 type PreviewItem = {
   id: string
@@ -35,22 +38,44 @@ type PortfolioPreviewSource = {
 }
 
 export default async function Home() {
-  // ランダム表示を都度更新するため、トップページはキャッシュを無効化します。
-  noStore()
+  // 変更理由: 戻る遷移時に毎回サーバー再実行される負荷を抑えるため、
+  // トップページは短時間キャッシュを許可します（最新性と体感速度のバランスを取る）。
+  // noStore を維持すると他ページから戻るたびに DB クエリと整形処理が必ず再実行されるため重くなります。
+  // App Router の再検証で十分に追従できるよう、5分の再検証に設定します。
 
-  // 進路データは非公開以外のみ集計し、トップページのグラフに反映します。
+  // 進路データは公開対象のみ集計し、トップページのグラフに反映します。
+  // 変更理由: 進路ページと表示方針を揃え、匿名公開の進路はグラフ集計に含めます。
+  // そのためトップページでは「非公開」のみ除外し、「匿名公開」は集計対象に残します。
   // Prismaの戻り値がビルド時にany扱いになるのを防ぐため、必要最小限の型を明示します。
-  const careers: Array<{ category: string | null }> =
-    await prisma.career.findMany({
+  // 変更理由: 進路集計のために全行を取得すると戻る遷移のサーバー負荷が増えるため、
+  // DB 側で count 集計し、アプリ側の走査コストを削減します。
+  // 変更理由: トランザクション開始待ちで P2028 が発生する環境があるため、
+  // 読み取り専用の独立クエリを並列実行し、同等の結果を安全に取得します。
+  const [gradCount, jobCount, total] = await Promise.all([
+    prisma.career.count({
+      where: {
+        NOT: {
+          visibility: "非公開",
+        },
+        category: { contains: "大学院" },
+      },
+    }),
+    prisma.career.count({
+      where: {
+        NOT: {
+          visibility: "非公開",
+        },
+        category: { contains: "就職" },
+      },
+    }),
+    prisma.career.count({
       where: {
         NOT: {
           visibility: "非公開",
         },
       },
-      select: {
-        category: true,
-      },
-    })
+    }),
+  ])
 
   // 研究・作品のプレビューはトップページ用に軽量な項目だけ取得します。
   // Vercel のビルド環境で Prisma 型が解決できず any 扱いになることがあるため、
@@ -60,6 +85,9 @@ export default async function Home() {
     PortfolioPreviewSource[],
   ] = await Promise.all([
     prisma.research.findMany({
+      // 変更理由: 以前は全件取得後に先頭6件しか使っておらず無駄が大きいため、
+      // ランダム選抜に必要な母集団を十分確保しつつ、取得件数を制限して戻る遷移時の負荷を軽減します。
+      take: 24,
       select: {
         id: true,
         title: true,
@@ -73,6 +101,8 @@ export default async function Home() {
       },
     }),
     prisma.portfolio.findMany({
+      // 変更理由: research と同様に取得件数を制限し、サーバー処理と転送量を削減します。
+      take: 24,
       select: {
         id: true,
         title1: true,
@@ -90,25 +120,13 @@ export default async function Home() {
     }),
   ])
 
-  let gradCount = 0
-  let jobCount = 0
-  let otherCount = 0
-
-  careers.forEach((career) => {
-    const category = career.category ?? ""
-
-    if (category.includes("大学院")) {
-      gradCount += 1
-    } else if (category.includes("就職")) {
-      jobCount += 1
-    } else {
-      otherCount += 1
-    }
-  })
-
-  const total = careers.length
+  // 変更理由: 集計済みの total / grad / job を使ってその他件数を算出し、
+  // 行単位ループをなくして応答時間を短縮します。
+  const otherCount = Math.max(total - gradCount - jobCount, 0)
   // 研究・作品のどちらでも同じUIで扱えるよう、共通のプレビュー構造に変換します。
-  const previewFallbackImage = "/image/preview.png"
+  // 変更理由: トップのプレースホルダー画像は初回表示で必ず参照される可能性があるため、
+  // 同等見た目のWebPへ切り替えて転送量を削減します。
+  const previewFallbackImage = "/image/preview.webp"
   const pickImage = (
     original?: string | null,
     thumb?: string | null,

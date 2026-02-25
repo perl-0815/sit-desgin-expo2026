@@ -23,9 +23,12 @@ const reservedEvents: ReservedEvent[] = [
     title: "【高校生向け】 デザイン工学部なんでも相談会-OSEKKAI-",
     description:
       "現役生によるデザイン工学部なんでも相談会です！学部4年生以上が参加しますのでこの機会にたくさん質問してください。",
-    imageSrc: "/image/osekkai.png",
+    // 変更理由: イベント一覧でも同一バナーを使用するため、WebPへ統一して初回転送量を削減します。
+    imageSrc: "/image/osekkai.webp",
     imageAlt: "OSEKKAIのイベントバナー",
     // 詳細ページの実装先に合わせ、一覧導線はOSEKKAIカード側に設定します。
+    // 変更理由: 実際の公開URL(/events/farewell-lecture)に導線を統一し、
+    // ページ内遷移とSNS共有URLの不一致を防ぎます。
     href: "/events/farewell-lecture",
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },
