@@ -39,19 +39,20 @@ const worksDecorationSecondaryUrl = "/image/decoration/top-decoration3.svg";
 const exhibitionInfoDecorationRightUrl = "/image/decoration/top-decoration5.svg";
 // チケット画像は開催ステータス（開催前/開催中/開催終了）ごとに切り替えます。
 // 画像差し替えだけで見た目を更新できるよう、パスを状態別にまとめます。
-// 命名規則は `to-ticket-<status>-<device>.webp` に統一して管理します。
+// 変更理由: チケット画像をWebPではなくSVGで管理し、拡大縮小時の品質劣化を防ぎます。
+// 命名規則は `to-ticket-<status>-<device>.svg` に統一して管理します。
 const topTicketImageUrls = {
   before: {
-    pc: "/image/ticket/to-ticket-before-pc.webp",
-    sp: "/image/ticket/to-ticket-before-sp.webp",
+    pc: "/image/ticket/to-ticket-before-pc.svg",
+    sp: "/image/ticket/to-ticket-before-sp.svg",
   },
   during: {
-    pc: "/image/ticket/to-ticket-during-pc.webp",
-    sp: "/image/ticket/to-ticket-during-sp.webp",
+    pc: "/image/ticket/to-ticket-during-pc.svg",
+    sp: "/image/ticket/to-ticket-during-sp.svg",
   },
   ended: {
-    pc: "/image/ticket/to-ticket-ended-pc.webp",
-    sp: "/image/ticket/to-ticket-ended-sp.webp",
+    pc: "/image/ticket/to-ticket-ended-pc.svg",
+    sp: "/image/ticket/to-ticket-ended-sp.svg",
   },
 } as const;
 // ラベル文言は画像に埋め込まずコード側で管理し、文言変更時に差し替えやすくします。
