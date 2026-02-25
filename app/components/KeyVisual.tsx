@@ -286,7 +286,7 @@ export default function KeyVisual() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const { offsetTop, offsetHeight, scrollable, maxScroll } = kvMetricsRef.current;
+        const { offsetTop, offsetHeight, scrollable } = kvMetricsRef.current;
         const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
         if (scrollable > 0) {
           const raw = (window.scrollY - offsetTop) / scrollable;
@@ -307,23 +307,14 @@ export default function KeyVisual() {
             setProgress(normalized);
           }
         }
-        // 変更理由: 高速フリック時の `scrollTo` 補正はモバイルで視覚的ジャンプを生みやすいため、
-        // モバイルKVでは強制補正を無効化し、自然スクロールを優先してちらつきを抑えます。
-        if (
-          !isLikelyMobileKv &&
-          !hasDispatchedCompleteRef.current &&
-          window.scrollY > maxScroll
-        ) {
-          window.scrollTo(0, maxScroll);
-        }
+        // 変更理由: 早いスクロール操作時に `scrollTo(maxScroll)` で位置を巻き戻すと、
+        // 「引き戻される」体感が強くなり操作感を損なうため、強制補正は行いません。
+        // 進捗は `maxAllowedProgressRef` 側で上限管理することで、演出制御のみ維持します。
         if (window.scrollY >= offsetTop + offsetHeight) {
-          // 変更理由: KV完了時にコンテナ高さが `scrollPages * 100vh` から `100vh` へ縮むため、
-          // 旧高さ基準のオフセットをそのまま保持するとモバイルでページ末尾へジャンプしやすくなります。
-          // モバイルでは完了後の着地点を「KV直後」に固定し、ドキュメント下端への吸い込みを防ぎます。
-          const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
-          savedContentOffsetRef.current = isLikelyMobileKv
-            ? 0
-            : Math.max(0, window.scrollY - (offsetTop + offsetHeight));
+          // 変更理由: 高速スクロール時は `window.scrollY - KV下端` が過大になりやすく、
+          // 完了後にその差分で再配置するとフッター付近まで一気に飛ぶことがあります。
+          // 操作速度に関係なく着地点を安定させるため、完了時の補正量は常に0（KV直後固定）に統一します。
+          savedContentOffsetRef.current = 0;
           // 変更理由: ユーザー要望に合わせ、KVスクロール完了時点で再訪モードへ即移行します。
           // これにより、同一セッション内の「初回完了直後」でも監視を終了でき、1回目の再訪時の不安定さを抑制します。
           setIsReturningSession(true);
@@ -498,7 +489,6 @@ export default function KeyVisual() {
 
   useLayoutEffect(() => {
     if (isReturningSession) return;
-    const isLikelyMobileKv = window.innerWidth / window.innerHeight <= 4 / 3;
     if (!colorFadeCompleted) {
       maxAllowedProgressRef.current = teShownMax + 0.01;
     } else if (!teFadeCompleted) {
@@ -508,15 +498,9 @@ export default function KeyVisual() {
     }
     const { offsetTop, scrollable } = kvMetricsRef.current;
     kvMetricsRef.current.maxScroll = offsetTop + scrollable * maxAllowedProgressRef.current;
-    // 変更理由: モバイルでの閾値更新時に同期スクロール補正をかけると瞬間的なチラつきが出るため、
-    // この補正もPCのみに限定します。
-    if (
-      !isLikelyMobileKv &&
-      !hasDispatchedCompleteRef.current &&
-      window.scrollY > kvMetricsRef.current.maxScroll
-    ) {
-      window.scrollTo(0, kvMetricsRef.current.maxScroll);
-    }
+    // 変更理由: 閾値更新タイミングで現在スクロール位置を同期補正すると、
+    // 早スクロール時に逆方向へ戻される見え方が発生するため、ここでも位置補正は行いません。
+    // 表示上限の制御は progress のクランプのみで担保します。
   }, [colorFadeCompleted, teFadeCompleted, teShownMax, finalShownMax, isReturningSession]);
 
   useEffect(() => {
