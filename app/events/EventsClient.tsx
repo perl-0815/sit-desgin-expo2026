@@ -27,6 +27,8 @@ const reservedEvents: ReservedEvent[] = [
     imageSrc: "/image/osekkai.webp",
     imageAlt: "OSEKKAIのイベントバナー",
     // 詳細ページの実装先に合わせ、一覧導線はOSEKKAIカード側に設定します。
+    // 変更理由: 実際の公開URL(/events/farewell-lecture)に導線を統一し、
+    // ページ内遷移とSNS共有URLの不一致を防ぎます。
     href: "/events/farewell-lecture",
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },

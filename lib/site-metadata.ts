@@ -10,8 +10,8 @@ export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sit-design-expo2026.jp"
 // 変更理由: 共通OG画像の実ファイルは preview.webp なのに preview.png を参照していたため、
 // 一部SNSで画像取得に失敗してファビコンへフォールバックされていました。
-// 実在する preview.webp を既定OG画像として明示し、全ページで安定してプレビュー画像が出るようにします。
-export const socialPreviewImageUrl = `${siteUrl}/image/preview.webp?v=20260225a`
+// さらに WebP はSNSクローラによっては未対応のケースがあるため、互換性の高いPNGを既定にします。
+export const socialPreviewImageUrl = `${siteUrl}/image/preview.png?v=20260225b`
 
 type BuildPageMetadataOptions = {
   title: string
@@ -22,6 +22,10 @@ type BuildPageMetadataOptions = {
 }
 
 const normalizePath = (path: string) => (path.startsWith("/") ? path : `/${path}`)
+const toAbsoluteUrl = (value: string) =>
+  value.startsWith("http://") || value.startsWith("https://")
+    ? value
+    : `${siteUrl}${value.startsWith("/") ? value : `/${value}`}`
 
 const trimDescription = (value: string, maxLength = 140) => {
   const normalized = value.replace(/\s+/g, " ").trim()
@@ -50,14 +54,20 @@ export function buildPageMetadata({
   const normalizedPath = normalizePath(path)
   const absoluteUrl = `${siteUrl}${normalizedPath}`
   const normalizedDescription = trimDescription(description)
-  const selectedImageUrl = imageUrl?.trim() || socialPreviewImageUrl
+  // 変更理由: ページごとの imageUrl に相対パス（/image/...）を渡したときでも、
+  // すべてのSNSクローラで確実に解決できるよう絶対URLに正規化します。
+  const selectedImageUrl = toAbsoluteUrl(
+    imageUrl?.trim() || socialPreviewImageUrl,
+  )
   const selectedImageType = detectImageMimeType(selectedImageUrl)
 
   return {
     title,
     description: normalizedDescription,
     alternates: {
-      canonical: normalizedPath,
+      // 変更理由: canonical が相対パスだと一部クローラで正規URL解決に失敗するため、
+      // ページごとの canonical は常に絶対URLで出力します。
+      canonical: absoluteUrl,
     },
     openGraph: {
       title,

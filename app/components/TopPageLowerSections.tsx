@@ -41,6 +41,8 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
       "現役生によるデザイン工学部なんでも相談会です！学部4年生以上が参加しますのでこの機会にたくさん質問してください。",
     imageSrc: "/image/osekkai.webp",
     imageAlt: "OSEKKAIのイベントバナー",
+    // 変更理由: 実際の公開URL(/events/farewell-lecture)に導線を統一し、
+    // トップカード遷移とSNS共有URLの不一致を防ぎます。
     href: "/events/farewell-lecture",
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },

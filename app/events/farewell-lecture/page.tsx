@@ -4,7 +4,8 @@ import { buildPageMetadata } from "@/lib/site-metadata"
 
 import FarewellLectureClient from "./FarewellLectureClient"
 
-// 変更理由: イベント詳細の検索導線を強化するため、個別ページのメタ情報を明示します。
+// 変更理由: 実際の公開URLは /events/farewell-lecture のため、
+// このパスを正規ページとしてOGP/Twitterメタデータを定義します。
 export const metadata: Metadata = buildPageMetadata({
   title: "デザイン工学部なんでも相談会-OSEKKAI-",
   description:
@@ -12,7 +13,8 @@ export const metadata: Metadata = buildPageMetadata({
   path: "/events/farewell-lecture",
   // 変更理由: このページをSNS共有した際はイベント固有の告知ビジュアルを表示したいため、
   // 共通OG画像ではなく OSEKKAI 専用画像を明示指定します。
-  imageUrl: "/image/osekkai.webp",
+  // WebP未対応クローラでも確実に表示されるよう、OGP向けはPNGを優先します。
+  imageUrl: "/image/osekkai.png?v=20260225a",
 })
 
 export default function FarewellLecturePage() {
