@@ -6,13 +6,17 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   // include=student のときだけ学生情報を展開（コース表示に必要な研究室情報も合わせて取得）
   const includeStudent = searchParams.get("include") === "student"
-  // visibility=public 指定時のみ非公開データを除外し、公開ページでの誤表示を防ぎます。
+  // visibility=public 指定時のみ公開可能な進路だけを返します。
+  // 変更理由: 匿名公開の進路も詳細ページや進路ページに表示しない運用に統一するため、
+  // 「非公開」と「匿名公開」をどちらも除外します。
   const visibility = searchParams.get("visibility")
   const where =
     visibility === "public"
       ? {
           NOT: {
-            visibility: "非公開",
+            visibility: {
+              in: ["非公開", "匿名公開"],
+            },
           },
         }
       : undefined

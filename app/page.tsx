@@ -43,7 +43,9 @@ export default async function Home() {
   // noStore を維持すると他ページから戻るたびに DB クエリと整形処理が必ず再実行されるため重くなります。
   // App Router の再検証で十分に追従できるよう、5分の再検証に設定します。
 
-  // 進路データは非公開以外のみ集計し、トップページのグラフに反映します。
+  // 進路データは公開対象のみ集計し、トップページのグラフに反映します。
+  // 変更理由: 匿名公開の進路も画面表示の対象外とする運用に合わせ、
+  // 集計でも「非公開」と「匿名公開」を除外して表示との不整合を防ぎます。
   // Prismaの戻り値がビルド時にany扱いになるのを防ぐため、必要最小限の型を明示します。
   // 変更理由: 進路集計のために全行を取得すると戻る遷移のサーバー負荷が増えるため、
   // DB 側で count 集計し、アプリ側の走査コストを削減します。
@@ -52,19 +54,31 @@ export default async function Home() {
   const [gradCount, jobCount, total] = await Promise.all([
     prisma.career.count({
       where: {
-        NOT: { visibility: "非公開" },
+        NOT: {
+          visibility: {
+            in: ["非公開", "匿名公開"],
+          },
+        },
         category: { contains: "大学院" },
       },
     }),
     prisma.career.count({
       where: {
-        NOT: { visibility: "非公開" },
+        NOT: {
+          visibility: {
+            in: ["非公開", "匿名公開"],
+          },
+        },
         category: { contains: "就職" },
       },
     }),
     prisma.career.count({
       where: {
-        NOT: { visibility: "非公開" },
+        NOT: {
+          visibility: {
+            in: ["非公開", "匿名公開"],
+          },
+        },
       },
     }),
   ])
