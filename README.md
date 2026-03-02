@@ -54,6 +54,41 @@ npm run dev
 - 本番環境に対して `npx prisma migrate dev` は実行しないでください（開発環境専用）。
 - `GOOGLE_CLIENT_EMAIL` / `GOOGLE_PRIVATE_KEY` などが未設定でも、Google Sheets を使う機能以外は動作確認できます。
 
+## バージョン一覧（2026-03-02 時点）
+
+`package.json` とスクリプト定義上の主なバージョンです。
+
+- Node.js: 20 以上を推奨（`@types/node: ^20` を使用）
+- Next.js: `16.1.6`
+- React: `19.2.3`
+- React DOM: `19.2.3`
+- TypeScript: `^5`
+- Tailwind CSS: `^4`
+- Prisma CLI / Client: `^7.3.0`
+- PostgreSQL（ローカル Docker）: `16`（`postgres:16` イメージ）
+- ESLint: `^9`（`eslint-config-next: 16.1.6`）
+
+## 技術仕様
+
+このアプリケーションの主要な構成要素をまとめます。
+
+- フロントエンド:
+  - Next.js App Router（`app/` ディレクトリ）
+  - React + TypeScript
+  - Tailwind CSS
+- バックエンド/API:
+  - Next.js Route Handlers（例: `GET /api/roundtables`）
+- データベース:
+  - Prisma ORM
+  - PostgreSQL（ローカル開発は Docker 利用）
+- データ連携:
+  - Google Sheets API（座談会予約フォームの応募状況取得）
+  - Google Apps Script（フォーム選択肢の自動更新）
+- 画像/アセット運用:
+  - Cloudflare R2（画像アップロードおよびサムネイル運用）
+- デプロイ:
+  - Vercel（`npm run build` は `scripts/vercel-build.sh` を実行）
+
 ## ローカル Postgres (Docker)
 
 ローカルで Postgres を起動するためのスクリプトが含まれています。
