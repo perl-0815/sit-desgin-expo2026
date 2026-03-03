@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 
-import Footer from "../components/Footer"
-import GlobalHeader from "../components/GlobalHeader"
-import useSectionReveal from "../components/useSectionReveal"
+import Footer from "../components/Footer";
+import GlobalHeader from "../components/GlobalHeader";
+import useSectionReveal from "../components/useSectionReveal";
 
 type ReservedEvent = {
-  id: string
-  title: string
-  description: string
-  imageSrc: string
-  imageAlt: string
-  href?: string
-  ariaLabel?: string
-}
+  id: string;
+  title: string;
+  description: string;
+  imageSrc: string;
+  imageAlt: string;
+  href?: string;
+  ariaLabel?: string;
+};
 
 // Figma指定のカード内容を配列で一元管理し、文言/リンクの差し替えを局所化します。
 const reservedEvents: ReservedEvent[] = [
@@ -33,6 +33,17 @@ const reservedEvents: ReservedEvent[] = [
     ariaLabel: "デザイン工学部なんでも相談会-OSEKKAI-ページへ",
   },
   {
+    id: "osekkai-ii",
+    title: "【デザ工1,2年生向け】デザイン工学部なんでも相談会-OSEKKAⅡ-",
+    description:
+      "豊洲で勉強する先輩によるデザイン工学部なんでも相談会です！学部4年生以上が参加しますのでこの機会にたくさん相談してください。",
+    imageSrc: "/image/osekkai2.webp",
+    imageAlt: "【デザ工1,2年生向け】デザイン工学部なんでも相談会 OSEKKAⅡ",
+    href: "/events/osekkai-ii",
+    ariaLabel:
+      "【デザ工1,2年生向け】デザイン工学部なんでも相談会-OSEKKAⅡ-ページへ",
+  },
+  {
     id: "konsinkai",
     title: "退職される先生の最終講義と懇親会",
     description:
@@ -42,12 +53,12 @@ const reservedEvents: ReservedEvent[] = [
     href: "/events/konsinkai",
     ariaLabel: "退職される先生の最終講義と懇親会ページへ",
   },
-]
+];
 
 export default function EventsClient() {
   // 変更理由: Figma更新でイベントページ上部のトグルUIが廃止されたため、
   // クエリ同期を含むタブ切替状態を撤去し、単一のイベント一覧として表示します。
-  useSectionReveal()
+  useSectionReveal();
 
   return (
     <div className="min-h-screen bg-[#F9F9F9]">
@@ -81,7 +92,7 @@ export default function EventsClient() {
 
       <Footer />
     </div>
-  )
+  );
 }
 
 function EventCard({ event }: { event: ReservedEvent }) {
@@ -118,10 +129,10 @@ function EventCard({ event }: { event: ReservedEvent }) {
         </span>
       </div>
     </article>
-  )
+  );
 
   if (!event.href) {
-    return cardContent
+    return cardContent;
   }
 
   return (
@@ -132,12 +143,19 @@ function EventCard({ event }: { event: ReservedEvent }) {
     >
       {cardContent}
     </Link>
-  )
+  );
 }
 
 function ChevronRightIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      role="img"
+      aria-hidden="true"
+    >
       <path
         d="M10 7L15 12L10 17"
         stroke="currentColor"
@@ -146,5 +164,5 @@ function ChevronRightIcon() {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
