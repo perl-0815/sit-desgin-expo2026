@@ -9,7 +9,11 @@ export const metadata: Metadata = buildPageMetadata({
   description:
     "豊洲で勉強する先輩によるデザイン工学部なんでも相談会 OSEKKAⅡ の開催日程・会場・参加情報を掲載しています。",
   path: "/events/osekkai-ii",
-  imageUrl: "/image/osekkai-ogp.png?v=20260225a",
+  // 変更理由: OSEKKAII詳細ページのURL共有時にも、OSEKKAIページと同様に
+  // SNSプレビュー画像を安定表示させるため、1200x630の専用OGP画像を明示指定します。
+  // WebP(16:9)のままだとクローラ側でトリミングや取得失敗が起きるケースがあるため、
+  // OGP推奨比率へ合わせたPNGを利用して表示互換性を高めます。
+  imageUrl: "/image/osekkai2-ogp.png?v=20260303a",
 })
 
 export default function OsekkaiPage() {
