@@ -1,22 +1,93 @@
 このプロジェクトは [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app) で作成した [Next.js](https://nextjs.org) アプリです。
 
-## はじめに
+## はじめに（初回セットアップ）
 
-まず開発サーバーを起動します:
+このセクションだけ順番に実行すれば、初めてでも「クローン -> ローカル起動」まで進められます。
+
+1. Node.js / npm をインストール（推奨: Node.js 20 以上）
+2. GitHub からリポジトリをクローン
+
+```bash
+git clone https://github.com/syogakusya/sit-desgin-expo2026.git
+cd sit-desgin-expo2026
+```
+
+3. 依存関係をインストール
+
+```bash
+npm install
+```
+
+4. `.env` を作成して環境変数を設定（後述の「環境変数」を参照）
+
+`.env` の最小例（ローカル DB 起動まで）:
+
+```dotenv
+DATABASE_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schema=public"
+DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schema=public"
+```
+
+5. ローカル Postgres を起動（後述の「ローカル Postgres (Docker)」を参照）
+
+```bash
+./scripts/docker-postgres.sh start
+```
+
+6. Prisma マイグレーションと Prisma Client 再生成を実行
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+7. 開発サーバーを起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-ブラウザで [http://localhost:3000](http://localhost:3000) を開くと表示されます。
-
+ブラウザで [http://localhost:3000](http://localhost:3000) を開くと表示されます。  
 `app/page.tsx` を編集すると自動で更新されます。
+
+補足:
+- Yarn / pnpm / bun でも起動できます。
+- 本番環境に対して `npx prisma migrate dev` は実行しないでください（開発環境専用）。
+- `GOOGLE_CLIENT_EMAIL` / `GOOGLE_PRIVATE_KEY` などが未設定でも、Google Sheets を使う機能以外は動作確認できます。
+
+## バージョン一覧（2026-03-02 時点）
+
+`package.json` とスクリプト定義上の主なバージョンです。
+
+- Node.js: 20 以上を推奨（`@types/node: ^20` を使用）
+- Next.js: `16.1.6`
+- React: `19.2.3`
+- React DOM: `19.2.3`
+- TypeScript: `^5`
+- Tailwind CSS: `^4`
+- Prisma CLI / Client: `^7.3.0`
+- PostgreSQL（ローカル Docker）: `16`（`postgres:16` イメージ）
+- ESLint: `^9`（`eslint-config-next: 16.1.6`）
+
+## 技術仕様
+
+このアプリケーションの主要な構成要素をまとめます。
+
+- フロントエンド:
+  - Next.js App Router（`app/` ディレクトリ）
+  - React + TypeScript
+  - Tailwind CSS
+- バックエンド/API:
+  - Next.js Route Handlers（例: `GET /api/roundtables`）
+- データベース:
+  - Prisma ORM
+  - PostgreSQL（ローカル開発は Docker 利用）
+- データ連携:
+  - Google Sheets API（座談会予約フォームの応募状況取得）
+  - Google Apps Script（フォーム選択肢の自動更新）
+- 画像/アセット運用:
+  - Cloudflare R2（画像アップロードおよびサムネイル運用）
+- デプロイ:
+  - Vercel（`npm run build` は `scripts/vercel-build.sh` を実行）
 
 ## ローカル Postgres (Docker)
 
@@ -89,7 +160,7 @@ DATABASE_DIRECT_URL="postgres://sit:sitpass@localhost:5432/sit_design_expo?schem
 
 マイグレーション実行:
 
-これは開発サーバ用
+これは開発環境用
 ```bash
 npx prisma migrate dev
 ```
@@ -99,7 +170,7 @@ npx prisma migrate dev
 npx prisma migrate deploy
 ```
 
-マイグレーションが終わった後にprisma clientの再生成をしてください
+マイグレーションが終わった後に Prisma Client の再生成をしてください
 ```bash
 npx prisma generate
 ```
@@ -176,5 +247,18 @@ Next.js の詳細は以下を参照してください:
 ## Vercel へのデプロイ
 
 最も簡単なデプロイ方法は、Next.js の開発元である [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) を使うことです。
+
+このリポジトリでの基本手順:
+
+1. GitHub のリポジトリを Vercel に Import する
+2. Project Settings -> Environment Variables に `.env` の値を登録する  
+   最低限 `DATABASE_URL` と `DATABASE_DIRECT_URL` は必須です。  
+   座談会 API を使う場合は `GOOGLE_CLIENT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`, `GOOGLE_SHEET_NAME` も設定してください。
+3. 本番 DB を使う場合は、接続先が本番 DB であることを確認して `npx prisma migrate deploy` を実行する
+4. デプロイ後、必要に応じて `npm run lint` と動作確認を行う
+
+補足:
+- `npm run build` は `scripts/vercel-build.sh` を実行する設定です。
+- `npx prisma migrate dev` は開発環境専用です。Vercel / 本番 DB では使用しないでください。
 
 詳しくは [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) を参照してください。

@@ -6,8 +6,28 @@ export const siteName = "SIT DESIGN EXPO 2026"
 export const siteTitle = "芝浦工業大学デザイン工学部卒業展示2026"
 export const siteDescription =
   "芝浦工業大学デザイン工学部の学生による、それぞれの研究を展示する場です。ここには、プロダクト・システム・UXなど、デザイン工学という広い領域における多様な研究が集まります。"
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sit-design-expo2026.jp"
+// 変更理由: メイン独自ドメインに障害が出た場合でも公開サイトを継続できるよう、
+// 公式のVercel本番URLを最終フォールバックとして常に解決可能にします。
+export const fallbackSiteUrl = "https://sit-design-expo2026-production.vercel.app"
+
+const normalizeSiteUrl = (value: string | undefined) => {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
+  return withProtocol.replace(/\/+$/, "")
+}
+
+const resolveSiteUrl = () => {
+  return (
+    normalizeSiteUrl(process.env.NEXT_PUBLIC_SITE_URL) ??
+    normalizeSiteUrl(process.env.VERCEL_PROJECT_PRODUCTION_URL) ??
+    normalizeSiteUrl(process.env.VERCEL_URL) ??
+    fallbackSiteUrl
+  )
+}
+
+export const siteUrl = resolveSiteUrl()
 // 変更理由: 共通OG画像の実ファイルは preview.webp なのに preview.png を参照していたため、
 // 一部SNSで画像取得に失敗してファビコンへフォールバックされていました。
 // さらに WebP はSNSクローラによっては未対応のケースがあるため、互換性の高いPNGを既定にします。
