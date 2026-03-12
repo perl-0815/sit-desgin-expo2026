@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import CareerPieChart from "./CareerPieChart";
@@ -25,6 +26,63 @@ type WeekendLimitedEvent = {
   href?: string;
   ariaLabel?: string;
 };
+type RadioEpisode = {
+  number: number;
+  title: string;
+  duration: string;
+  href: string;
+};
+
+// 変更理由: フィグマ構成を踏襲するため、ラジオは固定データで行構造を先に再現し、
+// 将来CMS/APIへ差し替える際に最小変更で移行できるよう配列で管理します。
+const radioEpisodes: RadioEpisode[] = [
+  {
+    number: 1,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 2,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 3,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 4,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 5,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 6,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+  {
+    number: 7,
+    title: "ここにはこの回のタイトルが入ります。",
+    duration: "06:32",
+    href: "https://www.youtube.com/",
+  },
+];
+const radioLogoUrl = "/icon/setten_cast.png";
+const radioLeftDecorationUrl = "/image/decoration/setten_cast_left.png";
+const radioRightDecorationUrl = "/image/decoration/setten_cast_right.png";
+const radioProgramDetailId = "top-radio-program-detail";
 
 // 変更理由: 遅延マウント側へ切り出したセクションでのみ使う定数を分離し、
 // 初回表示ブロックに不要な責務を持たせないため、下層コンポーネント側で定義します。
@@ -81,6 +139,10 @@ const weekendLimitedEvents: WeekendLimitedEvent[] = [
 export default function TopPageLowerSections({
   careerStats,
 }: TopPageLowerSectionsProps) {
+  // 変更理由: Figmaでは「番組詳細」がページ遷移ではなく同一カード内で展開されるため、
+  // 開閉状態をトップページ下層セクション内で保持し、研究ページと同系統のロールアニメーションへ合わせます。
+  const [isRadioProgramDetailExpanded, setIsRadioProgramDetailExpanded] =
+    useState(false);
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total;
   const gradPercent =
@@ -136,6 +198,156 @@ export default function TopPageLowerSections({
               イベントを見る
               <span aria-hidden="true">→</span>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ラジオセクションはFigmaの2レイアウト（デスクトップ/モバイル）を統合して再現します。 */}
+      <section
+        data-reveal
+        className="relative overflow-x-clip bg-[#F9F9F9] px-4 py-12 md:px-8 md:pt-[48px] md:pb-[128px] lg:px-[128px]"
+      >
+        {/* 変更理由: モバイル版は Figma に合わせて左側装飾画像のみを使い、
+        コンテンツを邪魔しないよう右下へ逃がして配置します。 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[56px] right-[-52px] opacity-20 md:hidden"
+        >
+          <img
+            src={radioLeftDecorationUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="h-[640px] w-[480px] object-contain"
+          />
+        </div>
+        {/* 変更理由: デスクトップ版では装飾がやや下寄りかつ大きく見えていたため、
+        Figmaの印象に近づけるために少し上へ寄せつつ、左右画像を一段小さくして主役のカードを邪魔しないよう調整します。 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-[88px] hidden w-[1920px] -translate-x-1/2 items-center justify-center gap-[605px] opacity-30 md:flex"
+        >
+          <img
+            src={radioLeftDecorationUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="h-[640px] w-[479px] object-contain"
+          />
+          <img
+            src={radioRightDecorationUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="h-[635px] w-[592px] object-contain"
+          />
+        </div>
+        {/* 変更理由: モバイル時も「卒業生の進路」見出しと同じ本文幅基準に揃えるため、
+        ラジオ用ラッパーの固定 max-width を外し、section の左右余白内いっぱいを使う構成へ戻します。 */}
+        <div className="relative mx-auto flex w-full flex-col items-center md:max-w-[1024px]">
+          <div className="flex w-full flex-col items-center gap-4">
+            <div className="h-[82px] w-[175px] md:h-[134px] md:w-[284px]">
+              <img
+                src={radioLogoUrl}
+                alt="SETTEN CAST"
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="font-['Noto_Sans_JP:Regular',sans-serif] text-[15px] leading-[2] text-[#4B5459] tracking-[0.6px] text-center">
+              <p className="mb-0">卒展会場限定で聞くことができるラジオが、</p>
+              <p className="mb-0">Webからでも聞くことができるようになりました！</p>
+              <p>(Youtubeに遷移します。)</p>
+            </div>
+            {/* 変更理由: 番組詳細カードだけ固定幅だと下段のラジオ一覧より狭く見えるため、
+            モバイル/PCとも一覧カードと同じ横幅基準で揃えてセクション内の左右端を一致させます。 */}
+            <button
+              type="button"
+              className="flex w-full cursor-pointer flex-col gap-[4px] items-center justify-end rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-[12px] py-4 text-left transition-colors duration-200 hover:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]"
+              onClick={() =>
+                setIsRadioProgramDetailExpanded((prev) => !prev)
+              }
+              aria-expanded={isRadioProgramDetailExpanded}
+              aria-controls={radioProgramDetailId}
+            >
+              <div className="flex w-full items-center justify-between whitespace-nowrap">
+                <div className="flex gap-2 items-center">
+                  <span aria-hidden="true" className="inline-flex h-[16px] w-[16px]">
+                    <img
+                      src="/icon/radio_icon.svg"
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
+                      className="h-full w-full object-contain"
+                    />
+                  </span>
+                  <p className="font-['Noto_Sans_JP:Medium',sans-serif] text-[13px] font-medium leading-[1.5] text-[#2E3437]">
+                    番組詳細
+                  </p>
+                </div>
+                <span
+                  aria-hidden="true"
+                  className={`inline-flex text-[16px] leading-none text-[#A3ADB2] transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                    isRadioProgramDetailExpanded ? "rotate-180" : "rotate-0"
+                  }`}
+                >
+                  <TopRadioExpandIcon />
+                </span>
+              </div>
+              {/* 変更理由: 研究ページの研究室セクションと同じく、DOMを保持したまま高さ・透明度・位置を同時に補間し、
+              押し出しではなくロールして展開される見え方に揃えます。 */}
+              <div
+                id={radioProgramDetailId}
+                className={`grid w-full overflow-hidden text-[#6A7378] transition-[grid-template-rows,opacity,transform,margin] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                  isRadioProgramDetailExpanded
+                    ? "mt-1 grid-rows-[1fr] opacity-100 translate-y-0"
+                    : "grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                }`}
+                aria-hidden={!isRadioProgramDetailExpanded}
+              >
+                <div className="min-h-0">
+                  {/* 変更理由: Figma指定の本文と役割表記をそのまま1カード内へ収め、
+                  モバイル/PCとも13px・行間1.9ベースの読み味を維持します。 */}
+                  <div className="text-[13px] leading-[1.9] tracking-[0.02em] text-[#6A7378]">
+                    <p>
+                      卒展の裏話や、展示づくりのこと、各班の活動などを司会とゲストのトーク形式でお届けします。
+                    </p>
+                    <p>交流プラザでは1時間に1回程度放送を行います。</p>
+                    <div className="pt-4 text-[#4B5459]">
+                      <p>
+                        <span className="font-medium leading-[1.5]">司会</span>
+                        ：荒井・山崎
+                      </p>
+                      <p>
+                        <span className="font-medium leading-[1.5]">ゲスト</span>
+                        ：各班から1〜2名程度
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-4 w-full rounded-[16px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)]">
+            <div>
+              {radioEpisodes.map((episode, index) => (
+                <TopRadioEpisodeItem
+                  key={episode.number}
+                  number={episode.number}
+                  title={episode.title}
+                  duration={episode.duration}
+                  href={episode.href}
+                  isLast={index === radioEpisodes.length - 1}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -461,6 +673,72 @@ function TopWeekendLimitedEventCard({ event }: { event: WeekendLimitedEvent }) {
     >
       {cardContent}
     </Link>
+  );
+}
+
+function TopRadioEpisodeItem({
+  number,
+  title,
+  duration,
+  href,
+  isLast,
+}: {
+  number: number;
+  title: string;
+  duration: string;
+  href: string;
+  isLast: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex items-center justify-between px-[12px] py-[16px] relative ${
+        isLast ? "" : "border-b border-[#EBEEF0]"
+      } transition-colors duration-200 hover:bg-[#FDF8F4] active:bg-[#F9F2EC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]`}
+      aria-label={`第${number}回を再生ページへ`}
+    >
+      <div className="flex min-h-px min-w-px flex-1 items-center gap-[8px] font-['Noto_Sans_JP',sans-serif] text-[15px] font-normal leading-[2] tracking-[0.6px]">
+        <p className="shrink-0 text-[color:#A3ADB2]">#{number}</p>
+        {/* 変更理由: Figmaのラジオ一覧はタイトルを1行固定で見せているため、
+        長い文言は折り返さずに省略記号で切り、行の高さと再生時間チップの位置を安定させます。 */}
+        <p className="relative min-h-px min-w-px flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[color:#4B5459]">
+          {title}
+        </p>
+      </div>
+      {/* 変更理由: 再生チップが行全体の高さに引っ張られるとFigmaより縦長に見えるため、
+      高さはテキスト行高と内側余白だけで決まるようにして、ラベル本体の縦寸を本文に揃えます。 */}
+      <div className="ml-auto flex items-center">
+        <div className="w-[24px] shrink-0" aria-hidden="true" />
+        <div className="flex shrink-0 items-center justify-center rounded-full bg-[#EBEEF0] px-3 py-1">
+          <p className="font-['Noto_Sans_JP:Regular',sans-serif] font-normal leading-[1.5] text-[10px] text-[color:#4B5459] whitespace-pre">
+            {`▶  ${duration}`}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function TopRadioExpandIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      role="img"
+      aria-hidden="true"
+    >
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
