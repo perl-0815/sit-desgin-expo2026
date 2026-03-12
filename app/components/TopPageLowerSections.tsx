@@ -162,10 +162,11 @@ export default function TopPageLowerSections({
         // セクション高は内容量に追従する可変に変更します。Figmaの高さは最小高さとして保持し、余白設計は維持します。
         className="relative isolate min-h-[1098.125px] overflow-x-clip px-4 py-12 md:min-h-[1040px] md:px-8 lg:px-[128px] md:py-[128px]"
       >
-        {/* 土日限定イベントの背景もフルブリードにし、左右の余白で画像が途切れないようにします。 */}
+        {/* 土日限定イベントの背景もフルブリードにしつつ、デスクトップではラジオ装飾と同様に
+        1920px の固定フレーム基準で扱って、超広幅ディスプレイでも背景位置が伸びないようにします。 */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2 bg-[#EBEEF0]"
+          className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 w-[100dvw] max-w-[100dvw] -translate-x-1/2 bg-[#EBEEF0] md:w-[1920px] md:max-w-none"
           style={{
             backgroundImage: `url('${eventBackgroundUrl}')`,
             backgroundSize: "cover",
@@ -205,7 +206,7 @@ export default function TopPageLowerSections({
       {/* ラジオセクションはFigmaの2レイアウト（デスクトップ/モバイル）を統合して再現します。 */}
       <section
         data-reveal
-        className="relative overflow-x-clip bg-[#F9F9F9] px-4 py-12 md:px-8 md:pt-[48px] md:pb-[128px] lg:px-[128px]"
+        className="relative overflow-x-clip bg-[#F9F9F9] px-4 py-12 md:px-8 md:py-[128px] lg:px-[128px]"
       >
         {/* 変更理由: モバイル版は Figma に合わせて左側装飾画像のみを使い、
         コンテンツを邪魔しないよう右下へ逃がして配置します。 */}
@@ -261,14 +262,16 @@ export default function TopPageLowerSections({
             </div>
             <div className="font-['Noto_Sans_JP:Regular',sans-serif] text-[15px] leading-[2] text-[#4B5459] tracking-[0.6px] text-center">
               <p className="mb-0">卒展会場限定で聞くことができるラジオが、</p>
-              <p className="mb-0">Webからでも聞くことができるようになりました！</p>
+              {/* 変更理由: スマホ幅では「Webからでも」だと改行位置が不安定になるため、
+              Figma更新に合わせて短い文言へ揃え、中央揃えの見た目を安定させます。 */}
+              <p className="mb-0">Webから聞くことができるようになりました！</p>
               <p>(Youtubeに遷移します。)</p>
             </div>
             {/* 変更理由: 番組詳細カードだけ固定幅だと下段のラジオ一覧より狭く見えるため、
             モバイル/PCとも一覧カードと同じ横幅基準で揃えてセクション内の左右端を一致させます。 */}
             <button
               type="button"
-              className="flex w-full cursor-pointer flex-col gap-[4px] items-center justify-end rounded-[12px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)] px-[12px] py-4 text-left transition-colors duration-200 hover:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]"
+              className="flex w-full cursor-pointer flex-col gap-[4px] items-center justify-end rounded-[12px] border border-[#F9F9F9] bg-[rgba(255,255,255,0.8)] px-[12px] py-4 text-left transition-colors duration-200 hover:bg-[#FFFFFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]"
               onClick={() =>
                 setIsRadioProgramDetailExpanded((prev) => !prev)
               }
@@ -300,14 +303,14 @@ export default function TopPageLowerSections({
                   <TopRadioExpandIcon />
                 </span>
               </div>
-              {/* 変更理由: 研究ページの研究室セクションと同じく、DOMを保持したまま高さ・透明度・位置を同時に補間し、
-              押し出しではなくロールして展開される見え方に揃えます。 */}
+              {/* 変更理由: 本文コンテンツ自体を上下移動させると文字が震えて見えやすいため、
+              高さと透明度の補間を中心にして、テキストはその場で自然に現れる見え方へ寄せます。 */}
               <div
                 id={radioProgramDetailId}
-                className={`grid w-full overflow-hidden text-[#6A7378] transition-[grid-template-rows,opacity,transform,margin] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                className={`mt-1 grid w-full overflow-hidden text-[#6A7378] transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
                   isRadioProgramDetailExpanded
-                    ? "mt-1 grid-rows-[1fr] opacity-100 translate-y-0"
-                    : "grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none"
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0 pointer-events-none"
                 }`}
                 aria-hidden={!isRadioProgramDetailExpanded}
               >
@@ -335,7 +338,9 @@ export default function TopPageLowerSections({
             </button>
           </div>
 
-          <div className="mt-4 w-full rounded-[16px] border border-[#EBEEF0] bg-[rgba(255,255,255,0.8)]">
+          {/* 変更理由: Figmaの一覧カードは外枠直下に16px/8pxの内側余白があるため、
+          カード内へ余白を持たせて行と外枠の間に呼吸を作り、境界線色も Natural/50 に揃えます。 */}
+          <div className="mt-4 w-full rounded-[16px] border border-[#F9F9F9] bg-[rgba(255,255,255,0.8)] px-4 py-2">
             <div>
               {radioEpisodes.map((episode, index) => (
                 <TopRadioEpisodeItem
@@ -357,27 +362,34 @@ export default function TopPageLowerSections({
         data-reveal
         className="relative bg-[#F9F9F9] px-4 py-12 md:px-8 lg:px-[128px] md:py-[128px]"
       >
-        {/* 装飾画像の配置ルールに合わせ、dotgridはdecorationフォルダから参照します。 */}
-        <div className="pointer-events-none absolute right-6 top-6 hidden md:block md:right-[128px] md:top-[48px]">
-          <img
-            src="/image/decoration/dotgrid.svg"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
-            className="h-[144px] w-[192px]"
-          />
-        </div>
-        {/* PC表示のみの円装飾も、他装飾と同じdecorationフォルダ配下から読み込みます。 */}
-        <div className="pointer-events-none absolute left-70 top-110 hidden -translate-x-1/3 -translate-y-1/2 md:block">
-          <img
-            src="/image/decoration/circle.svg"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            fetchPriority="low"
-            className="h-[320px] w-[320px]"
-          />
+        {/* 変更理由: 他セクションの装飾もラジオと同じく 1920px 固定フレーム上に載せ、
+        超広幅時に viewport 比例で広がって見える挙動を避けます。 */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[1920px] -translate-x-1/2 md:block"
+        >
+          {/* 装飾画像の配置ルールに合わせ、dotgridは固定フレーム右上の所定位置へ配置します。 */}
+          <div className="absolute right-[128px] top-[48px]">
+            <img
+              src="/image/decoration/dotgrid.svg"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              className="h-[144px] w-[192px]"
+            />
+          </div>
+          {/* PC表示のみの円装飾も固定フレーム基準の座標へ移し、表示位置が画面幅でずれないようにします。 */}
+          <div className="absolute left-[280px] top-[440px] -translate-x-1/3 -translate-y-1/2">
+            <img
+              src="/image/decoration/circle.svg"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              className="h-[320px] w-[320px]"
+            />
+          </div>
         </div>
 
         <div className="mx-auto md:max-w-[1024px]">
@@ -695,7 +707,7 @@ function TopRadioEpisodeItem({
       target="_blank"
       rel="noopener noreferrer"
       className={`flex items-center justify-between px-[12px] py-[16px] relative ${
-        isLast ? "" : "border-b border-[#EBEEF0]"
+        isLast ? "" : "border-b border-[#F9F9F9]"
       } transition-colors duration-200 hover:bg-[#FDF8F4] active:bg-[#F9F2EC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]`}
       aria-label={`第${number}回を再生ページへ`}
     >
