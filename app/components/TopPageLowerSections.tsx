@@ -817,7 +817,7 @@ function TopRadioEpisodeModal({
       role="presentation"
       onClick={onClose}
     >
-      <div className="flex min-h-full items-start justify-center md:items-center">
+      <div className="flex min-h-full items-center justify-center">
         <div className="flex w-full max-w-[361px] flex-col items-center gap-2 md:w-[620px] md:max-w-none md:items-start md:gap-4">
         <button
           type="button"
