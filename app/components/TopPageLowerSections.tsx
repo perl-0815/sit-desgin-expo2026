@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import CareerPieChart from "./CareerPieChart";
@@ -29,6 +29,8 @@ type WeekendLimitedEvent = {
 type RadioEpisode = {
   number: number;
   title: string;
+  detail: string;
+  cast: string;
   duration: string;
   href: string;
 };
@@ -38,43 +40,66 @@ type RadioEpisode = {
 const radioEpisodes: RadioEpisode[] = [
   {
     number: 1,
-    title: "ここにはこの回のタイトルが入ります。",
+    title: "卒展誕生秘話を語る〜卒展委員TOP2対談〜",
+    detail:
+      "卒展立ち上げ期の判断や苦労、委員会の初期構想を中心に、全体をどう立ち上げたかを振り返る回です。",
+    cast: "荒井×卒展委員会TOP2",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 2,
-    title: "ここにはこの回のタイトルが入ります。",
+    title: "「接点」の生みの主！？コンセプトに込められた想いとは──",
+    detail:
+      "卒展コンセプト「接点」がどのように形づくられたのか、キーワードの背景と狙いを深掘りする回です。",
+    cast: "荒井×コンセプト班",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 3,
-    title: "ここにはこの回のタイトルが入ります。",
+    title:
+      "\"楽しい\"を生み出す！来場者とデザ工に自然な「接点」を持ってもらうには？",
+    detail:
+      "会場体験の設計や見せ方の工夫を通して、来場者と学生が無理なくつながる仕掛けを話す回です。",
+    cast: "荒井×Web班(〇〇)",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 4,
-    title: "ここにはこの回のタイトルが入ります。",
+    title:
+      "マイクラで宣伝！？SNSで1人でも多くの人に卒展のことを伝えたい！",
+    detail:
+      "SNS発信の裏側や、少しでも多くの人へ卒展を届けるために試した広報施策を紹介する回です。",
+    cast: "荒井×広報班",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 5,
-    title: "ここにはこの回のタイトルが入ります。",
+    title: "タイトル(ダミーのタイトルを作る)",
+    detail:
+      "仮置きのダミー詳細です。ここには番組内容の導入やゲスト情報など、タイトルを補足する説明が入ります。",
+    cast: "荒井×〇〇班",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 6,
-    title: "ここにはこの回のタイトルが入ります。",
+    title: "タイトル",
+    detail:
+      "仮置きのダミー詳細です。公開時には、その回で扱うテーマや収録内容の要約に差し替える想定です。",
+    cast: "荒井×ゲスト",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
   {
     number: 7,
-    title: "ここにはこの回のタイトルが入ります。",
+    title: "タイトル",
+    detail:
+      "仮置きのダミー詳細です。最終回想定の紹介文や、聞きどころをここへ表示できるようにしています。",
+    cast: "荒井×ゲスト",
     duration: "06:32",
     href: "https://www.youtube.com/",
   },
@@ -83,6 +108,7 @@ const radioLogoUrl = "/icon/setten_cast.png";
 const radioLeftDecorationUrl = "/image/decoration/setten_cast_left.png";
 const radioRightDecorationUrl = "/image/decoration/setten_cast_right.png";
 const radioProgramDetailId = "top-radio-program-detail";
+const radioModalThumbnailUrl = "https://img.youtube.com/vi/6qGc3EeimsI/hqdefault.jpg";
 
 // 変更理由: 遅延マウント側へ切り出したセクションでのみ使う定数を分離し、
 // 初回表示ブロックに不要な責務を持たせないため、下層コンポーネント側で定義します。
@@ -143,6 +169,31 @@ export default function TopPageLowerSections({
   // 開閉状態をトップページ下層セクション内で保持し、研究ページと同系統のロールアニメーションへ合わせます。
   const [isRadioProgramDetailExpanded, setIsRadioProgramDetailExpanded] =
     useState(false);
+  // 変更理由: ラジオ一覧はタイトル押下で詳細を読む導線へ分離するため、
+  // 選択中の回を state で保持し、簡易モーダルへ内容を流し込みます。
+  const [selectedRadioEpisode, setSelectedRadioEpisode] =
+    useState<RadioEpisode | null>(null);
+
+  useEffect(() => {
+    if (!selectedRadioEpisode) return;
+
+    // 変更理由: モーダル表示中は背面スクロールを止め、閲覧位置が意図せず動くのを防ぎます。
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedRadioEpisode(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedRadioEpisode]);
   // 進路データはサーバー側で集計済みの値を受け取り、表示用に割合へ変換します。
   const totalCareers = careerStats.total;
   const gradPercent =
@@ -347,15 +398,24 @@ export default function TopPageLowerSections({
                   key={episode.number}
                   number={episode.number}
                   title={episode.title}
+                  detail={episode.detail}
                   duration={episode.duration}
                   href={episode.href}
                   isLast={index === radioEpisodes.length - 1}
+                  onOpenDetail={() => setSelectedRadioEpisode(episode)}
                 />
               ))}
             </div>
           </div>
         </div>
       </section>
+
+      {selectedRadioEpisode ? (
+        <TopRadioEpisodeModal
+          episode={selectedRadioEpisode}
+          onClose={() => setSelectedRadioEpisode(null)}
+        />
+      ) : null}
 
       {/* 進路情報はイベントの後に配置し、Figmaの2カラム構成を再現します。 */}
       <section
@@ -691,45 +751,146 @@ function TopWeekendLimitedEventCard({ event }: { event: WeekendLimitedEvent }) {
 function TopRadioEpisodeItem({
   number,
   title,
+  detail,
   duration,
   href,
   isLast,
+  onOpenDetail,
 }: {
   number: number;
   title: string;
+  detail: string;
   duration: string;
   href: string;
   isLast: boolean;
+  onOpenDetail: () => void;
 }) {
   return (
-    <Link
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       className={`flex items-center justify-between px-[12px] py-[16px] relative ${
         isLast ? "" : "border-b border-[#F9F9F9]"
-      } transition-colors duration-200 hover:bg-[#FDF8F4] active:bg-[#F9F2EC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]`}
-      aria-label={`第${number}回を再生ページへ`}
+      } transition-colors duration-200 hover:bg-[#FDF8F4]`}
     >
-      <div className="flex min-h-px min-w-px flex-1 items-center gap-[8px] font-['Noto_Sans_JP',sans-serif] text-[15px] font-normal leading-[2] tracking-[0.6px]">
+      {/* 変更理由: タイトル文字だけでなく番号を含む左側ブロック全体を押下対象にして、
+      行のどこを押しても詳細モーダルを開けるようにします。 */}
+      <button
+        type="button"
+        className="flex min-h-px min-w-px flex-1 items-center gap-[8px] text-left font-['Noto_Sans_JP',sans-serif] text-[15px] font-normal leading-[2] tracking-[0.6px] outline-none transition-colors duration-200 hover:text-[#D3793D] focus-visible:text-[#D3793D]"
+        onClick={onOpenDetail}
+        aria-label={`第${number}回「${title}」の詳細を見る`}
+      >
         <p className="shrink-0 text-[color:#A3ADB2]">#{number}</p>
-        {/* 変更理由: Figmaのラジオ一覧はタイトルを1行固定で見せているため、
-        長い文言は折り返さずに省略記号で切り、行の高さと再生時間チップの位置を安定させます。 */}
-        <p className="relative min-h-px min-w-px flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[color:#4B5459]">
+        <span className="relative min-h-px min-w-px flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[color:#4B5459]">
           {title}
-        </p>
-      </div>
+        </span>
+      </button>
       {/* 変更理由: 再生チップが行全体の高さに引っ張られるとFigmaより縦長に見えるため、
       高さはテキスト行高と内側余白だけで決まるようにして、ラベル本体の縦寸を本文に揃えます。 */}
       <div className="ml-auto flex items-center">
         <div className="w-[24px] shrink-0" aria-hidden="true" />
-        <div className="flex shrink-0 items-center justify-center rounded-full bg-[#EBEEF0] px-3 py-1">
+        <Link
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex shrink-0 items-center justify-center rounded-full bg-[#EBEEF0] px-3 py-1 outline-none transition-colors duration-200 hover:bg-[#DDE1E4] focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-[#EBEEF0]"
+          aria-label={`第${number}回を再生ページへ`}
+        >
           <p className="font-['Noto_Sans_JP:Regular',sans-serif] font-normal leading-[1.5] text-[10px] text-[color:#4B5459] whitespace-pre">
             {`▶  ${duration}`}
           </p>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function TopRadioEpisodeModal({
+  episode,
+  onClose,
+}: {
+  episode: RadioEpisode;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[120] overflow-y-auto bg-[#3D3E42]/60 px-4 py-4 md:py-8"
+      role="presentation"
+      onClick={onClose}
+    >
+      <div className="flex min-h-full items-start justify-center md:items-center">
+        <div className="flex w-full max-w-[361px] flex-col items-center gap-2 md:w-[620px] md:max-w-none md:items-start md:gap-4">
+        <button
+          type="button"
+          className="hidden md:flex md:h-[62px] md:w-[62px] md:items-center md:justify-center md:rounded-full md:border md:border-[#EBEEF0] md:bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_0%,rgba(255,255,255,0.8)_100%),linear-gradient(90deg,#F9F9F9_0%,#F9F9F9_100%)] md:text-[#6A7378] md:outline-none md:transition-colors md:duration-200 md:hover:bg-[#FFFFFF] md:focus-visible:ring-2 md:focus-visible:ring-[#FB9678] md:focus-visible:ring-offset-2 md:focus-visible:ring-offset-transparent"
+          onClick={onClose}
+          aria-label="ラジオ詳細モーダルを閉じる"
+        >
+          <TopRadioModalCloseIcon />
+        </button>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="top-radio-episode-modal-title"
+          className="w-full rounded-[12px] border border-[#EBEEF0] p-4 shadow-[0_0_8px_rgba(106,115,120,0.1)] md:w-[620px] md:rounded-[20px] md:p-5"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.8) 100%), linear-gradient(90deg, #F9F9F9 0%, #F9F9F9 100%)",
+          }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="flex flex-col gap-4 md:gap-5">
+            <div className="flex flex-col gap-4 md:gap-5">
+              <div className="flex flex-col gap-1 md:gap-2">
+                {/* 変更理由: 比較の結果、モーダル内は埋め込み再生より静止サムネ表示の方が
+                情報整理しやすいため、Figmaの表示枠を保ったままサムネ画像のみへ戻します。 */}
+                <div className="relative h-[197.063px] w-full overflow-hidden bg-[#D9D9D9] md:h-[330px]">
+                  <img
+                    src={radioModalThumbnailUrl}
+                    alt={`${episode.title} のYouTubeサムネイル`}
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <h3
+                  id="top-radio-episode-modal-title"
+                  className="text-[16px] font-medium leading-[2.2] tracking-[0.04em] text-[#4B5459] md:text-[22px]"
+                >
+                  {episode.title}
+                </h3>
+              </div>
+              <p className="text-[13px] tracking-[0.02em] text-[#4B5459] md:tracking-[0.02em]">
+                <span className="font-medium leading-[1.5] text-[13px]">出演者</span>
+                <span className="leading-[1.9] text-[#6A7378] md:text-[17px]">：{episode.cast}</span>
+              </p>
+            </div>
+            <Link
+              href={episode.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#D3793D] px-8 py-4 text-[13px] font-medium leading-[1.5] text-[#F9F9F9] shadow-[0_0_8px_rgba(106,115,120,0.1)] transition-[background,box-shadow] duration-300 ease-out hover:[background:linear-gradient(98deg,rgba(255,255,255,0.20)_0.58%,rgba(255,255,255,0.15)_47.57%,rgba(255,255,255,0.10)_94.56%),#D3793D] hover:[background-blend-mode:plus-lighter] md:gap-3 md:rounded-[12px] md:px-12 md:py-5 md:text-[17px]"
+            >
+              このラジオを聞く
+              <span aria-hidden="true" className="text-[16px] leading-none md:text-[24px]">
+                ↗
+              </span>
+            </Link>
+          </div>
+        </div>
+        {/* 変更理由: 閉じるボタンはカード下に8px間隔で独立配置されているため、
+        固定絶対配置ではなくフロー内へ戻してサイズも 48px 基準へ揃えます。 */}
+        <button
+          type="button"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-[#EBEEF0] bg-[linear-gradient(90deg,rgba(255,255,255,0.8)_0%,rgba(255,255,255,0.8)_100%),linear-gradient(90deg,#F9F9F9_0%,#F9F9F9_100%)] text-[#6A7378] outline-none transition-colors duration-200 hover:bg-[#FFFFFF] focus-visible:ring-2 focus-visible:ring-[#FB9678] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent md:hidden"
+          onClick={onClose}
+          aria-label="ラジオ詳細モーダルを閉じる"
+        >
+          <TopRadioModalCloseIcon />
+        </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -749,6 +910,26 @@ function TopRadioExpandIcon() {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TopRadioModalCloseIcon() {
+  return (
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 24 24"
+      fill="none"
+      role="img"
+      aria-hidden="true"
+    >
+      <path
+        d="M6 6L18 18M18 6L6 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </svg>
   );
