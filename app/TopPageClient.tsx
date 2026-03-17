@@ -118,24 +118,23 @@ export default function TopPageClient({
     useState(false);
   const lowerSectionSentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // 開催期間は 2026/03/07 から 2026/03/17 まで（両日含む）として判定します。
-  // 0時基準で日付だけを比較し、時刻差による表示ぶれを防ぎます。
-  const eventStartDate = new Date(2026, 2, 7);
-  const eventEndDate = new Date(2026, 2, 17);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  eventStartDate.setHours(0, 0, 0, 0);
-  eventEndDate.setHours(0, 0, 0, 0);
+  // 開催期間は日本時間で 2026/03/07 00:00 開始、2026/03/18 00:00 到達で終了扱いにします。
+  // 変更理由: `new Date(2026, 2, 17)` のようなローカル日付比較だと、
+  // サーバーや実行環境のタイムゾーンが日本時間でない場合に 3/18 JST でも「開催中」のままになるためです。
+  // `+09:00` を付けた絶対時刻として保持し、SSR/CSR のどちらでも同じ判定結果になるようにします。
+  const eventStartDate = new Date("2026-03-07T00:00:00+09:00");
+  const eventEndDate = new Date("2026-03-18T00:00:00+09:00");
+  const now = new Date();
   const msPerDay = 1000 * 60 * 60 * 24;
   const daysUntilEvent = Math.max(
     0,
-    Math.ceil((eventStartDate.getTime() - today.getTime()) / msPerDay),
+    Math.ceil((eventStartDate.getTime() - now.getTime()) / msPerDay),
   );
   // 開催前/開催中/開催終了の3状態に正規化し、画像とテキスト表示を切り替えます。
   const eventTicketStatus: "before" | "during" | "ended" =
-    today < eventStartDate
+    now < eventStartDate
       ? "before"
-      : today > eventEndDate
+      : now >= eventEndDate
         ? "ended"
         : "during";
 
